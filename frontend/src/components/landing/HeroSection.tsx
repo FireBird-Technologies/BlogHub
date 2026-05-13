@@ -1,0 +1,306 @@
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, Link2, Loader2, ThumbsUp, MessageCircle, Check } from "lucide-react";
+import { useGoogleLogin } from "@react-oauth/google";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import Button from "../ui/Button";
+import Spinner from "../ui/Spinner";
+import Avatar from "../ui/Avatar";
+
+const TYPED_URL = "https://medium.com/design/typography-tips";
+
+const MOCK_PUB = {
+  title: "Typography Tips Every Designer Should Know",
+  description:
+    "A deep dive into the art of type — how spacing, weight, and contrast work together to create great reading experiences.",
+  category: "Design",
+  author: { name: "Sarah Chen", avatar_url: null as string | null },
+  upvote_count: 248,
+} as const;
+
+type DemoPhase = "typing" | "fetching" | "result";
+
+function CategoryBadge({ label }: { label: string }) {
+  return (
+    <span className="inline-flex w-fit items-center px-2.5 py-0.5 rounded-full text-xs font-medium border bg-purple-50 text-purple-700 border-purple-200">
+      {label}
+    </span>
+  );
+}
+
+function DemoPanel() {
+  const [phase, setPhase] = useState<DemoPhase>("typing");
+  const [typedLen, setTypedLen] = useState(0);
+
+  useEffect(() => {
+    if (phase === "typing") {
+      if (typedLen < TYPED_URL.length) {
+        const t = window.setTimeout(() => setTypedLen((n) => n + 1), 55);
+        return () => window.clearTimeout(t);
+      }
+      const t = window.setTimeout(() => setPhase("fetching"), 700);
+      return () => window.clearTimeout(t);
+    }
+    if (phase === "fetching") {
+      const t = window.setTimeout(() => setPhase("result"), 1800);
+      return () => window.clearTimeout(t);
+    }
+    if (phase === "result") {
+      const t = window.setTimeout(() => {
+        setPhase("typing");
+        setTypedLen(0);
+      }, 4000);
+      return () => window.clearTimeout(t);
+    }
+  }, [phase, typedLen]);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center gap-3">
+        {["Paste URL", "Preview", "Publish"].map((label, i) => {
+          const done =
+            (i === 0 && (phase === "fetching" || phase === "result")) || (i === 1 && phase === "result");
+          const active =
+            (i === 0 && phase === "typing") || (i === 1 && phase === "fetching") || (i === 2 && phase === "result");
+          return (
+            <div key={label} className="flex items-center gap-2">
+              <div
+                className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300
+                  ${done ? "bg-green-500 text-white" : active ? "bg-red-600 text-white" : "bg-gray-100 text-gray-400"}`}
+              >
+                {done ? <Check size={11} /> : i + 1}
+              </div>
+              <span
+                className={`text-sm font-medium transition-colors duration-300 ${active ? "text-gray-900" : "text-gray-400"}`}
+              >
+                {label}
+              </span>
+              {i < 2 && <div className="w-8 h-px bg-gray-200 ml-1" />}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="min-h-[300px] flex flex-col">
+        <AnimatePresence mode="wait">
+          {phase === "typing" && (
+            <motion.div
+              key="typing"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="flex flex-col gap-4"
+            >
+              <div>
+                <p className="text-xs font-medium text-gray-400 mb-2 uppercase tracking-wide">Article URL</p>
+                <div className="flex items-center gap-2 border border-gray-200 rounded-xl px-4 py-3 bg-gray-50/80">
+                  <Link2 size={15} className="text-gray-400 flex-shrink-0" />
+                  <span className="text-sm text-gray-700 font-mono flex-1 truncate">
+                    {TYPED_URL.slice(0, typedLen)}
+                    <span className="inline-block w-px h-4 bg-red-500 ml-0.5 animate-pulse align-middle" />
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled
+                className="self-start px-4 py-2 rounded-xl bg-gray-100 text-gray-400 text-sm font-medium cursor-not-allowed"
+              >
+                Fetch Preview
+              </button>
+            </motion.div>
+          )}
+
+          {phase === "fetching" && (
+            <motion.div
+              key="fetching"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="flex flex-col gap-4"
+            >
+              <div className="flex items-center gap-2 border border-gray-200 rounded-xl px-4 py-3 bg-gray-50/80">
+                <Link2 size={15} className="text-gray-400 flex-shrink-0" />
+                <span className="text-sm text-gray-500 font-mono flex-1 truncate">{TYPED_URL}</span>
+              </div>
+              <div className="flex items-center gap-3 py-10">
+                <Loader2 size={20} className="text-red-500 animate-spin flex-shrink-0" />
+                <p className="text-sm text-gray-500">Fetching preview…</p>
+              </div>
+            </motion.div>
+          )}
+
+          {phase === "result" && (
+            <motion.div
+              key="result"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.35 }}
+              className="flex flex-col gap-4"
+            >
+              <div className="flex gap-4 items-start">
+                <div className="w-20 h-20 flex-shrink-0 rounded-xl bg-gradient-to-br from-purple-100 via-pink-50 to-rose-100 flex items-center justify-center">
+                  <svg className="w-7 h-7 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                    />
+                  </svg>
+                </div>
+                <div className="flex flex-col gap-1 min-w-0">
+                  <CategoryBadge label={MOCK_PUB.category} />
+                  <p className="text-base font-semibold text-gray-900 leading-snug line-clamp-2">{MOCK_PUB.title}</p>
+                  <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">{MOCK_PUB.description}</p>
+                </div>
+              </div>
+
+              <div className="h-px bg-gray-100" />
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Avatar name={MOCK_PUB.author.name} size={24} />
+                  <span className="text-sm text-gray-500">{MOCK_PUB.author.name}</span>
+                </div>
+                <div className="flex items-center gap-3 text-gray-400 text-sm">
+                  <span className="flex items-center gap-1">
+                    <MessageCircle size={14} /> 12
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <ThumbsUp size={14} /> {MOCK_PUB.upvote_count}
+                  </span>
+                </div>
+              </div>
+
+              <motion.button
+                type="button"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+                className="self-start mt-2 px-5 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold shadow-lg shadow-red-600/20 hover:bg-red-700 transition-colors"
+              >
+                Publish →
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
+export default function HeroSection() {
+  const { loginWithGoogle } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setLoading(true);
+      setError("");
+      try {
+        await loginWithGoogle(tokenResponse.access_token);
+        navigate("/dashboard");
+      } catch {
+        setError("Sign-in failed. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    onError: () => setError("Google sign-in was cancelled or failed."),
+  });
+
+  return (
+    <section className="relative min-h-screen flex items-center overflow-hidden bg-white px-4 sm:px-6 pt-4 pb-10 sm:pt-6 sm:pb-14">
+      <div aria-hidden className="absolute top-1/3 left-0 w-[500px] h-[500px] rounded-full bg-red-600/5 blur-[120px] pointer-events-none" />
+      <div aria-hidden className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full bg-red-400/5 blur-[100px] pointer-events-none" />
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-[0.02]"
+        style={{
+          backgroundImage:
+            "linear-gradient(#dc2626 1px, transparent 1px), linear-gradient(to right, #dc2626 1px, transparent 1px)",
+          backgroundSize: "64px 64px",
+        }}
+      />
+
+      <div className="relative z-10 max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <div className="flex flex-col gap-7">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <span className="inline-flex items-center gap-2 text-xs font-medium text-red-600 border border-red-200 bg-red-50 rounded-full px-4 py-1.5 tracking-wide uppercase">
+              Community-curated publications
+            </span>
+          </motion.div>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.08 }}
+            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight text-gray-900"
+          >
+            Where great reads <span className="text-gradient">find their audience</span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.16 }}
+            className="text-lg text-gray-500 leading-relaxed"
+          >
+            Discover and share the publications that actually matter. Curated by people who read everything.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.24 }}
+            className="flex flex-col items-start gap-3"
+          >
+            <Button size="lg" onClick={() => handleLogin()} disabled={loading} className="gap-3 pr-5">
+              {loading ? <Spinner size={18} /> : <GoogleIcon />}
+              Continue with Google
+              {!loading && <ArrowRight size={16} />}
+            </Button>
+            {error && <p className="text-red-600 text-sm">{error}</p>}
+            <a href="#preview" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">
+              See what's inside →
+            </a>
+          </motion.div>
+        </div>
+
+        <motion.div initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.3 }}>
+          <DemoPanel />
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <path
+        d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
+        fill="#4285F4"
+      />
+      <path
+        d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"
+        fill="#34A853"
+      />
+      <path
+        d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A9.01 9.01 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"
+        fill="#FBBC05"
+      />
+      <path
+        d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
+        fill="#EA4335"
+      />
+    </svg>
+  );
+}

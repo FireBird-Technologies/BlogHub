@@ -1,0 +1,73 @@
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, LogOut } from "lucide-react";
+import { useGoogleLogin } from "@react-oauth/google";
+import { useAuth } from "../../context/AuthContext";
+import Avatar from "../ui/Avatar";
+import Button from "../ui/Button";
+import Spinner from "../ui/Spinner";
+
+export default function Navbar() {
+  const { user, loginWithGoogle, logout } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setLoading(true);
+      try {
+        await loginWithGoogle(tokenResponse.access_token);
+        navigate("/dashboard");
+      } finally {
+        setLoading(false);
+      }
+    },
+  });
+
+  return (
+    <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <Link to={user ? "/dashboard" : "/"} className="text-lg font-bold tracking-tight">
+            <span className="text-gradient">BlogHub</span>
+          </Link>
+          <ArrowRight size={13} className="text-gray-300 flex-shrink-0" />
+          <a
+            href="https://blog2video.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm font-semibold text-gray-400 hover:text-red-500 transition-colors"
+          >
+            Video
+          </a>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {user ? (
+            <>
+              <Link
+                to="/profile"
+                className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                <Avatar src={user.avatar_url} name={user.name} size={32} />
+                <span className="hidden sm:block font-medium">{user.name}</span>
+              </Link>
+              <button
+                type="button"
+                onClick={logout}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                title="Sign out"
+              >
+                <LogOut size={16} />
+              </button>
+            </>
+          ) : (
+            <Button variant="primary" size="sm" onClick={() => handleLogin()} disabled={loading}>
+              {loading ? <Spinner size={14} /> : "Sign in"}
+            </Button>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+}
