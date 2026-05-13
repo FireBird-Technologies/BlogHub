@@ -3,6 +3,13 @@ import Badge from "../ui/Badge";
 import Avatar from "../ui/Avatar";
 import { ChevronUp } from "lucide-react";
 
+/** Served from `public/assets/landing/` (committed JPEGs). */
+const PREVIEW_IMAGES = {
+  culture: "/assets/landing/culture.webp",
+  design: "/assets/landing/Design.webp",
+  tech: "/assets/landing/Tech.webp",
+} as const;
+
 const MOCK = [
   {
     id: 1,
@@ -12,6 +19,7 @@ const MOCK = [
     category: "Culture",
     upvote_count: 312,
     author: { name: "Alex Kim" },
+    image: PREVIEW_IMAGES.culture,
   },
   {
     id: 2,
@@ -21,6 +29,7 @@ const MOCK = [
     category: "Design",
     upvote_count: 204,
     author: { name: "Priya Sharma" },
+    image: PREVIEW_IMAGES.design,
   },
   {
     id: 3,
@@ -30,23 +39,21 @@ const MOCK = [
     category: "Tech",
     upvote_count: 541,
     author: { name: "James Okoro" },
+    image: PREVIEW_IMAGES.tech,
   },
 ] as const;
 
 function MockCard({ pub }: { pub: (typeof MOCK)[number] }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col">
-      <div className="aspect-video bg-gradient-to-br from-red-50 to-rose-50 flex items-center justify-center">
-        <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-          <svg className="text-red-400 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01"
-            />
-          </svg>
-        </div>
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+      <div className="aspect-video bg-gray-100 overflow-hidden relative">
+        <img
+          src={pub.image}
+          alt=""
+          className="w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
+        />
       </div>
       <div className="p-4 flex flex-col gap-2 flex-1">
         <Badge category={pub.category} />
@@ -79,7 +86,10 @@ export default function PreviewSection() {
           className="text-center mb-12"
         >
           <h2 className="text-3xl font-bold text-gray-900">See what's trending</h2>
-          <p className="text-gray-400 mt-2">A glimpse of what the community is reading right now.</p>
+          <p className="text-gray-400 mt-2 max-w-xl mx-auto">
+            A glimpse of what the community is reading right now. On the live app, each card uses the real thumbnail
+            from the shared link—these are sample stories with photos from our asset bundle.
+          </p>
         </motion.div>
 
         <motion.div

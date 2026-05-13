@@ -82,7 +82,7 @@ function DemoPanel() {
         })}
       </div>
 
-      <div className="min-h-[300px] flex flex-col">
+      <div className="min-h-[260px] flex flex-col">
         <AnimatePresence mode="wait">
           {phase === "typing" && (
             <motion.div
@@ -217,7 +217,7 @@ export default function HeroSection() {
   });
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-white px-4 sm:px-6 pt-4 pb-10 sm:pt-6 sm:pb-14">
+    <section className="relative flex items-center overflow-hidden bg-white px-4 sm:px-6 pt-28 sm:pt-32 lg:pt-36 pb-14 sm:pb-16 lg:pb-20">
       <div aria-hidden className="absolute top-1/3 left-0 w-[500px] h-[500px] rounded-full bg-red-600/5 blur-[120px] pointer-events-none" />
       <div aria-hidden className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full bg-red-400/5 blur-[100px] pointer-events-none" />
       <div
@@ -230,11 +230,11 @@ export default function HeroSection() {
         }}
       />
 
-      <div className="relative z-10 max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-        <div className="flex flex-col gap-7">
+      <div className="relative z-10 max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+        <div className="flex flex-col gap-5">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <span className="inline-flex items-center gap-2 text-xs font-medium text-red-600 border border-red-200 bg-red-50 rounded-full px-4 py-1.5 tracking-wide uppercase">
-              Community-curated publications
+              BlogHub
             </span>
           </motion.div>
 
@@ -242,7 +242,7 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.08 }}
-            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight text-gray-900"
+            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-[1.12] tracking-tight text-gray-900"
           >
             Where great reads <span className="text-gradient">find their audience</span>
           </motion.h1>
