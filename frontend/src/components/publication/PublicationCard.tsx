@@ -8,6 +8,7 @@ import Spinner from "../ui/Spinner";
 import UpvoteButton from "./UpvoteButton";
 import CommentsModal from "./CommentsModal";
 import type { Publication } from "../../types/models";
+import { useAuth } from "../../context/AuthContext";
 
 function RankBadge({ rank }: { rank: number }) {
   const base =
@@ -29,6 +30,7 @@ interface PublicationCardProps {
 
 export default function PublicationCard({ publication, queryKey, onDelete, onEdit, rank }: PublicationCardProps) {
   const navigate = useNavigate();
+  const { user, openLoginModal } = useAuth();
   const { id, title, description, image_url, category, upvote_count, comment_count, is_upvoted, author } =
     publication;
   const [confirming, setConfirming] = useState(false);
@@ -161,6 +163,10 @@ export default function PublicationCard({ publication, queryKey, onDelete, onEdi
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (!user) {
+                      openLoginModal();
+                      return;
+                    }
                     setCommentsOpen(true);
                   }}
                   className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold

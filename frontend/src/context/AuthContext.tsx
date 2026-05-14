@@ -21,6 +21,9 @@ interface AuthContextValue {
   logout: () => void;
   setUser: (u: User | null) => void;
   refreshUser: () => Promise<void>;
+  loginModalOpen: boolean;
+  openLoginModal: () => void;
+  closeLoginModal: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -28,6 +31,10 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+
+  const openLoginModal = useCallback(() => setLoginModalOpen(true), []);
+  const closeLoginModal = useCallback(() => setLoginModalOpen(false), []);
 
   useEffect(() => {
     const token = getToken();
@@ -65,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginWithGoogle, logout, setUser, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, loginWithGoogle, logout, setUser, refreshUser, loginModalOpen, openLoginModal, closeLoginModal }}>
       {children}
     </AuthContext.Provider>
   );

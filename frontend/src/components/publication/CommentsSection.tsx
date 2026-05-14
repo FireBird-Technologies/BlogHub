@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { FormEvent } from "react";
 import { Trash2, Send } from "lucide-react";
 import Avatar from "../ui/Avatar";
@@ -16,11 +16,25 @@ function timeAgo(dateStr: string) {
 
 interface CommentsSectionProps {
   publicationId: string;
+  /** Increment (e.g. from parent state) to scroll-to + focus the comment field for logged-in users. */
+  focusSignal?: number;
 }
 
-export default function CommentsSection({ publicationId }: CommentsSectionProps) {
-  const { user } = useAuth();
+export default function CommentsSection({ publicationId, focusSignal = 0 }: CommentsSectionProps) {
+  const { user, openLoginModal } = useAuth();
   const [text, setText] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [emphasizeInput, setEmphasizeInput] = useState(false);
+
+  useEffect(() => {
+    if (!user || !focusSignal) return;
+    const input = inputRef.current;
+    if (!input) return;
+    input.focus();
+    setEmphasizeInput(true);
+    const t = window.setTimeout(() => setEmphasizeInput(false), 2000);
+    return () => window.clearTimeout(t);
+  }, [focusSignal, user]);
 
   const { data: comments = [], isLoading } = useComments(publicationId);
   const { mutate: addComment, isPending: adding } = useAddComment(publicationId);
@@ -46,14 +60,16 @@ export default function CommentsSection({ publicationId }: CommentsSectionProps)
           <Avatar src={user.avatar_url} name={user.name} size={32} />
           <div className="flex-1 flex gap-2">
             <input
+              ref={inputRef}
               type="text"
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="Write a comment…"
               maxLength={1000}
-              className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm
+              className={`flex-1 bg-gray-50 border rounded-xl px-3 py-2 text-sm
                          text-gray-800 placeholder:text-gray-400 focus:outline-none
-                         focus:border-red-400 focus:ring-1 focus:ring-red-400/20 transition-colors"
+                         focus:border-red-400 focus:ring-1 focus:ring-red-400/20 transition-colors
+                         ${emphasizeInput ? "border-red-400 ring-2 ring-red-400/35 shadow-sm" : "border-gray-200"}`}
             />
             <button
               type="submit"
@@ -66,7 +82,13 @@ export default function CommentsSection({ publicationId }: CommentsSectionProps)
           </div>
         </form>
       ) : (
-        <p className="text-sm text-gray-400 mb-6">Sign in to leave a comment.</p>
+        <button
+          type="button"
+          onClick={openLoginModal}
+          className="w-full text-sm text-gray-400 mb-6 text-left bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 hover:border-red-300 hover:text-red-500 transition-colors cursor-pointer"
+        >
+          Sign in to leave a comment…
+        </button>
       )}
 
       {isLoading ? (

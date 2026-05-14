@@ -64,13 +64,17 @@ function LikeInteractiveStat({
   highlight: boolean;
   queryKey: readonly unknown[];
 }) {
-  const { user } = useAuth();
+  const { user, openLoginModal } = useAuth();
   const { mutate, isPending } = usePublicationUpvote(publicationId, queryKey);
 
   const wrapCls = highlight ? "bg-red-50 border-red-100 shadow-sm shadow-red-100/60" : "bg-gray-50 border-gray-200";
 
   const handleClick = () => {
-    if (!user || isPending) return;
+    if (!user) {
+      openLoginModal();
+      return;
+    }
+    if (isPending) return;
     mutate();
   };
 
@@ -82,7 +86,7 @@ function LikeInteractiveStat({
       title={user ? "Tap to like or unlike" : "Sign in to like"}
       className={`flex flex-col items-center gap-1 px-5 py-3 rounded-xl border transition-colors disabled:opacity-60
                   ${highlight ? wrapCls : `${wrapCls} hover:border-red-200 hover:bg-red-50/40`}
-                  ${!user ? "cursor-default" : "cursor-pointer"}`}
+                  cursor-pointer`}
     >
       {isPending ? (
         <Spinner size={15} />
@@ -97,15 +101,29 @@ function LikeInteractiveStat({
   );
 }
 
-function CommentScrollStat({ commentCount }: { commentCount: number }) {
+function CommentScrollStat({
+  commentCount,
+  onLoggedInCommentClick,
+}: {
+  commentCount: number;
+  onLoggedInCommentClick?: () => void;
+}) {
+  const { user, openLoginModal } = useAuth();
+
+  const handleClick = () => {
+    if (!user) {
+      openLoginModal();
+      return;
+    }
+    document.getElementById("publication-comments")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => onLoggedInCommentClick?.(), 400);
+  };
+
   return (
     <button
       type="button"
-      onClick={() =>
-        document
-          .getElementById("publication-comments")
-          ?.scrollIntoView({ behavior: "smooth", block: "start" })
-      }
+      onClick={handleClick}
+      title={user ? "View comments" : "Sign in to comment"}
       className="flex flex-col items-center gap-1 px-5 py-3 rounded-xl border bg-gray-50 border-gray-200
                  transition-colors hover:border-red-200 hover:bg-red-50/40 cursor-pointer"
     >
@@ -194,6 +212,11 @@ export default function PublicationDetail() {
   const { data: pub, isLoading, isError, queryKey, tz } = usePublication(id);
   const tzShort = tz || getClientTimezone();
   const [thumbError, setThumbError] = useState(false);
+  const [commentFocusSignal, setCommentFocusSignal] = useState(0);
+
+  useEffect(() => {
+    setCommentFocusSignal(0);
+  }, [id]);
 
   useEffect(() => {
     setThumbError(false);
@@ -201,10 +224,16 @@ export default function PublicationDetail() {
 
   useEffect(() => {
     if (isLoading || !pub || window.location.hash !== "#publication-comments") return undefined;
-    const t = window.setTimeout(() => {
+    const t1 = window.setTimeout(() => {
       document.getElementById("publication-comments")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 120);
-    return () => window.clearTimeout(t);
+    const t2 = window.setTimeout(() => {
+      setCommentFocusSignal((n) => n + 1);
+    }, 500);
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
   }, [isLoading, pub?.id]);
 
   if (isLoading) {
@@ -341,7 +370,10 @@ export default function PublicationDetail() {
 
           <div className="flex flex-wrap gap-3 items-stretch">
             <RankStat rank={pub.rank ?? null} timezoneLabel={tzShort} />
-            <CommentScrollStat commentCount={pub.comment_count ?? 0} />
+            <CommentScrollStat
+              commentCount={pub.comment_count ?? 0}
+              onLoggedInCommentClick={() => setCommentFocusSignal((n) => n + 1)}
+            />
             <LikeInteractiveStat
               publicationId={pub.id}
               value={pub.upvote_count}
@@ -364,7 +396,7 @@ export default function PublicationDetail() {
           </div>
 
 
-          <CommentsSection publicationId={pub.id} />
+          <CommentsSection publicationId={pub.id} focusSignal={commentFocusSignal} />
 
           <div className="h-4 flex-shrink-0" />
         </div>

@@ -5,6 +5,7 @@ import Badge from "../ui/Badge";
 import Avatar from "../ui/Avatar";
 import UpvoteButton from "./UpvoteButton";
 import type { Publication } from "../../types/models";
+import { useAuth } from "../../context/AuthContext";
 
 function formatShortDate(iso: string) {
   if (!iso) return "";
@@ -23,6 +24,7 @@ interface PublicationRowProps {
 
 export default function PublicationRow({ publication, queryKey, showTopTodayBadge }: PublicationRowProps) {
   const navigate = useNavigate();
+  const { user, openLoginModal } = useAuth();
   const {
     id,
     title,
@@ -122,7 +124,13 @@ export default function PublicationRow({ publication, queryKey, showTopTodayBadg
           type="button"
           className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-gray-500
                      bg-gray-50 border border-gray-200 hover:border-red-200 hover:text-red-600 transition-colors"
-          onClick={() => navigate(`/publications/${id}#publication-comments`)}
+          onClick={() => {
+            if (!user) {
+              openLoginModal();
+              return;
+            }
+            navigate(`/publications/${id}#publication-comments`);
+          }}
         >
           <MessageCircle size={14} />
           {comment_count ?? 0}
