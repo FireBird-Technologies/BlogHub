@@ -25,8 +25,11 @@ jobs:
             git checkout main
             git pull origin main
 
+            echo ">>> Stopping any container on port 8081..."
+            docker ps -q --filter "publish=8081" | xargs -r docker rm -f
+
             echo ">>> Rebuilding containers..."
-            docker compose down
+            docker compose down --remove-orphans
             docker compose build --no-cache
             docker compose up -d
 
