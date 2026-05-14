@@ -1,8 +1,10 @@
-import { useState, type FormEvent } from "react";
+import { useState, useRef, useEffect, type FormEvent } from "react";
 import { Trash2, Send } from "lucide-react";
+import { useGoogleLogin } from "@react-oauth/google";
 import Modal from "../ui/Modal";
 import Avatar from "../ui/Avatar";
 import Spinner from "../ui/Spinner";
+import GoogleSignInPill from "../ui/GoogleSignInPill";
 import { useAuth } from "../../context/AuthContext";
 import { useComments, useAddComment, useDeleteComment } from "../../hooks/useComments";
 import type { Publication } from "../../types/models";
@@ -22,8 +24,42 @@ interface CommentsModalProps {
 }
 
 export default function CommentsModal({ isOpen, onClose, publication }: CommentsModalProps) {
-  const { user } = useAuth();
+  const { user, loginWithGoogle } = useAuth();
   const [text, setText] = useState("");
+  const [googleBusy, setGoogleBusy] = useState(false);
+  const [googleError, setGoogleError] = useState("");
+  const commentInputRef = useRef<HTMLInputElement>(null);
+  const [emphasizeCommentInput, setEmphasizeCommentInput] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || !user) return;
+    const focusId = window.setTimeout(() => {
+      const el = commentInputRef.current;
+      if (!el) return;
+      el.focus();
+      setEmphasizeCommentInput(true);
+    }, 100);
+    const blurEmphasisId = window.setTimeout(() => setEmphasizeCommentInput(false), 2200);
+    return () => {
+      window.clearTimeout(focusId);
+      window.clearTimeout(blurEmphasisId);
+    };
+  }, [isOpen, user]);
+
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setGoogleBusy(true);
+      setGoogleError("");
+      try {
+        await loginWithGoogle(tokenResponse.access_token);
+      } catch {
+        setGoogleError("Sign-in failed. Try again.");
+      } finally {
+        setGoogleBusy(false);
+      }
+    },
+    onError: () => setGoogleError("Google sign-in was cancelled or failed."),
+  });
 
   const pubId = isOpen ? publication.id : null;
   const { data: comments = [], isLoading } = useComments(pubId);
@@ -81,14 +117,16 @@ export default function CommentsModal({ isOpen, onClose, publication }: Comments
           <Avatar src={user.avatar_url} name={user.name} size={28} />
           <div className="flex-1 flex gap-2">
             <input
+              ref={commentInputRef}
               type="text"
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="Write a comment…"
               maxLength={1000}
-              className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm
+              className={`flex-1 bg-gray-50 border rounded-lg px-3 py-2 text-sm
                          text-gray-800 placeholder:text-gray-400 focus:outline-none
-                         focus:border-red-400 focus:ring-1 focus:ring-red-400/20 transition-colors"
+                         focus:border-red-400 focus:ring-1 focus:ring-red-400/20 transition-colors
+                         ${emphasizeCommentInput ? "border-red-400 ring-2 ring-red-400/35 shadow-sm" : "border-gray-200"}`}
             />
             <button
               type="submit"
@@ -101,9 +139,11 @@ export default function CommentsModal({ isOpen, onClose, publication }: Comments
           </div>
         </form>
       ) : (
-        <p className="text-sm text-gray-400 text-center border-t border-gray-100 pt-4">
-          Sign in to leave a comment.
-        </p>
+        <div className="flex flex-col gap-3 items-stretch border-t border-gray-100 pt-4">
+          <p className="text-sm text-gray-500 text-center">Sign in to leave a comment.</p>
+          <GoogleSignInPill className="w-full" onClick={() => handleGoogleLogin()} loading={googleBusy} />
+          {googleError && <p className="text-red-600 text-sm text-center">{googleError}</p>}
+        </div>
       )}
     </Modal>
   );

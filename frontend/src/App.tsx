@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
+import LoginPromptModal from "./components/auth/LoginPromptModal";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
@@ -27,14 +28,7 @@ export default function App() {
           <AuthProvider>
             <Routes>
               <Route path="/" element={<Landing />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route
                 path="/profile"
                 element={
@@ -46,6 +40,7 @@ export default function App() {
               <Route path="/publications/:id" element={<PublicationDetail />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            <LoginPromptModal />
           </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>

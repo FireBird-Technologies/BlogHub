@@ -9,7 +9,7 @@ import { usePublications } from "../hooks/usePublications";
 import { useAuth } from "../context/AuthContext";
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, openLoginModal } = useAuth();
   const [category, setCategory] = useState("");
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -40,17 +40,15 @@ export default function Dashboard() {
             )}
           </div>
 
-          {user && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setModalOpen(true)}
-              className="flex-shrink-0"
-            >
-              <Plus size={15} />
-              <span>Add Publication</span>
-            </Button>
-          )}
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => user ? setModalOpen(true) : openLoginModal()}
+            className="flex-shrink-0"
+          >
+            <Plus size={15} />
+            <span>Add Publication</span>
+          </Button>
         </div>
 
         <DashboardPublicationList
@@ -59,7 +57,7 @@ export default function Dashboard() {
           hasNextPage={hasNextPage}
           fetchNextPage={fetchNextPage}
           queryKey={queryKey}
-          onSubmit={user ? () => setModalOpen(true) : undefined}
+          onSubmit={() => user ? setModalOpen(true) : openLoginModal()}
           isLoading={isLoading}
         />
       </main>

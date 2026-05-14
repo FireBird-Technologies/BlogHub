@@ -20,12 +20,12 @@ export default function UpvoteButton({
   queryKey,
   className = "",
 }: UpvoteButtonProps) {
-  const { user } = useAuth();
+  const { user, openLoginModal } = useAuth();
   const { mutate, isPending } = usePublicationUpvote(publicationId, queryKey);
 
   const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    if (!user) return;
+    if (!user) { openLoginModal(); return; }
     if (!isPending) mutate();
   };
 
