@@ -1,34 +1,11 @@
-# BlogHub production stack for a single host (e.g. DigitalOcean droplet).
-# Copy deploy.env.example to .env in this directory, fill in secrets, then:
-#   docker compose up -d --build
-#
-# Open http://YOUR_DROPLET_IP (or your domain). PostgreSQL data persists in volume postgres_data.
-
 services:
-  db:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: bloghub
-      POSTGRES_DB: bloghub
-      POSTGRES_HOST_AUTH_METHOD: trust
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bloghub -d bloghub"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
+    ports:
+      - "8081:8000"
     environment:
       DATABASE_URL: ${DATABASE_URL}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
@@ -38,21 +15,3 @@ services:
       JWT_EXPIRE_HOURS: ${JWT_EXPIRE_HOURS:-168}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
-    expose:
-      - "8000"
-
-  web:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        VITE_API_URL: ""
-        VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-    restart: unless-stopped
-    depends_on:
-      - backend
-    ports:
-      - "${HTTP_PORT:-8081}:80"
-
-volumes:
-  postgres_data:
