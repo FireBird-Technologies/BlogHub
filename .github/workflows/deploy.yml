@@ -18,7 +18,7 @@ jobs:
           script: |
             set -e
 
-            cd /opt/bloghub
+            cd BlogHub
 
             echo ">>> Pulling latest code..."
             git fetch origin main
