@@ -2,14 +2,23 @@
 set -e
 cd /app
 
-DB_HOST="${DB_HOST:-db}"
-DB_PORT="${DB_PORT:-5432}"
+# Parse host and port from DATABASE_URL if not explicitly set
+eval "$(python3 - <<'PY'
+import os
+from urllib.parse import urlparse
+url = urlparse(os.environ.get("DATABASE_URL", ""))
+host = os.environ.get("DB_HOST") or url.hostname or "localhost"
+port = os.environ.get("DB_PORT") or str(url.port or 5432)
+print(f"DB_HOST={host}")
+print(f"DB_PORT={port}")
+PY
+)"
 
 echo "Waiting for PostgreSQL at ${DB_HOST}:${DB_PORT}..."
-python - <<'PY'
+python3 - <<'PY'
 import os, socket, time
-host = os.environ.get("DB_HOST", "db")
-port = int(os.environ.get("DB_PORT", "5432"))
+host = os.environ["DB_HOST"]
+port = int(os.environ["DB_PORT"])
 for i in range(60):
     try:
         s = socket.create_connection((host, port), timeout=2)
