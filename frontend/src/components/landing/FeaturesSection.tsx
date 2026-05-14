@@ -55,10 +55,6 @@ export default function FeaturesSection() {
           className="text-center mb-12 max-w-3xl mx-auto"
         >
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">Built for curious readers</h2>
-          <p className="text-gray-500 mt-3 text-lg leading-relaxed">
-            BlogHub sits between a bookmarking tool and a social feed: lightweight submission, clear metadata, and a
-            community layer so good writing gets seen without running a newsletter or a blog yourself.
-          </p>
           <p className="text-gray-400 text-sm mt-3 leading-relaxed">
             Whether you are hunting for your next deep read or curating links for peers, the same flow applies—find,
             share, and react in one place.

@@ -38,6 +38,20 @@ export function usePublications({ category, search, sort = "ranked" }: UsePublic
   });
 }
 
+/** First page of publications for marketing / landing (no infinite scroll). */
+export function usePublicationsPreview(limit: number, sort = "ranked") {
+  return useQuery<PaginatedPublications, Error>({
+    queryKey: ["publications-preview", limit, sort],
+    queryFn: () =>
+      api
+        .get<PaginatedPublications>("/api/publications", {
+          params: { limit, sort },
+        })
+        .then((r) => r.data),
+    staleTime: 60_000,
+  });
+}
+
 export function usePublication(id: string | undefined) {
   const tz = getClientTimezone();
   const queryKey = ["publication", id, tz] as const;
