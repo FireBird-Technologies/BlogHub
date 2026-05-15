@@ -1,66 +1,82 @@
-from urllib.parse import urljoin, urlparse
+import logging
+from urllib.parse import urlparse
 
 import httpx
-from bs4 import BeautifulSoup
 
 from app.schemas.scraper import ScrapeResult
+from app.settings import settings
+
+logger = logging.getLogger(__name__)
+
+_FIRECRAWL_URL = "https://api.firecrawl.dev/v1/scrape"
 
 
-async def fetch_url(url: str) -> str:
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (compatible; BlogHubBot/1.0; +https://bloghub.app)"
-        )
+def _canonical_url(url: str) -> str:
+    try:
+        parsed = urlparse(url)
+        if parsed.scheme and parsed.netloc:
+            return f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+    except Exception:
+        pass
+    return url
+
+
+def _pick(meta: dict, *keys: str) -> str | None:
+    for key in keys:
+        val = meta.get(key)
+        if isinstance(val, str) and val.strip():
+            return val.strip()
+        if isinstance(val, list) and val:
+            first = val[0]
+            if isinstance(first, str) and first.strip():
+                return first.strip()
+    return None
+
+
+async def scrape_with_firecrawl(url: str) -> ScrapeResult:
+    """
+    Scrape OG-style metadata via Firecrawl. Returns ScrapeResult(url=...) with
+    available fields populated, or an empty result on any failure.
+    """
+    canonical = _canonical_url(url)
+
+    if not settings.FIRECRAWL_API_KEY:
+        logger.warning("FIRECRAWL_API_KEY not configured; returning empty scrape result")
+        return ScrapeResult(url=canonical)
+
+    payload = {
+        "url": url,
+        "formats": ["markdown"],
+        "onlyMainContent": True,
     }
-    async with httpx.AsyncClient(follow_redirects=True, timeout=10.0) as client:
-        response = await client.get(url, headers=headers)
-        response.raise_for_status()
-        return response.text
+    headers = {
+        "Authorization": f"Bearer {settings.FIRECRAWL_API_KEY}",
+        "Content-Type": "application/json",
+    }
 
+    try:
+        async with httpx.AsyncClient(timeout=25.0) as client:
+            resp = await client.post(_FIRECRAWL_URL, headers=headers, json=payload)
+            resp.raise_for_status()
+            body = resp.json()
+    except httpx.TimeoutException:
+        logger.warning("Firecrawl timed out for %s", url)
+        return ScrapeResult(url=canonical)
+    except Exception as exc:
+        logger.warning("Firecrawl failed for %s: %s", url, exc)
+        return ScrapeResult(url=canonical)
 
-def make_absolute(src: str, base: str) -> str:
-    if not src:
-        return src
-    return urljoin(base, src)
+    data = body.get("data") or {}
+    meta = data.get("metadata") or {}
 
-
-def parse_og_tags(html: str, base_url: str) -> ScrapeResult:
-    soup = BeautifulSoup(html, "html.parser")
-
-    def meta(prop: str, attr: str = "property") -> str | None:
-        tag = soup.find("meta", attrs={attr: prop})
-        if tag and tag.get("content"):
-            return tag["content"].strip() or None
-        return None
-
-    title = (
-        meta("og:title")
-        or meta("twitter:title")
-        or (soup.title.string.strip() if soup.title and soup.title.string else None)
-    )
-
-    description = (
-        meta("og:description")
-        or meta("twitter:description")
-        or meta("description", attr="name")
-    )
-
-    image = meta("og:image") or meta("twitter:image")
-
-    if not image:
-        img_tag = soup.find("img", src=True)
-        if img_tag:
-            image = img_tag["src"]
-
-    if image:
-        image = make_absolute(image, base_url)
-
-    parsed = urlparse(base_url)
-    canonical_url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+    title = _pick(meta, "ogTitle", "twitterTitle", "title")
+    description = _pick(meta, "ogDescription", "twitterDescription", "description")
+    image_url = _pick(meta, "ogImage", "twitterImage", "image")
+    source = _pick(meta, "sourceURL", "url") or canonical
 
     return ScrapeResult(
-        url=canonical_url,
+        url=_canonical_url(source),
         title=title,
         description=description,
-        image_url=image,
+        image_url=image_url,
     )

@@ -8,12 +8,13 @@ class Settings(BaseSettings):
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_HOURS: int = 168
-    GEMINI_API_KEY: str | None = None
-    # Preferred model id; discovery also lists models your key can use (see gemini_description helper).
-    GEMINI_MODEL: str = "gemini-3-flash-preview"
+    OPEN_ROUTER_KEY: str | None = None
+    OPENROUTER_MODEL: str = "deepseek/deepseek-chat"
+    FIRECRAWL_API_KEY: str | None = None
 
     class Config:
         env_file = ".env"
+        extra = "ignore"
 
 
 settings = Settings()
