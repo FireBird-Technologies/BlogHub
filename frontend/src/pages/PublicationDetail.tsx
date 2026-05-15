@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, ExternalLink, Tag, ThumbsUp, MessageCircle, Calendar, Video, Trophy, Pencil } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "../lib/api";
+import { ArrowLeft, ExternalLink, Tag, ThumbsUp, MessageCircle, Calendar, Video, Trophy, Pencil, Trash2 } from "lucide-react";
 import Navbar from "../components/layout/Navbar";
 import Spinner from "../components/ui/Spinner";
 import Avatar from "../components/ui/Avatar";
@@ -284,6 +286,19 @@ export default function PublicationDetail() {
   const [thumbError, setThumbError] = useState(false);
   const [commentFocusSignal, setCommentFocusSignal] = useState(0);
   const [editField, setEditField] = useState<EditableField | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { mutate: deletePublication, isPending: isDeleting } = useMutation({
+    mutationFn: (publicationId: string) =>
+      api.delete(`/api/publications/${publicationId}`).then((r) => r.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["publications"] });
+      queryClient.invalidateQueries({ queryKey: ["user-publications"] });
+      queryClient.invalidateQueries({ queryKey: ["sidebar-publications"] });
+      navigate("/");
+    },
+  });
 
   useEffect(() => {
     setCommentFocusSignal(0);
@@ -473,7 +488,7 @@ export default function PublicationDetail() {
 
           <div className="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4">
             <Avatar src={pub.author?.avatar_url} name={pub.author?.name} size={48} />
-            <div>
+            <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-900">{pub.author?.name}</p>
               <p className="text-xs text-gray-400">{pub.author?.email}</p>
               {pub.created_at && (
@@ -482,6 +497,42 @@ export default function PublicationDetail() {
                 </p>
               )}
             </div>
+
+            {isOwner && (
+              confirmingDelete ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 hidden sm:inline">Delete this publication?</span>
+                  <button
+                    type="button"
+                    onClick={() => deletePublication(pub.id)}
+                    disabled={isDeleting}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600 text-white
+                               hover:bg-red-700 disabled:opacity-50 transition-colors"
+                  >
+                    {isDeleting ? <Spinner size={12} /> : "Delete"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmingDelete(false)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-gray-200
+                               text-gray-600 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirmingDelete(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold
+                             border border-gray-200 bg-white text-gray-600 hover:text-red-600
+                             hover:border-red-200 hover:bg-red-50 transition-colors shrink-0"
+                >
+                  <Trash2 size={13} />
+                  Delete publication
+                </button>
+              )
+            )}
           </div>
 
 
