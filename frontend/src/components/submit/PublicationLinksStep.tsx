@@ -2,7 +2,13 @@ import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import Button from "../ui/Button";
 import Spinner from "../ui/Spinner";
+import CustomDropdown from "../ui/CustomDropdown";
 import type { SocialLinkInput } from "../../types/models";
+import {
+  SOCIAL_OPTIONS,
+  DEFAULT_SOCIAL_LABEL,
+  isKnownSocialLabel,
+} from "../../constants/socials";
 
 const defaultInputCls =
   "w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-lg px-3 py-2.5 placeholder:text-gray-400 focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400/20 hover:border-gray-300 transition-colors";
@@ -11,7 +17,7 @@ export const LINKS_MAX_EXTRA = 5;
 export const LINKS_MAX_SOCIAL = 8;
 
 export function emptySocialRow(): SocialLinkInput {
-  return { label: "", url: "" };
+  return { label: DEFAULT_SOCIAL_LABEL, url: "" };
 }
 
 export interface PublicationLinksFieldsProps {
@@ -83,45 +89,50 @@ export function PublicationLinksFields({
           )}
         </div>
         <div className="flex flex-col gap-3">
-          {socials.map((row, i) => (
-            <div key={i} className="flex gap-2 items-start">
-              <input
-                type="text"
-                value={row.label}
-                onChange={(e) =>
-                  setSocials((prev) => {
-                    const next = [...prev];
-                    next[i] = { ...next[i], label: e.target.value };
-                    return next;
-                  })
-                }
-                placeholder="e.g. Twitter / X"
-                className={`${inputClassName} flex-1 min-w-0`}
-                maxLength={64}
-              />
-              <input
-                type="url"
-                value={row.url}
-                onChange={(e) =>
-                  setSocials((prev) => {
-                    const next = [...prev];
-                    next[i] = { ...next[i], url: e.target.value };
-                    return next;
-                  })
-                }
-                placeholder="https://…"
-                className={`${inputClassName} flex-[2] min-w-0`}
-              />
-              <button
-                type="button"
-                onClick={() => removeSocialRow(i)}
-                className="mt-2 p-1.5 text-gray-300 hover:text-red-500 rounded-lg shrink-0"
-                aria-label="Remove row"
-              >
-                <Trash2 size={16} />
-              </button>
-            </div>
-          ))}
+          {socials.map((row, i) => {
+            const hasLegacyLabel = !!(row.label && !isKnownSocialLabel(row.label));
+            const dropdownOptions = [
+              ...(hasLegacyLabel ? [{ value: row.label, label: `${row.label} (current)` }] : []),
+              ...SOCIAL_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
+            ];
+            return (
+              <div key={i} className="flex gap-2 items-start">
+                <CustomDropdown
+                  value={row.label || DEFAULT_SOCIAL_LABEL}
+                  options={dropdownOptions}
+                  onChange={(v) =>
+                    setSocials((prev) => {
+                      const next = [...prev];
+                      next[i] = { ...next[i], label: v };
+                      return next;
+                    })
+                  }
+                  className="w-28 shrink-0"
+                />
+                <input
+                  type="url"
+                  value={row.url}
+                  onChange={(e) =>
+                    setSocials((prev) => {
+                      const next = [...prev];
+                      next[i] = { ...next[i], url: e.target.value };
+                      return next;
+                    })
+                  }
+                  placeholder="https://…"
+                  className={`${inputClassName} flex-1 min-w-0`}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeSocialRow(i)}
+                  className="mt-2 p-1.5 text-gray-300 hover:text-red-500 rounded-lg shrink-0"
+                  aria-label="Remove row"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -149,7 +160,7 @@ export function initLinkExtraSlots(initialAdditionalLinks: string[] | undefined)
 
 export function initLinkSocialRows(initialSocialLinks: SocialLinkInput[] | undefined): SocialLinkInput[] {
   const base = (initialSocialLinks?.length ? initialSocialLinks : [emptySocialRow()]).map((s) => ({
-    label: s.label || "",
+    label: s.label || DEFAULT_SOCIAL_LABEL,
     url: s.url || "",
   }));
   while (base.length < 1) base.push(emptySocialRow());

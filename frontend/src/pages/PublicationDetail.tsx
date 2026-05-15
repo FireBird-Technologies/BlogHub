@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, ExternalLink, Tag, ThumbsUp, MessageCircle, Calendar, Video, Trophy } from "lucide-react";
+import { ArrowLeft, ExternalLink, Tag, ThumbsUp, MessageCircle, Calendar, Video, Trophy, Pencil } from "lucide-react";
 import Navbar from "../components/layout/Navbar";
 import Spinner from "../components/ui/Spinner";
 import Avatar from "../components/ui/Avatar";
 import Badge from "../components/ui/Badge";
 import CommentsSection from "../components/publication/CommentsSection";
 import SidebarPublications from "../components/publication/SidebarPublications";
+import EditPublicationFieldModal, { type EditableField } from "../components/publication/EditPublicationFieldModal";
 import { usePublication, getClientTimezone } from "../hooks/usePublications";
 import { useAuth } from "../context/AuthContext";
 import { usePublicationUpvote } from "../hooks/usePublicationUpvote";
 import { resolveSocialIcon } from "../lib/socialIcons";
+import { useLinkEmbeds } from "../hooks/useLinkEmbeds";
 import type { PublicationId } from "../types/models";
 
 function formatDate(iso: string | undefined): string {
@@ -134,41 +136,104 @@ function CommentScrollStat({
   );
 }
 
-function shortenUrlLine(href: string, maxLen = 54): string {
+function EditButton({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      className="inline-flex items-center justify-center h-7 w-7 rounded-lg border border-gray-200
+                 bg-white text-gray-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50
+                 transition-colors shrink-0"
+    >
+      <Pencil size={13} />
+    </button>
+  );
+}
+
+function hostnameOf(href: string): string {
   try {
-    const u = new URL(href);
-    const path = `${u.pathname}${u.search}${u.hash}`;
-    let s = `${u.hostname.replace(/^www\./, "")}${path === "/" ? "" : path}`;
-    if (s.length > maxLen) s = `${s.slice(0, maxLen - 1)}…`;
-    return s;
+    return new URL(href).hostname.replace(/^www\./, "");
   } catch {
-    const s0 = href.replace(/^https?:\/\//i, "");
-    if (s0.length <= maxLen) return s0;
-    return `${s0.slice(0, maxLen - 1)}…`;
+    return href.replace(/^https?:\/\//i, "").split("/")[0];
   }
 }
 
-function LinksPanel({ additionalLinks }: { additionalLinks: string[] }) {
-  if (!additionalLinks?.length) return null;
+function LinkEmbedsPanel({
+  additionalLinks,
+  onEdit,
+}: {
+  additionalLinks: string[];
+  onEdit?: () => void;
+}) {
+  const embeds = useLinkEmbeds(additionalLinks);
+  if (!additionalLinks?.length && !onEdit) return null;
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm flex flex-col gap-2 min-w-0">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Related links</p>
-      <ul className="flex flex-col gap-1.5 min-w-0">
-        {additionalLinks.map((href, i) => (
-          <li key={`${href}-${i}`} className="min-w-0">
+    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm flex flex-col gap-3 min-w-0">
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Related links</p>
+        {onEdit && <EditButton onClick={onEdit} label="Edit related links" />}
+      </div>
+      {!additionalLinks?.length && (
+        <p className="text-xs text-gray-400 italic">No related links yet.</p>
+      )}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+        {embeds.map(({ href, isLoading, data }, i) => {
+          const title = data?.title || hostnameOf(href);
+          const image = data?.image_url || null;
+          return (
             <a
+              key={`${href}-${i}`}
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              title={href}
-              className="text-sm text-red-600 hover:text-red-700 flex items-center gap-2 min-w-0 max-w-full"
+              title={title}
+              className="group flex flex-col rounded-lg border border-gray-200 bg-white overflow-hidden
+                         hover:border-red-200 hover:bg-red-50/30 transition-colors min-w-0"
             >
-              <ExternalLink size={14} className="flex-shrink-0 opacity-70" />
-              <span className="truncate">{shortenUrlLine(href)}</span>
+              <div className="aspect-video w-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                {isLoading ? (
+                  <div className="w-full h-full animate-pulse bg-gray-200" />
+                ) : image ? (
+                  <img
+                    src={image}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <ExternalLink size={20} className="text-gray-300" />
+                )}
+              </div>
+              <div className="p-2 flex flex-col min-w-0">
+                {isLoading ? (
+                  <>
+                    <div className="h-3 w-3/4 rounded bg-gray-200 animate-pulse mb-1" />
+                    <div className="h-3 w-1/2 rounded bg-gray-200 animate-pulse" />
+                  </>
+                ) : (
+                  <>
+                    <p
+                      className="text-xs font-medium text-gray-900 leading-snug overflow-hidden"
+                      style={{
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                      }}
+                    >
+                      {title}
+                    </p>
+                    <p className="text-[10px] text-gray-400 mt-1 truncate">{hostnameOf(href)}</p>
+                  </>
+                )}
+              </div>
             </a>
-          </li>
-        ))}
-      </ul>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -180,9 +245,13 @@ function SocialPanel({
 }) {
   if (!socialLinks?.length) return null;
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm flex flex-col gap-3 min-w-0">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Social</p>
-      <div className="flex flex-wrap gap-2">
+    <div className="h-full rounded-xl border border-gray-200 bg-white p-4 shadow-sm flex flex-col gap-3 min-w-0">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Socials</p>
+      <div
+        className={`flex flex-wrap lg:grid gap-2 justify-items-center content-start auto-rows-min flex-1 min-h-0 overflow-y-auto ${
+          socialLinks.length >= 5 ? "lg:grid-cols-2" : "lg:grid-cols-1"
+        }`}
+      >
         {socialLinks.map((entry, i) => {
           const { Icon, label } = resolveSocialIcon(entry.url, entry.label);
           const isMail = entry.url.startsWith("mailto:");
@@ -210,9 +279,11 @@ export default function PublicationDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: pub, isLoading, isError, queryKey, tz } = usePublication(id);
+  const { user } = useAuth();
   const tzShort = tz || getClientTimezone();
   const [thumbError, setThumbError] = useState(false);
   const [commentFocusSignal, setCommentFocusSignal] = useState(0);
+  const [editField, setEditField] = useState<EditableField | null>(null);
 
   useEffect(() => {
     setCommentFocusSignal(0);
@@ -263,13 +334,15 @@ export default function PublicationDetail() {
 
   const extras = (pub.additional_links?.length ?? 0) > 0;
   const socials = (pub.social_links?.length ?? 0) > 0;
+  const isOwner = !!user && pub.author?.id === user.id;
+  const openEdit = (f: EditableField) => setEditField(f);
 
   return (
     <div className="min-h-screen lg:h-screen bg-gray-50 flex flex-col">
       <Navbar />
 
       <div className="flex-1 lg:min-h-0 lg:overflow-hidden flex flex-col lg:flex-row max-w-7xl mx-auto w-full">
-        <div className="flex-[3] min-w-0 lg:min-h-0 lg:overflow-y-auto custom-scrollbar px-4 sm:px-6 py-6 flex flex-col gap-6">
+        <div className="flex-[5] min-w-0 lg:min-h-0 lg:overflow-y-auto custom-scrollbar px-4 sm:px-6 py-6 flex flex-col gap-6">
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -303,15 +376,17 @@ export default function PublicationDetail() {
             </a>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-snug">{pub.title}</h1>
+          <div className="flex items-start gap-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-snug flex-1">{pub.title}</h1>
+            {isOwner && <EditButton onClick={() => openEdit("basics")} label="Edit title, image, category & tags" />}
+          </div>
 
-          <div
-            className={`flex flex-col ${extras || socials ? "lg:flex-row lg:items-start" : ""} gap-4 lg:gap-6`}
-          >
+          <div className={`flex flex-col ${socials ? "lg:flex-row lg:items-stretch" : ""} gap-4 lg:gap-6`}>
             <div
               className={`rounded-xl border border-gray-200 bg-gray-100 shadow-sm overflow-hidden
-                         ring-1 ring-black/[0.04] aspect-video flex-shrink-0
-                         ${extras || socials ? "w-full lg:w-[min(50%,28rem)]" : "w-full max-w-xl"}`}
+                         ring-1 ring-black/[0.04] aspect-video flex-shrink-0 ${
+                           socials ? "w-full lg:flex-1 lg:max-w-[48rem]" : "w-full max-w-2xl"
+                         }`}
             >
               {pub.image_url && !thumbError ? (
                 <img
@@ -339,16 +414,22 @@ export default function PublicationDetail() {
               )}
             </div>
 
-            {(extras || socials) && (
-              <div className="flex-1 min-w-0 flex flex-col gap-4">
-                <LinksPanel additionalLinks={pub.additional_links} />
+            {socials && (
+              <div
+                className={`min-w-0 w-full lg:flex-shrink-0 ${
+                  (pub.social_links?.length ?? 0) >= 5 ? "lg:w-44" : "lg:w-24"
+                }`}
+              >
                 <SocialPanel socialLinks={pub.social_links} />
               </div>
             )}
           </div>
 
           <div className="bg-white border border-gray-200 rounded-xl p-5">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-2">Description</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Description</p>
+              {isOwner && <EditButton onClick={() => openEdit("description")} label="Edit description" />}
+            </div>
             {pub.description ? (
               <p className="text-gray-700 leading-relaxed text-[15px] whitespace-pre-wrap">{pub.description}</p>
             ) : (
@@ -366,6 +447,7 @@ export default function PublicationDetail() {
             >
               <ExternalLink size={14} /> Read Article
             </a>
+            {isOwner && <EditButton onClick={() => openEdit("url")} label="Edit article URL" />}
           </div>
 
           <div className="flex flex-wrap gap-3 items-stretch">
@@ -381,6 +463,13 @@ export default function PublicationDetail() {
               queryKey={queryKey}
             />
           </div>
+
+          {(extras || isOwner) && (
+            <LinkEmbedsPanel
+              additionalLinks={pub.additional_links}
+              onEdit={isOwner ? () => openEdit("additional_links") : undefined}
+            />
+          )}
 
           <div className="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4">
             <Avatar src={pub.author?.avatar_url} name={pub.author?.name} size={48} />
@@ -403,7 +492,7 @@ export default function PublicationDetail() {
 
         <div className="hidden lg:block w-px bg-gray-200 flex-shrink-0" />
 
-        <div className="flex-[1] min-w-0 lg:min-h-0 lg:overflow-y-auto custom-scrollbar px-4 sm:px-5 py-6 flex flex-col gap-4">
+        <div className="flex-[2.5] min-w-0 lg:min-h-0 lg:overflow-y-auto custom-scrollbar px-4 sm:px-5 py-6 flex flex-col gap-4">
           <div className="flex-shrink-0">
             <h3 className="text-sm font-semibold text-gray-800">Other Publications</h3>
             <p className="text-xs text-gray-400 mt-0.5">Scrolls independently</p>
@@ -411,6 +500,13 @@ export default function PublicationDetail() {
           <SidebarPublications currentId={pub.id} />
         </div>
       </div>
+
+      <EditPublicationFieldModal
+        publication={pub}
+        field={editField}
+        isOpen={editField !== null}
+        onClose={() => setEditField(null)}
+      />
     </div>
   );
 }

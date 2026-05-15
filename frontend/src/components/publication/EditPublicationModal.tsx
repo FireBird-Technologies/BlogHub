@@ -125,7 +125,7 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Edit publication">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-h-[min(70vh,640px)] overflow-y-auto pr-1">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-h-[min(70vh,640px)] overflow-y-auto pr-3 sm:pr-4">
         <div>
           <label className="block text-xs text-gray-500 mb-1.5 font-medium">URL *</label>
           <input

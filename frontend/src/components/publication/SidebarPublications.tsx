@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ThumbsUp, MessageCircle } from "lucide-react";
 import { CATEGORIES } from "../../constants/categories";
 import Spinner from "../ui/Spinner";
+import CustomDropdown from "../ui/CustomDropdown";
 import api from "../../lib/api";
 import type { PaginatedPublications, PublicationId } from "../../types/models";
 
@@ -30,20 +31,14 @@ export default function SidebarPublications({ currentId }: SidebarPublicationsPr
 
   return (
     <div className="flex flex-col gap-4 pb-2">
-      <select
+      <CustomDropdown
         value={category}
-        onChange={(e) => setCategory(e.target.value)}
-        className="w-full bg-white border border-gray-200 text-gray-700 text-sm rounded-lg px-3 py-2
-                   focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400/20
-                   hover:border-gray-300 transition-colors cursor-pointer"
-      >
-        <option value="">All Categories</option>
-        {CATEGORIES.map((cat) => (
-          <option key={cat} value={cat}>
-            {cat}
-          </option>
-        ))}
-      </select>
+        onChange={setCategory}
+        options={[
+          { value: "", label: "All Categories" },
+          ...CATEGORIES.map((c) => ({ value: c, label: c })),
+        ]}
+      />
 
       {isLoading ? (
         <div className="flex justify-center py-8">
