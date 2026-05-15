@@ -130,7 +130,7 @@ export default function PublicationCard({ publication, queryKey, onDelete, onEdi
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 min-w-0">
                 <Avatar src={author?.avatar_url} name={author?.name} size={24} />
-                <span className="text-xs text-gray-400 truncate">{author?.name}</span>
+                <span className="text-xs text-gray-400 truncate">{author?.name?.split(/\s+/)[0]}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 {onEdit && (

@@ -50,7 +50,7 @@ export default function Profile() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
         <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 mb-8 shadow-sm">
           <div className="flex flex-col xs:flex-row sm:flex-row items-start gap-4 sm:gap-5">
             <Avatar src={user.avatar_url} name={user.name} size={72} className="rounded-2xl" />
