@@ -146,11 +146,11 @@ function EditButton({ onClick, label }: { onClick: () => void; label: string }) 
       onClick={onClick}
       aria-label={label}
       title={label}
-      className="inline-flex items-center justify-center h-7 w-7 rounded-lg border border-gray-200
-                 bg-white text-gray-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50
-                 transition-colors shrink-0"
+      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-gray-200
+                 bg-white text-xs font-medium text-gray-500 hover:text-red-600 hover:border-red-200
+                 hover:bg-red-50 transition-colors shrink-0"
     >
-      <Pencil size={13} />
+      Edit <Pencil size={12} />
     </button>
   );
 }
@@ -508,7 +508,7 @@ export default function PublicationDetail() {
               className="relative z-10 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700
                          text-white text-sm font-medium transition-colors shadow-sm shadow-red-600/20 cursor-pointer"
             >
-              <ExternalLink size={14} /> Read Article
+              <ExternalLink size={14} /> Visit publication
             </a>
             {isOwner && <EditButton onClick={() => openEdit("url")} label="Edit article URL" />}
           </div>
@@ -538,7 +538,6 @@ export default function PublicationDetail() {
             <Avatar src={pub.author?.avatar_url} name={pub.author?.name} size={48} />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-900">{pub.author?.name}</p>
-              <p className="text-xs text-gray-400">{pub.author?.email}</p>
               {pub.created_at && (
                 <p className="flex items-center gap-1 text-xs text-gray-400 mt-1">
                   <Calendar size={11} /> {formatDate(pub.created_at)}
