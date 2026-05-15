@@ -10,6 +10,7 @@ import Badge from "../components/ui/Badge";
 import CommentsSection from "../components/publication/CommentsSection";
 import SidebarPublications from "../components/publication/SidebarPublications";
 import EditPublicationFieldModal, { type EditableField } from "../components/publication/EditPublicationFieldModal";
+import NotFound from "./NotFound";
 import { usePublication, getClientTimezone } from "../hooks/usePublications";
 import { useAuth } from "../context/AuthContext";
 import { usePublicationUpvote } from "../hooks/usePublicationUpvote";
@@ -387,15 +388,10 @@ export default function PublicationDetail() {
 
   if (isError || !pub) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="flex flex-col items-center py-32 gap-3">
-          <p className="text-gray-500">Publication not found.</p>
-          <button type="button" onClick={() => navigate(-1)} className="text-sm text-red-600 hover:underline">
-            Go back
-          </button>
-        </div>
-      </div>
+      <NotFound
+        title="Publication not found"
+        message="This publication doesn’t exist or has been removed."
+      />
     );
   }
 
