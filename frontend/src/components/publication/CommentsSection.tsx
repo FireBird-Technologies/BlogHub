@@ -1,18 +1,12 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import type { FormEvent } from "react";
-import { Trash2, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import Avatar from "../ui/Avatar";
 import Spinner from "../ui/Spinner";
 import { useAuth } from "../../context/AuthContext";
 import { useComments, useAddComment, useDeleteComment } from "../../hooks/useComments";
-
-function timeAgo(dateStr: string) {
-  const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
-  if (diff < 60) return "just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
-}
+import type { Comment } from "../../types/models";
+import CommentNode from "./CommentNode";
 
 interface CommentsSectionProps {
   publicationId: string;
@@ -25,6 +19,10 @@ export default function CommentsSection({ publicationId, focusSignal = 0 }: Comm
   const [text, setText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const [emphasizeInput, setEmphasizeInput] = useState(false);
+
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!user || !focusSignal) return;
@@ -40,10 +38,68 @@ export default function CommentsSection({ publicationId, focusSignal = 0 }: Comm
   const { mutate: addComment, isPending: adding } = useAddComment(publicationId);
   const { mutate: deleteComment } = useDeleteComment(publicationId);
 
+  const { topLevel, childrenMap } = useMemo(() => {
+    const top: Comment[] = [];
+    const map = new Map<string, Comment[]>();
+    for (const c of comments) {
+      if (!c.parent_id) {
+        top.push(c);
+      } else {
+        const arr = map.get(c.parent_id) ?? [];
+        arr.push(c);
+        map.set(c.parent_id, arr);
+      }
+    }
+    return { topLevel: top, childrenMap: map };
+  }, [comments]);
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!text.trim() || adding) return;
-    addComment(text.trim(), { onSuccess: () => setText("") });
+    addComment({ content: text.trim() }, { onSuccess: () => setText("") });
+  };
+
+  const openReply = (id: string) => {
+    if (!user) {
+      openLoginModal();
+      return;
+    }
+    setReplyingTo(id);
+    setReplyText("");
+    setExpanded((prev) => {
+      if (prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+  };
+
+  const handleReplySubmit = (e: FormEvent, parentId: string) => {
+    e.preventDefault();
+    if (!replyText.trim() || adding) return;
+    addComment(
+      { content: replyText.trim(), parent_id: parentId },
+      {
+        onSuccess: () => {
+          setReplyText("");
+          setReplyingTo(null);
+        },
+      }
+    );
+  };
+
+  const toggleExpanded = (id: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const cancelReply = () => {
+    setReplyingTo(null);
+    setReplyText("");
   };
 
   return (
@@ -95,31 +151,29 @@ export default function CommentsSection({ publicationId, focusSignal = 0 }: Comm
         <div className="flex justify-center py-8">
           <Spinner size={24} />
         </div>
-      ) : comments.length === 0 ? (
+      ) : topLevel.length === 0 ? (
         <p className="text-sm text-gray-400 text-center py-8">No comments yet. Be the first!</p>
       ) : (
         <div className="flex flex-col divide-y divide-gray-50">
-          {comments.map((c) => (
-            <div key={c.id} className="flex gap-3 py-4 first:pt-0">
-              <Avatar src={c.author.avatar_url} name={c.author.name} size={32} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-baseline justify-between gap-2">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-sm font-semibold text-gray-900">{c.author.name}</span>
-                    <span className="text-xs text-gray-400">{timeAgo(c.created_at)}</span>
-                  </div>
-                  {user?.id === c.author.id && (
-                    <button
-                      type="button"
-                      onClick={() => deleteComment(c.id)}
-                      className="text-gray-300 hover:text-red-500 transition-colors flex-shrink-0"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  )}
-                </div>
-                <p className="text-sm text-gray-700 mt-1 leading-relaxed">{c.content}</p>
-              </div>
+          {topLevel.map((c) => (
+            <div key={c.id} className="py-4 first:pt-0">
+              <CommentNode
+                comment={c}
+                childrenMap={childrenMap}
+                depth={0}
+                variant="section"
+                user={user}
+                replyingTo={replyingTo}
+                replyText={replyText}
+                expanded={expanded}
+                adding={adding}
+                onOpenReply={openReply}
+                onCancelReply={cancelReply}
+                onReplyTextChange={setReplyText}
+                onReplySubmit={handleReplySubmit}
+                onToggleExpanded={toggleExpanded}
+                onDelete={(id) => deleteComment(id)}
+              />
             </div>
           ))}
         </div>

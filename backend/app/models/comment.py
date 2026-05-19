@@ -21,6 +21,12 @@ class Comment(Base):
         nullable=False,
         index=True,
     )
+    parent_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("comments.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
     content: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
