@@ -12,11 +12,18 @@ export function useComments(publicationId: string | null | undefined) {
   });
 }
 
+export interface AddCommentInput {
+  content: string;
+  parent_id?: string | null;
+}
+
 export function useAddComment(publicationId: string) {
   const queryClient = useQueryClient();
-  return useMutation<Comment, Error, string>({
-    mutationFn: (content) =>
-      api.post<Comment>(`/api/publications/${publicationId}/comments`, { content }).then((r) => r.data),
+  return useMutation<Comment, Error, AddCommentInput>({
+    mutationFn: ({ content, parent_id = null }) =>
+      api
+        .post<Comment>(`/api/publications/${publicationId}/comments`, { content, parent_id })
+        .then((r) => r.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", publicationId] });
       queryClient.invalidateQueries({ queryKey: ["publications"] });

@@ -31,7 +31,12 @@ async def add_comment(
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    return await create_comment(db, current_user.id, publication_id, body.content)
+    try:
+        return await create_comment(
+            db, current_user.id, publication_id, body.content, body.parent_id
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.delete("/comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)

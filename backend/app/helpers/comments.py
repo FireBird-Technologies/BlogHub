@@ -21,9 +21,24 @@ async def get_comments(db: AsyncSession, publication_id: uuid.UUID) -> list[Comm
 
 
 async def create_comment(
-    db: AsyncSession, user_id: uuid.UUID, publication_id: uuid.UUID, content: str
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    publication_id: uuid.UUID,
+    content: str,
+    parent_id: uuid.UUID | None = None,
 ) -> CommentOut:
-    comment = Comment(user_id=user_id, publication_id=publication_id, content=content)
+    if parent_id is not None:
+        parent_result = await db.execute(select(Comment).where(Comment.id == parent_id))
+        parent = parent_result.scalar_one_or_none()
+        if parent is None or parent.publication_id != publication_id:
+            raise ValueError("parent comment not found for this publication")
+
+    comment = Comment(
+        user_id=user_id,
+        publication_id=publication_id,
+        content=content,
+        parent_id=parent_id,
+    )
     db.add(comment)
     await db.commit()
     await db.refresh(comment)
@@ -50,6 +65,7 @@ def _to_out(c: Comment) -> CommentOut:
         id=c.id,
         content=c.content,
         created_at=c.created_at,
+        parent_id=c.parent_id,
         author=UserOut(
             id=c.author.id,
             email=c.author.email,
