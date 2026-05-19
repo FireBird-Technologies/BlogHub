@@ -8,6 +8,7 @@ from app.schemas.user import UserOut
 
 class CommentCreate(BaseModel):
     content: str
+    parent_id: uuid.UUID | None = None
 
     @field_validator("content")
     @classmethod
@@ -26,4 +27,5 @@ class CommentOut(BaseModel):
     id: uuid.UUID
     content: str
     created_at: datetime
+    parent_id: uuid.UUID | None
     author: UserOut
