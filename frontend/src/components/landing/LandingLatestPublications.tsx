@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
-import { MessageCircle, ThumbsUp } from "lucide-react";
+import { ArrowBigUp, MessageCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { usePublicationsPreview } from "../../hooks/usePublications";
 import Badge from "../ui/Badge";
@@ -106,9 +106,9 @@ function LandingPreviewRow({
         </div>
       </div>
 
-      <div className="flex flex-col items-end justify-center gap-2 flex-shrink-0 pointer-events-none">
+      <div className="flex flex-col items-stretch justify-center gap-2 flex-shrink-0 pointer-events-none">
         <div
-          className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-gray-500
+          className="flex items-center justify-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-gray-500
                      bg-gray-50 border border-gray-200"
         >
           <MessageCircle size={14} />
@@ -118,7 +118,7 @@ function LandingPreviewRow({
           className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-gray-500
                      bg-gray-50 border border-gray-200"
         >
-          <ThumbsUp size={13} />
+          <ArrowBigUp width={32} height={16} />
           <span>{upvote_count}</span>
         </div>
       </div>

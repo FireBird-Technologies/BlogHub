@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import Badge from "../ui/Badge";
 import Avatar from "../ui/Avatar";
-import { ChevronUp } from "lucide-react";
+import { ArrowBigUp } from "lucide-react";
 
 /** Served from `public/assets/landing/` (committed JPEGs). */
 const PREVIEW_IMAGES = {
@@ -65,7 +65,7 @@ function MockCard({ pub }: { pub: (typeof MOCK)[number] }) {
             <span className="text-xs text-gray-400">{pub.author.name}</span>
           </div>
           <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-50 text-gray-500 border border-gray-200">
-            <ChevronUp size={13} />
+            <ArrowBigUp width={32} height={16} />
             <span>{pub.upvote_count}</span>
           </div>
         </div>

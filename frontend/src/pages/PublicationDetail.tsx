@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../lib/api";
-import { ArrowLeft, ExternalLink, Tag, ThumbsUp, MessageCircle, Calendar, Video, Trophy, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Tag, ArrowBigUp, MessageCircle, Calendar, Video, Trophy, Pencil, Trash2 } from "lucide-react";
 import Navbar from "../components/layout/Navbar";
 import Spinner from "../components/ui/Spinner";
 import Avatar from "../components/ui/Avatar";
@@ -58,7 +58,7 @@ function RankStat({ rank, timezoneLabel }: { rank: number | null | undefined; ti
   );
 }
 
-function LikeInteractiveStat({
+function UpvoteInteractiveStat({
   publicationId,
   value,
   highlight,
@@ -88,15 +88,15 @@ function LikeInteractiveStat({
       type="button"
       onClick={handleClick}
       disabled={isPending}
-      title={user ? "Tap to like or unlike" : "Sign in to like"}
+      title={user ? "Tap to upvote or remove upvote" : "Sign in to upvote"}
       className={`flex flex-col items-center gap-1 px-5 py-3 rounded-xl border transition-colors disabled:opacity-60
                   ${highlight ? wrapCls : `${wrapCls} hover:border-red-200 hover:bg-red-50/40`}
                   cursor-pointer`}
     >
       {isPending ? (
-        <Spinner size={15} />
+        <Spinner size={17} />
       ) : (
-        <ThumbsUp size={15} className={highlight ? "text-red-400" : "text-gray-400"} />
+        <ArrowBigUp width={34} height={17} className={highlight ? "text-red-400" : "text-gray-400"} />
       )}
       <span className={`text-lg font-bold ${highlight ? "text-red-600" : "text-gray-900"}`}>{value}</span>
       <span className={`text-[10px] uppercase tracking-wide ${highlight ? "text-red-400" : "text-gray-400"}`}>
@@ -519,7 +519,7 @@ export default function PublicationDetail() {
               commentCount={pub.comment_count ?? 0}
               onLoggedInCommentClick={() => setCommentFocusSignal((n) => n + 1)}
             />
-            <LikeInteractiveStat
+            <UpvoteInteractiveStat
               publicationId={pub.id}
               value={pub.upvote_count}
               highlight={pub.is_upvoted}

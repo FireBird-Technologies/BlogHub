@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link2, Loader2, ThumbsUp, MessageCircle, Check } from "lucide-react";
+import { ArrowBigUp, Link2, Loader2, MessageCircle, Check } from "lucide-react";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -171,7 +171,7 @@ function DemoPanel() {
                     <MessageCircle size={14} /> 12
                   </span>
                   <span className="flex items-center gap-1">
-                    <ThumbsUp size={14} /> {MOCK_PUB.upvote_count}
+                    <ArrowBigUp width={32} height={16} /> {MOCK_PUB.upvote_count}
                   </span>
                 </div>
               </div>
