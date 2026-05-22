@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ThumbsUp, MessageCircle } from "lucide-react";
+import { ArrowBigUp, MessageCircle } from "lucide-react";
 import { CATEGORIES } from "../../constants/categories";
 import Spinner from "../ui/Spinner";
 import CustomDropdown from "../ui/CustomDropdown";
@@ -78,12 +78,12 @@ export default function SidebarPublications({ currentId }: SidebarPublicationsPr
                     <span className="text-gray-300 select-none" aria-hidden>
                       ·
                     </span>
-                    <span className="inline-flex items-center gap-0.5">
-                      <ThumbsUp size={11} className="text-gray-400" aria-hidden />
+                    <span className="inline-flex items-center">
+                      <ArrowBigUp width={32} height={16} className="text-gray-400" aria-hidden />
                       <span>{pub.upvote_count ?? 0}</span>
                     </span>
-                    <span className="inline-flex items-center gap-0.5">
-                      <MessageCircle size={11} className="text-gray-400" aria-hidden />
+                    <span className="inline-flex items-center gap-2 ml-2.5">
+                      <MessageCircle size={14} className="text-gray-400" aria-hidden />
                       <span>{pub.comment_count ?? 0}</span>
                     </span>
                   </div>

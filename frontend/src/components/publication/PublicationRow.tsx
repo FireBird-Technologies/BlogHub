@@ -116,13 +116,13 @@ export default function PublicationRow({ publication, queryKey, showTopTodayBadg
       </div>
 
       <div
-        className="flex flex-col items-end justify-center gap-2 flex-shrink-0"
+        className="flex flex-col items-stretch justify-center gap-2 flex-shrink-0"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
         <button
           type="button"
-          className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-gray-500
+          className="flex items-center justify-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-gray-500
                      bg-gray-50 border border-gray-200 hover:border-red-200 hover:text-red-600 transition-colors"
           onClick={() => {
             if (!user) {

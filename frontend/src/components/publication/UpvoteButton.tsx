@@ -1,5 +1,5 @@
 import type { MouseEvent } from "react";
-import { ThumbsUp } from "lucide-react";
+import { ArrowBigUp } from "lucide-react";
 import type { QueryKey } from "@tanstack/react-query";
 import { useAuth } from "../../context/AuthContext";
 import { usePublicationUpvote } from "../../hooks/usePublicationUpvote";
@@ -45,7 +45,7 @@ export default function UpvoteButton({
       className={combined}
       aria-pressed={isUpvoted}
     >
-      {isPending ? <Spinner size={13} /> : <ThumbsUp size={13} />}
+      {isPending ? <Spinner size={14} /> : <ArrowBigUp width={32} height={16} />}
       <span>{count}</span>
     </button>
   );

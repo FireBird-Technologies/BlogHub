@@ -173,7 +173,9 @@ export default function PublicationCard({ publication, queryKey, onDelete, onEdi
                              bg-gray-50 text-gray-500 border border-gray-200
                              hover:border-red-200 hover:text-red-500 hover:bg-red-50 transition-all"
                 >
-                  <MessageCircle size={13} />
+                  <span className="inline-flex w-7 items-center justify-center">
+                    <MessageCircle size={13} />
+                  </span>
                   <span>{comment_count ?? 0}</span>
                 </button>
                 <UpvoteButton
