@@ -4,8 +4,10 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  tag: string;
   avatar_url: string | null;
-  bio?: string | null;
+  website?: string | null;
+  onboarded: boolean;
 }
 
 export interface SocialLinkOut {

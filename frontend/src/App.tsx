@@ -4,6 +4,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import LoginPromptModal from "./components/auth/LoginPromptModal";
+import { OnboardingModal } from "./components/auth/ProfileModal";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
@@ -42,6 +43,7 @@ export default function App() {
               <Route path="*" element={<NotFound />} />
             </Routes>
             <LoginPromptModal />
+            <OnboardingModal />
           </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>

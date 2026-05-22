@@ -1,21 +1,19 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Edit2, Check, X } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Edit2, Globe } from "lucide-react";
 import Navbar from "../components/layout/Navbar";
 import Avatar from "../components/ui/Avatar";
-import Button from "../components/ui/Button";
-import Spinner from "../components/ui/Spinner";
 import PublicationGrid from "../components/publication/PublicationGrid";
 import EditPublicationModal from "../components/publication/EditPublicationModal";
+import { ProfileModal } from "../components/auth/ProfileModal";
 import { useAuth } from "../context/AuthContext";
 import { useUserPublications } from "../hooks/useUserPublications";
 import api from "../lib/api";
-import type { Publication, User } from "../types/models";
+import type { Publication } from "../types/models";
 
 export default function Profile() {
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ name: user?.name ?? "", bio: user?.bio ?? "" });
   const [pubToEdit, setPubToEdit] = useState<Publication | null>(null);
 
   const queryKey = ["user-publications", user?.id] as const;
@@ -23,28 +21,18 @@ export default function Profile() {
 
   const queryClient = useQueryClient();
 
-  const { mutate: saveProfile, isPending } = useMutation({
-    mutationFn: (body: { name?: string; bio?: string }) => api.patch<User>("/api/me", body).then((r) => r.data),
-    onSuccess: (updated) => {
-      setUser(updated);
-      setEditing(false);
-    },
-  });
-
   const handleDelete = async (publicationId: string) => {
     await api.delete(`/api/publications/${publicationId}`);
     queryClient.invalidateQueries({ queryKey });
   };
 
-  const handleSave = () =>
-    saveProfile({ name: form.name.trim() || undefined, bio: form.bio.trim() || undefined });
-
-  const handleCancel = () => {
-    setForm({ name: user?.name ?? "", bio: user?.bio ?? "" });
-    setEditing(false);
-  };
-
   if (!user) return null;
+
+  const websiteHref = user.website
+    ? /^https?:\/\//i.test(user.website)
+      ? user.website
+      : `https://${user.website}`
+    : "";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -56,50 +44,30 @@ export default function Profile() {
             <Avatar src={user.avatar_url} name={user.name} size={72} className="rounded-2xl" />
 
             <div className="flex-1 min-w-0">
-              {editing ? (
-                <div className="flex flex-col gap-3">
-                  <input
-                    type="text"
-                    value={form.name}
-                    onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                    placeholder="Your name"
-                    className="bg-white border border-gray-200 text-gray-900 text-sm rounded-lg px-3 py-2
-                               focus:outline-none focus:border-red-400 max-w-xs"
-                  />
-                  <textarea
-                    value={form.bio}
-                    onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
-                    placeholder="A short bio…"
-                    rows={2}
-                    className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg px-3 py-2
-                               focus:outline-none focus:border-red-400 resize-none max-w-md"
-                  />
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={handleSave} disabled={isPending}>
-                      {isPending ? <Spinner size={14} /> : <Check size={14} />} Save
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={handleCancel}>
-                      <X size={14} /> Cancel
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-3">
-                    <h1 className="text-xl font-bold text-gray-900">{user.name}</h1>
-                    <button
-                      type="button"
-                      onClick={() => setEditing(true)}
-                      className="text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      <Edit2 size={14} />
-                    </button>
-                  </div>
-                  <p className="text-sm text-gray-400 mt-0.5">{user.email}</p>
-                  {user.bio && (
-                    <p className="text-sm text-gray-600 mt-3 leading-relaxed">{user.bio}</p>
-                  )}
-                </>
+              <div className="flex items-center gap-3">
+                <h1 className="text-xl font-bold text-gray-900">{user.name}</h1>
+                <button
+                  type="button"
+                  onClick={() => setEditing(true)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1
+                             text-xs font-medium text-gray-500 transition-colors
+                             hover:border-red-300 hover:bg-red-50/40 hover:text-red-600"
+                  title="Edit profile"
+                >
+                  <Edit2 size={12} /> Edit
+                </button>
+              </div>
+              <p className="text-sm text-gray-400 mt-0.5">{user.email}</p>
+              {user.website && (
+                <a
+                  href={websiteHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm text-red-600 hover:text-red-700 mt-2"
+                >
+                  <Globe size={14} />
+                  {user.website.replace(/^https?:\/\//i, "")}
+                </a>
               )}
             </div>
           </div>
@@ -120,6 +88,7 @@ export default function Profile() {
         </div>
       </main>
 
+      <ProfileModal mode="edit" isOpen={editing} onClose={() => setEditing(false)} />
       <EditPublicationModal publication={pubToEdit} isOpen={Boolean(pubToEdit)} onClose={() => setPubToEdit(null)} />
     </div>
   );

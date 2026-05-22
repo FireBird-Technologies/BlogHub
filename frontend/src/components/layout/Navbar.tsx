@@ -47,10 +47,15 @@ export default function Navbar() {
             <>
               <Link
                 to="/profile"
-                className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                title="View your profile"
+                className="flex items-center gap-2 rounded-full border border-gray-200 bg-white py-1 pl-1 pr-3
+                           text-sm font-semibold text-gray-700 shadow-sm
+                           hover:border-red-300 hover:bg-red-50/50 hover:text-gray-900 hover:shadow
+                           transition-all"
               >
-                <Avatar src={user.avatar_url} name={user.name} size={32} />
-                <span className="hidden sm:block font-medium">{user.name}</span>
+                <Avatar src={user.avatar_url} name={user.name} size={28} />
+                <span className="hidden sm:block">{user.tag ? `@${user.tag}` : user.name}</span>
+                <span className="sm:hidden">Profile</span>
               </Link>
               <button
                 type="button"
