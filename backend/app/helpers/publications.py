@@ -66,13 +66,7 @@ def _pub_to_out(
         rank=rank,
         is_upvoted=pub.id in upvoted_ids,
         created_at=pub.created_at,
-        author=UserOut(
-            id=pub.author.id,
-            email=pub.author.email,
-            name=pub.author.name,
-            avatar_url=pub.author.avatar_url,
-            bio=pub.author.bio,
-        ),
+        author=UserOut.model_validate(pub.author),
     )
 
 

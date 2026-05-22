@@ -66,11 +66,5 @@ def _to_out(c: Comment) -> CommentOut:
         content=c.content,
         created_at=c.created_at,
         parent_id=c.parent_id,
-        author=UserOut(
-            id=c.author.id,
-            email=c.author.email,
-            name=c.author.name,
-            avatar_url=c.author.avatar_url,
-            bio=c.author.bio,
-        ),
+        author=UserOut.model_validate(c.author),
     )

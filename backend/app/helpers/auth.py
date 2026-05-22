@@ -35,13 +35,17 @@ async def upsert_user(db: AsyncSession, google_info: dict):
     user = result.scalar_one_or_none()
 
     if user:
-        user.name = google_info.get("name", user.name)
-        user.avatar_url = google_info.get("picture", user.avatar_url)
+        # Existing user: keep name/avatar as the user may have edited them.
+        pass
     else:
+        from app.helpers.users import generate_unique_tag
+
+        name = google_info.get("name", "")
         user = User(
             google_id=google_info["id"],
             email=google_info["email"],
-            name=google_info.get("name", ""),
+            name=name,
+            tag=await generate_unique_tag(db, name),
             avatar_url=google_info.get("picture"),
         )
         db.add(user)

@@ -537,7 +537,12 @@ export default function PublicationDetail() {
           <div className="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4">
             <Avatar src={pub.author?.avatar_url} name={pub.author?.name} size={48} />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900">{pub.author?.name}</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {pub.author?.name}
+                {pub.author?.tag && (
+                  <span className="ml-1.5 font-normal text-gray-400">@{pub.author.tag}</span>
+                )}
+              </p>
               {pub.created_at && (
                 <p className="flex items-center gap-1 text-xs text-gray-400 mt-1">
                   <Calendar size={11} /> {formatDate(pub.created_at)}
