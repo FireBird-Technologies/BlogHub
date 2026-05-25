@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowBigUp, Link2, Loader2, MessageCircle, Check } from "lucide-react";
-import { useGoogleLogin } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import GoogleSignInPill from "../ui/GoogleSignInPill";
+import GoogleSignInButton from "../ui/GoogleSignInButton";
 import Avatar from "../ui/Avatar";
 
 const TYPED_URL = "https://medium.com/design/typography-tips";
@@ -213,26 +211,7 @@ export function HeroBackdrop() {
 }
 
 export default function HeroSection() {
-  const { loginWithGoogle } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setLoading(true);
-      setError("");
-      try {
-        await loginWithGoogle(tokenResponse.access_token);
-        navigate("/dashboard");
-      } catch {
-        setError("Sign-in failed. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    onError: () => setError("Google sign-in was cancelled or failed."),
-  });
 
   return (
     <div className="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center pb-5 sm:pb-7">
@@ -267,8 +246,7 @@ export default function HeroSection() {
             transition={{ duration: 0.55, delay: 0.24 }}
             className="flex flex-col items-start gap-3"
           >
-            <GoogleSignInPill onClick={() => handleLogin()} loading={loading} />
-            {error && <p className="text-red-600 text-sm">{error}</p>}
+            <GoogleSignInButton onSignedIn={() => navigate("/dashboard")} />
             <a href="#preview" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">
               See what's inside →
             </a>

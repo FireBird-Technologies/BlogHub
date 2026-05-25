@@ -1,28 +1,11 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ArrowRight, LogOut } from "lucide-react";
-import { useGoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../../context/AuthContext";
 import Avatar from "../ui/Avatar";
 import Button from "../ui/Button";
-import Spinner from "../ui/Spinner";
 
 export default function Navbar() {
-  const { user, loginWithGoogle, logout } = useAuth();
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-
-  const handleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setLoading(true);
-      try {
-        await loginWithGoogle(tokenResponse.access_token);
-        navigate("/dashboard");
-      } finally {
-        setLoading(false);
-      }
-    },
-  });
+  const { user, logout, openLoginModal } = useAuth();
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-gray-200">
@@ -67,8 +50,8 @@ export default function Navbar() {
               </button>
             </>
           ) : (
-            <Button variant="primary" size="sm" onClick={() => handleLogin()} disabled={loading}>
-              {loading ? <Spinner size={14} /> : "Sign in"}
+            <Button variant="primary" size="sm" onClick={openLoginModal}>
+              Sign in
             </Button>
           )}
         </div>

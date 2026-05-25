@@ -1,14 +1,14 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGoogleLogin } from "@react-oauth/google";
 import { ArrowBigUp, MessageCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { usePublicationsPreview } from "../../hooks/usePublications";
 import Badge from "../ui/Badge";
 import Avatar from "../ui/Avatar";
-import GoogleSignInPill from "../ui/GoogleSignInPill";
+import GoogleSignInButton from "../ui/GoogleSignInButton";
 import Modal from "../ui/Modal";
 import Spinner from "../ui/Spinner";
+import { publicationPath } from "../../lib/publicationUrl";
 import type { Publication } from "../../types/models";
 
 function formatShortDate(iso: string) {
@@ -129,52 +129,35 @@ function LandingPreviewRow({
 const PREVIEW_LIMIT = 5;
 
 export default function LandingLatestPublications() {
-  const { user, loginWithGoogle } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { data, isLoading, isError } = usePublicationsPreview(PREVIEW_LIMIT);
   const [signInOpen, setSignInOpen] = useState(false);
-  const pendingPublicationRef = useRef<string | null>(null);
-  const [loginBusy, setLoginBusy] = useState(false);
-  const [loginError, setLoginError] = useState("");
+  const pendingPathRef = useRef<string | null>(null);
 
   const items = data?.items?.slice(0, PREVIEW_LIMIT) ?? [];
 
-  const handleActivate = (publicationId: string) => {
+  const handleActivate = (publication: Publication) => {
+    const path = publicationPath(publication);
     if (user) {
-      navigate(`/publications/${publicationId}`);
+      navigate(path);
       return;
     }
-    pendingPublicationRef.current = publicationId;
+    pendingPathRef.current = path;
     setSignInOpen(true);
-    setLoginError("");
   };
 
   const closeModal = () => {
     setSignInOpen(false);
-    pendingPublicationRef.current = null;
-    setLoginError("");
+    pendingPathRef.current = null;
   };
 
-  const handleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setLoginBusy(true);
-      setLoginError("");
-      try {
-        await loginWithGoogle(tokenResponse.access_token);
-        const target = pendingPublicationRef.current;
-        pendingPublicationRef.current = null;
-        setSignInOpen(false);
-        setLoginError("");
-        if (target) navigate(`/publications/${target}`);
-        else navigate("/dashboard");
-      } catch {
-        setLoginError("Sign-in failed. Please try again.");
-      } finally {
-        setLoginBusy(false);
-      }
-    },
-    onError: () => setLoginError("Google sign-in was cancelled or failed."),
-  });
+  const handleSignedIn = () => {
+    const target = pendingPathRef.current;
+    pendingPathRef.current = null;
+    setSignInOpen(false);
+    navigate(target ?? "/dashboard");
+  };
 
   return (
     <>
@@ -210,7 +193,7 @@ export default function LandingLatestPublications() {
           <ul className="flex flex-col gap-3 list-none p-0 m-0">
             {items.map((pub) => (
               <li key={pub.id}>
-                <LandingPreviewRow publication={pub} onActivate={() => handleActivate(pub.id)} />
+                <LandingPreviewRow publication={pub} onActivate={() => handleActivate(pub)} />
               </li>
             ))}
           </ul>
@@ -223,12 +206,7 @@ export default function LandingLatestPublications() {
           community.
         </p>
         <div className="flex flex-col gap-3 items-stretch">
-          <GoogleSignInPill
-            className="w-full"
-            onClick={() => handleLogin()}
-            loading={loginBusy}
-          />
-          {loginError && <p className="text-red-600 text-sm text-center">{loginError}</p>}
+          <GoogleSignInButton onSignedIn={handleSignedIn} />
           <button
             type="button"
             onClick={closeModal}

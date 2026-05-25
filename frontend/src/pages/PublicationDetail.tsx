@@ -16,6 +16,8 @@ import { useAuth } from "../context/AuthContext";
 import { usePublicationUpvote } from "../hooks/usePublicationUpvote";
 import { resolveSocialIcon } from "../lib/socialIcons";
 import { useLinkEmbeds } from "../hooks/useLinkEmbeds";
+import { useDocumentMeta } from "../hooks/useDocumentMeta";
+import { parseShortIdFromParam, publicationPath } from "../lib/publicationUrl";
 import type { PublicationId, PaginatedPublications } from "../types/models";
 
 function formatDate(iso: string | undefined): string {
@@ -279,9 +281,10 @@ function SocialPanel({
 }
 
 export default function PublicationDetail() {
-  const { id } = useParams<{ id: string }>();
+  const { id: slugParam } = useParams<{ id: string }>();
+  const shortId = parseShortIdFromParam(slugParam);
   const navigate = useNavigate();
-  const { data: pub, isLoading, isError, queryKey, tz } = usePublication(id);
+  const { data: pub, isLoading, isError, queryKey, tz } = usePublication(shortId);
   const { user } = useAuth();
   const tzShort = tz || getClientTimezone();
   const [thumbError, setThumbError] = useState(false);
@@ -355,11 +358,11 @@ export default function PublicationDetail() {
 
   useEffect(() => {
     setCommentFocusSignal(0);
-  }, [id]);
+  }, [shortId]);
 
   useEffect(() => {
     setThumbError(false);
-  }, [id, pub?.image_url]);
+  }, [shortId, pub?.image_url]);
 
   useEffect(() => {
     if (isLoading || !pub || window.location.hash !== "#publication-comments") return undefined;
@@ -374,6 +377,26 @@ export default function PublicationDetail() {
       window.clearTimeout(t2);
     };
   }, [isLoading, pub?.id]);
+
+  // Redirect non-canonical slugs (e.g. after a title edit, or visiting an
+  // older shared URL) to the current canonical path. The short id stays
+  // stable, only the slug portion changes.
+  useEffect(() => {
+    if (!pub) return;
+    const canonical = publicationPath(pub);
+    if (window.location.pathname !== canonical) {
+      navigate(`${canonical}${window.location.hash}`, { replace: true });
+    }
+  }, [pub, navigate]);
+
+  const canonicalUrl = pub ? `${window.location.origin}${publicationPath(pub)}` : undefined;
+  useDocumentMeta({
+    title: pub ? `${pub.title} — BlogHub` : undefined,
+    description: pub?.description || (pub ? `Read "${pub.title}" on BlogHub.` : undefined),
+    canonicalUrl,
+    image: pub?.image_url,
+    type: "article",
+  });
 
   if (isLoading) {
     return (
@@ -446,16 +469,15 @@ export default function PublicationDetail() {
 
           <div className={`flex flex-col ${socials ? "lg:flex-row lg:items-stretch" : ""} gap-4 lg:gap-6`}>
             <div
-              className={`rounded-xl border border-gray-200 bg-gray-100 shadow-sm overflow-hidden
-                         ring-1 ring-black/[0.04] aspect-video flex-shrink-0 ${
-                           socials ? "w-full lg:flex-1 lg:max-w-[48rem]" : "w-full max-w-2xl"
-                         }`}
+              className={`overflow-hidden aspect-video flex-shrink-0 ${
+                socials ? "w-full lg:flex-1 lg:max-w-[48rem]" : "w-full max-w-2xl"
+              }`}
             >
               {pub.image_url && !thumbError ? (
                 <img
                   src={pub.image_url}
                   alt={pub.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                   onError={() => setThumbError(true)}
                 />
               ) : (

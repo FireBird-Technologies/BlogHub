@@ -10,6 +10,7 @@ from app.deps import get_current_user, get_optional_user
 from app.helpers.publications import (
     build_publications_query,
     get_publication_by_id,
+    resolve_publication_short_id,
     toggle_upvote,
 )
 from app.models.publication import Publication
@@ -64,7 +65,7 @@ def _normalize_rank_tz(tz: str | None) -> str:
 
 @router.get("/publications/{publication_id}", response_model=PublicationOut)
 async def get_publication(
-    publication_id: uuid.UUID,
+    publication_id: str,
     tz: str | None = Query(
         default=None,
         description="IANA timezone used to group posts by calendar day for rank (browser tz recommended)",
@@ -72,9 +73,27 @@ async def get_publication(
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_optional_user),
 ):
+    """
+    Looks up a publication by either its 8-char hex short id (used in the
+    public /publications/<slug>-<shortid> URL) or its full UUID (used by
+    internal callers that already have the full id).
+    """
+    raw = publication_id.strip().lower()
+    pub_uuid: uuid.UUID | None = None
+    if len(raw) == 8:
+        pub_uuid = await resolve_publication_short_id(db, raw)
+    else:
+        try:
+            pub_uuid = uuid.UUID(raw)
+        except ValueError:
+            pub_uuid = None
+
+    if pub_uuid is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
+
     user_id = current_user.id if current_user else None
     rank_tz = _normalize_rank_tz(tz if tz is not None else "UTC")
-    pub = await get_publication_by_id(db, publication_id, user_id, rank_timezone=rank_tz)
+    pub = await get_publication_by_id(db, pub_uuid, user_id, rank_timezone=rank_tz)
     if not pub:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
     return pub

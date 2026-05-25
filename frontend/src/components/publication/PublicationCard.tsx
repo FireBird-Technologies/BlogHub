@@ -9,6 +9,7 @@ import UpvoteButton from "./UpvoteButton";
 import CommentsModal from "./CommentsModal";
 import type { Publication } from "../../types/models";
 import { useAuth } from "../../context/AuthContext";
+import { publicationPath } from "../../lib/publicationUrl";
 
 function RankBadge({ rank }: { rank: number }) {
   const base =
@@ -56,7 +57,7 @@ export default function PublicationCard({ publication, queryKey, onDelete, onEdi
   return (
     <article
       role="presentation"
-      onClick={() => navigate(`/publications/${id}`)}
+      onClick={() => navigate(publicationPath(publication))}
       className="group bg-white border border-gray-200 rounded-xl overflow-hidden cursor-pointer
                  transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300
                  hover:shadow-lg hover:shadow-black/5 flex flex-col"

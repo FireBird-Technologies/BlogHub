@@ -17,7 +17,8 @@ interface AuthTokenResponse {
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
-  loginWithGoogle: (accessToken: string) => Promise<void>;
+  signingIn: boolean;
+  loginWithGoogle: (idToken: string) => Promise<void>;
   logout: () => void;
   setUser: (u: User | null) => void;
   refreshUser: () => Promise<void>;
@@ -31,6 +32,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [signingIn, setSigningIn] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   const openLoginModal = useCallback(() => setLoginModalOpen(true), []);
@@ -49,11 +51,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const loginWithGoogle = useCallback(async (accessToken: string) => {
-    const res = await api.post<AuthTokenResponse>("/auth/google/token", { access_token: accessToken });
-    setToken(res.data.token);
-    const me = await api.get<User>("/api/me");
-    setUser(me.data);
+  const loginWithGoogle = useCallback(async (idToken: string) => {
+    setSigningIn(true);
+    try {
+      const res = await api.post<AuthTokenResponse>("/auth/google/id-token", { id_token: idToken });
+      setToken(res.data.token);
+      const me = await api.get<User>("/api/me");
+      setUser(me.data);
+    } finally {
+      setSigningIn(false);
+    }
   }, []);
 
   const logout = useCallback(() => {
@@ -72,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginWithGoogle, logout, setUser, refreshUser, loginModalOpen, openLoginModal, closeLoginModal }}>
+    <AuthContext.Provider value={{ user, loading, signingIn, loginWithGoogle, logout, setUser, refreshUser, loginModalOpen, openLoginModal, closeLoginModal }}>
       {children}
     </AuthContext.Provider>
   );

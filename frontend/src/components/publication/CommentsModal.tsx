@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect, useMemo, type FormEvent } from "react";
 import { Send } from "lucide-react";
-import { useGoogleLogin } from "@react-oauth/google";
 import Modal from "../ui/Modal";
 import Avatar from "../ui/Avatar";
 import Spinner from "../ui/Spinner";
-import GoogleSignInPill from "../ui/GoogleSignInPill";
+import GoogleSignInButton from "../ui/GoogleSignInButton";
 import { useAuth } from "../../context/AuthContext";
 import { useComments, useAddComment, useDeleteComment } from "../../hooks/useComments";
 import type { Publication, Comment } from "../../types/models";
@@ -17,10 +16,8 @@ interface CommentsModalProps {
 }
 
 export default function CommentsModal({ isOpen, onClose, publication }: CommentsModalProps) {
-  const { user, loginWithGoogle } = useAuth();
+  const { user } = useAuth();
   const [text, setText] = useState("");
-  const [googleBusy, setGoogleBusy] = useState(false);
-  const [googleError, setGoogleError] = useState("");
   const commentInputRef = useRef<HTMLInputElement>(null);
   const [emphasizeCommentInput, setEmphasizeCommentInput] = useState(false);
 
@@ -50,21 +47,6 @@ export default function CommentsModal({ isOpen, onClose, publication }: Comments
       setExpanded(new Set());
     }
   }, [isOpen]);
-
-  const handleGoogleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setGoogleBusy(true);
-      setGoogleError("");
-      try {
-        await loginWithGoogle(tokenResponse.access_token);
-      } catch {
-        setGoogleError("Sign-in failed. Try again.");
-      } finally {
-        setGoogleBusy(false);
-      }
-    },
-    onError: () => setGoogleError("Google sign-in was cancelled or failed."),
-  });
 
   const pubId = isOpen ? publication.id : null;
   const { data: comments = [], isLoading } = useComments(pubId);
@@ -200,8 +182,7 @@ export default function CommentsModal({ isOpen, onClose, publication }: Comments
       ) : (
         <div className="flex flex-col gap-3 items-stretch border-t border-gray-100 pt-4">
           <p className="text-sm text-gray-500 text-center">Sign in to leave a comment.</p>
-          <GoogleSignInPill className="w-full" onClick={() => handleGoogleLogin()} loading={googleBusy} />
-          {googleError && <p className="text-red-600 text-sm text-center">{googleError}</p>}
+          <GoogleSignInButton />
         </div>
       )}
     </Modal>

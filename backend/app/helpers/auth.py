@@ -10,6 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.settings import settings
 
 GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
+GOOGLE_TOKENINFO_URL = "https://oauth2.googleapis.com/tokeninfo"
+GOOGLE_ISSUERS = {"accounts.google.com", "https://accounts.google.com"}
 
 
 async def get_google_user_info(access_token: str) -> dict:
@@ -18,7 +20,7 @@ async def get_google_user_info(access_token: str) -> dict:
         response = await client.get(
             GOOGLE_USERINFO_URL,
             headers={"Authorization": f"Bearer {access_token}"},
-            timeout=10.0,
+            timeout=20.0,
         )
     if response.status_code != 200:
         raise HTTPException(
@@ -26,6 +28,49 @@ async def get_google_user_info(access_token: str) -> dict:
             detail="Invalid Google access token",
         )
     return response.json()
+
+
+async def get_google_user_from_id_token(id_token: str) -> dict:
+    """Verify a Google ID token via the tokeninfo endpoint and return user info.
+
+    Returns the same shape as `get_google_user_info` (id/email/name/picture) so
+    the rest of the auth flow can stay identical.
+    """
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            GOOGLE_TOKENINFO_URL,
+            params={"id_token": id_token},
+            timeout=20.0,
+        )
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Google ID token",
+        )
+    claims = response.json()
+
+    if claims.get("iss") not in GOOGLE_ISSUERS:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Google ID token has unexpected issuer",
+        )
+    if claims.get("aud") != settings.GOOGLE_CLIENT_ID:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Google ID token was issued for a different client",
+        )
+    if "sub" not in claims or "email" not in claims:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Google ID token missing required claims",
+        )
+
+    return {
+        "id": claims["sub"],
+        "email": claims["email"],
+        "name": claims.get("name", ""),
+        "picture": claims.get("picture"),
+    }
 
 
 async def upsert_user(db: AsyncSession, google_info: dict):
