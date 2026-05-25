@@ -205,7 +205,7 @@ export default function LandingLatestPublications() {
           Create a free account with Google to read full publications, join the discussion, and share links with the
           community.
         </p>
-        <div className="flex flex-col gap-3 items-stretch">
+        <div className="flex flex-col gap-3 items-center">
           <GoogleSignInButton onSignedIn={handleSignedIn} />
           <button
             type="button"
