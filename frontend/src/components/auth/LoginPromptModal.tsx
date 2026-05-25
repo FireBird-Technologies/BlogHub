@@ -1,29 +1,9 @@
-import { useState } from "react";
 import { X } from "lucide-react";
-import { useGoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../../context/AuthContext";
-import GoogleSignInPill from "../ui/GoogleSignInPill";
+import GoogleSignInButton from "../ui/GoogleSignInButton";
 
 export default function LoginPromptModal() {
-  const { loginModalOpen, closeLoginModal, loginWithGoogle } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setLoading(true);
-      setError("");
-      try {
-        await loginWithGoogle(tokenResponse.access_token);
-        closeLoginModal();
-      } catch {
-        setError("Sign-in failed. Try again.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    onError: () => setError("Google sign-in was cancelled or failed."),
-  });
+  const { loginModalOpen, closeLoginModal } = useAuth();
 
   if (!loginModalOpen) return null;
 
@@ -51,10 +31,7 @@ export default function LoginPromptModal() {
           </p>
         </div>
 
-        <div className="w-full flex flex-col gap-2 items-stretch">
-          <GoogleSignInPill className="w-full" onClick={() => handleLogin()} loading={loading} />
-          {error && <p className="text-red-600 text-sm text-center">{error}</p>}
-        </div>
+        <GoogleSignInButton onSignedIn={closeLoginModal} />
       </div>
     </div>
   );

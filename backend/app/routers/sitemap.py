@@ -1,3 +1,5 @@
+import re
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends
@@ -16,6 +18,11 @@ STATIC_URLS = [
 ]
 
 
+def _slugify(title: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", (title or "").lower()).strip("-")
+    return slug[:60].rstrip("-")
+
+
 def _url_entry(loc: str, lastmod: str | None = None, changefreq: str = "weekly", priority: str = "0.5") -> str:
     parts = ["  <url>", f"    <loc>{loc}</loc>"]
     if lastmod:
@@ -32,10 +39,15 @@ async def sitemap(db: AsyncSession = Depends(get_db)):
         entries.append(_url_entry(u["loc"], changefreq=u["changefreq"], priority=u["priority"]))
 
     result = await db.execute(
-        select(Publication.id, Publication.created_at).order_by(Publication.created_at.desc())
+        select(Publication.id, Publication.title, Publication.created_at).order_by(
+            Publication.created_at.desc()
+        )
     )
-    for pub_id, created_at in result.all():
-        loc = f"{FRONTEND_URL}/publications/{pub_id}"
+    for pub_id, title, created_at in result.all():
+        short_id = pub_id.hex[:8]
+        slug = _slugify(title)
+        path = f"{slug}-{short_id}" if slug else short_id
+        loc = f"{FRONTEND_URL}/publications/{path}"
         lastmod = created_at.strftime("%Y-%m-%d")
         entries.append(_url_entry(loc, lastmod=lastmod, changefreq="monthly", priority="0.7"))
 

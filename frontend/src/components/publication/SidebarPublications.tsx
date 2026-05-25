@@ -6,6 +6,7 @@ import { CATEGORIES } from "../../constants/categories";
 import Spinner from "../ui/Spinner";
 import CustomDropdown from "../ui/CustomDropdown";
 import api from "../../lib/api";
+import { publicationPath } from "../../lib/publicationUrl";
 import type { PaginatedPublications, PublicationId } from "../../types/models";
 
 interface SidebarPublicationsProps {
@@ -54,7 +55,7 @@ export default function SidebarPublications({ currentId }: SidebarPublicationsPr
               <button
                 key={pub.id}
                 type="button"
-                onClick={() => navigate(`/publications/${pub.id}`)}
+                onClick={() => navigate(publicationPath(pub))}
                 className={`w-full text-left p-3 rounded-xl border transition-all
                   ${active
                     ? "border-red-200 bg-red-50"

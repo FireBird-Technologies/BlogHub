@@ -1,14 +1,40 @@
 import base64
+import re
 import uuid
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import Text, bindparam, cast, select, update, func, delete, and_, or_
+from sqlalchemy import String, Text, bindparam, cast, select, update, func, delete, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.schemas.publication import PublicationOut, PaginatedPublications, SocialLinkOut, UpvoteResponse
 from app.schemas.user import UserOut
+
+SHORT_ID_RE = re.compile(r"^[0-9a-f]{8}$")
+
+
+async def resolve_publication_short_id(db: AsyncSession, short_id: str) -> uuid.UUID | None:
+    """Look up a publication by the first 8 hex chars of its UUID.
+
+    Returns the full UUID if exactly one publication's id starts with this
+    prefix, otherwise None. Collisions are vanishingly rare at our scale
+    (16^8 = ~4.3B), but we still 404 on ambiguity rather than guess.
+    """
+    from app.models.publication import Publication
+
+    if not SHORT_ID_RE.fullmatch(short_id):
+        return None
+    stmt = (
+        select(Publication.id)
+        .where(cast(Publication.id, String).like(f"{short_id}%"))
+        .limit(2)
+    )
+    result = await db.execute(stmt)
+    rows = result.all()
+    if len(rows) != 1:
+        return None
+    return rows[0][0]
 
 
 # ── cursor helpers ────────────────────────────────────────────────────────────

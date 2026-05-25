@@ -6,6 +6,7 @@ import Avatar from "../ui/Avatar";
 import UpvoteButton from "./UpvoteButton";
 import type { Publication } from "../../types/models";
 import { useAuth } from "../../context/AuthContext";
+import { publicationPath } from "../../lib/publicationUrl";
 
 function formatShortDate(iso: string) {
   if (!iso) return "";
@@ -38,16 +39,17 @@ export default function PublicationRow({ publication, queryKey, showTopTodayBadg
     author,
     created_at,
   } = publication;
+  const detailPath = publicationPath(publication);
 
   return (
     <article
       role="button"
       tabIndex={0}
-      onClick={() => navigate(`/publications/${id}`)}
+      onClick={() => navigate(detailPath)}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          navigate(`/publications/${id}`);
+          navigate(detailPath);
         }
       }}
       className="group relative flex gap-3 sm:gap-4 w-full text-left bg-white border border-gray-200 rounded-xl p-3 sm:p-4
@@ -129,7 +131,7 @@ export default function PublicationRow({ publication, queryKey, showTopTodayBadg
               openLoginModal();
               return;
             }
-            navigate(`/publications/${id}#publication-comments`);
+            navigate(`${detailPath}#publication-comments`);
           }}
         >
           <MessageCircle size={14} />
