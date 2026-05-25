@@ -1,7 +1,6 @@
 import HeroSection, { HeroBackdrop } from "../components/landing/HeroSection";
 import LandingLatestPublications from "../components/landing/LandingLatestPublications";
 import FeaturesSection from "../components/landing/FeaturesSection";
-import PreviewSection from "../components/landing/PreviewSection";
 import Footer from "../components/landing/Footer";
 
 export default function Landing() {
@@ -14,7 +13,6 @@ export default function Landing() {
           <LandingLatestPublications />
         </div>
       </section>
-      <PreviewSection />
       <FeaturesSection />
       <Footer />
     </main>

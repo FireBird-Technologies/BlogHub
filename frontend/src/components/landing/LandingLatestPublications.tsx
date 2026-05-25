@@ -126,7 +126,7 @@ function LandingPreviewRow({
   );
 }
 
-const PREVIEW_LIMIT = 5;
+const PREVIEW_LIMIT = 10;
 
 export default function LandingLatestPublications() {
   const { user } = useAuth();
