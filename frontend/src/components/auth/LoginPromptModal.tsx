@@ -1,9 +1,16 @@
 import { X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import GoogleSignInButton from "../ui/GoogleSignInButton";
 
 export default function LoginPromptModal() {
+  const navigate = useNavigate();
   const { loginModalOpen, closeLoginModal } = useAuth();
+
+  const handleSignedIn = () => {
+    closeLoginModal();
+    navigate("/dashboard");
+  };
 
   if (!loginModalOpen) return null;
 
@@ -31,7 +38,7 @@ export default function LoginPromptModal() {
           </p>
         </div>
 
-        <GoogleSignInButton onSignedIn={closeLoginModal} />
+        <GoogleSignInButton onSignedIn={handleSignedIn} />
       </div>
     </div>
   );
