@@ -3,6 +3,7 @@ import uuid
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -23,6 +24,14 @@ from app.schemas.publication import (
 )
 
 router = APIRouter(tags=["publications"])
+
+
+@router.get("/publications/categories", response_model=list[str])
+async def list_categories(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Publication.category).distinct().order_by(Publication.category)
+    )
+    return result.scalars().all()
 
 
 @router.get("/publications", response_model=PaginatedPublications)

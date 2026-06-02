@@ -2,6 +2,8 @@ export const SOCIAL_OPTIONS = [
   { value: "Twitter / X", label: "Twitter / X" },
   { value: "LinkedIn", label: "LinkedIn" },
   { value: "GitHub", label: "GitHub" },
+  { value: "Medium", label: "Medium" },
+  { value: "Substack", label: "Substack" },
   { value: "Facebook", label: "Facebook" },
   { value: "Instagram", label: "Instagram" },
   { value: "YouTube", label: "YouTube" },

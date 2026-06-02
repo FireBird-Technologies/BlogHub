@@ -37,19 +37,20 @@ interface PublicationUpdatePayload {
   title: string;
   description?: string;
   image_url?: string;
-  category: Category;
+  category: string;
   tags: string[];
   additional_links: string[];
   social_links: SocialLinkInput[];
 }
 
-function buildBasePayload(pub: Publication): PublicationUpdatePayload {
+function buildBasePayload(pub: Publication, customCategory?: string): PublicationUpdatePayload {
+  const isPredefined = isCategory(pub.category);
   return {
     url: pub.url,
     title: pub.title,
     description: pub.description ?? undefined,
     image_url: pub.image_url ?? undefined,
-    category: isCategory(pub.category) ? pub.category : CATEGORIES[0],
+    category: isPredefined ? pub.category : (customCategory || pub.category || CATEGORIES[0]),
     tags: pub.tags ?? [],
     additional_links: pub.additional_links ?? [],
     social_links: (pub.social_links ?? []).map((s) => ({ label: s.label, url: s.url })),
@@ -76,7 +77,8 @@ export default function EditPublicationFieldModal({
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [url, setUrl] = useState("");
-  const [category, setCategory] = useState<Category>(CATEGORIES[0]);
+  const [category, setCategory] = useState<string>(CATEGORIES[0]);
+  const [customCategory, setCustomCategory] = useState("");
   const [tagsStr, setTagsStr] = useState("");
   const [extraSlots, setExtraSlots] = useState<string[]>([]);
   const [socials, setSocials] = useState<SocialLinkInput[]>([]);
@@ -88,7 +90,9 @@ export default function EditPublicationFieldModal({
     setDescription(publication.description ?? "");
     setImageUrl(publication.image_url ?? "");
     setUrl(publication.url ?? "");
-    setCategory(isCategory(publication.category) ? publication.category : CATEGORIES[0]);
+    const isPredefined = isCategory(publication.category);
+    setCategory(isPredefined ? publication.category : "__custom__");
+    setCustomCategory(isPredefined ? "" : publication.category);
     setTagsStr((publication.tags ?? []).join(", "));
 
     const links = [...(publication.additional_links ?? [])].slice(0, MAX_EXTRA);
@@ -128,7 +132,7 @@ export default function EditPublicationFieldModal({
     setError("");
     if (!publication || !field) return;
 
-    const base = buildBasePayload(publication);
+    const base = buildBasePayload(publication, customCategory);
     let payload: PublicationUpdatePayload = base;
 
     switch (field) {
@@ -138,11 +142,15 @@ export default function EditPublicationFieldModal({
           setError("Title is required");
           return;
         }
+        if (category === "__custom__" && !customCategory.trim()) {
+          setError("Please enter a category name");
+          return;
+        }
         payload = {
           ...base,
           title: t,
           image_url: imageUrl.trim() || undefined,
-          category,
+          category: category === "__custom__" ? customCategory.trim() : category,
           tags: tagsStr
             .split(",")
             .map((tag) => tag.trim())
@@ -218,9 +226,22 @@ export default function EditPublicationFieldModal({
               <label className="block text-xs text-gray-500 mb-1.5 font-medium">Category *</label>
               <CustomDropdown
                 value={category}
-                onChange={(v) => setCategory(v as Category)}
-                options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+                onChange={(v) => setCategory(v)}
+                options={[
+                  ...CATEGORIES.map((c) => ({ value: c, label: c })),
+                  { value: "__custom__", label: "Other / Custom…" },
+                ]}
               />
+              {category === "__custom__" && (
+                <input
+                  type="text"
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  placeholder="e.g. Gaming, Machine Learning…"
+                  maxLength={64}
+                  className={`${inputCls} mt-2`}
+                />
+              )}
             </div>
 
             <div>

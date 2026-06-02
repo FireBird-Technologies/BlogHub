@@ -36,7 +36,7 @@ interface CreatePublicationPayload {
   title: string;
   description?: string;
   image_url?: string;
-  category: Category;
+  category: string;
   tags: string[];
   additional_links: string[];
   social_links: SocialLinkInput[];
@@ -89,13 +89,13 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
 
   const handlePublish = ({ additional_links, social_links }: LinksPayload) => {
     setPublishError("");
-    if (!draft?.url || !draft.title?.trim()) return;
+    if (!draft?.url || !draft.title?.trim() || !draft.category) return;
     publish({
       url: draft.url,
       title: draft.title.trim(),
       description: draft.description || undefined,
       image_url: draft.image_url || undefined,
-      category: draft.category && isCategory(draft.category) ? draft.category : CATEGORIES[0],
+      category: draft.category,
       tags: draft.tags ?? [],
       additional_links: additional_links ?? [],
       social_links: social_links ?? [],

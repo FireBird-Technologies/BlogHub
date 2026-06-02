@@ -17,7 +17,6 @@ CATEGORIES = [
     "Education",
     "Finance",
     "Entertainment",
-    "Other",
 ]
 
 

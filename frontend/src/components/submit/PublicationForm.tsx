@@ -13,7 +13,7 @@ export interface PublicationFormContinuePayload {
   title: string;
   description?: string;
   image_url?: string;
-  category: Category;
+  category: string;
   tags: string[];
 }
 
@@ -23,13 +23,15 @@ interface PublicationFormProps {
 }
 
 export default function PublicationForm({ draft, onContinue }: PublicationFormProps) {
+  const isPredefinedCategory = draft?.category && isCategory(draft.category);
   const [form, setForm] = useState(() => ({
     title: draft?.title ?? "",
     description: draft?.description ?? "",
     image_url: draft?.image_url ?? "",
-    category: draft?.category && isCategory(draft.category) ? draft.category : CATEGORIES[0],
+    category: (isPredefinedCategory ? draft.category : (draft?.category ? "__custom__" : CATEGORIES[0])) as string,
     tags: tagsToString(draft?.tags),
   }));
+  const [customCategory, setCustomCategory] = useState(isPredefinedCategory ? "" : (draft?.category ?? ""));
   const [error, setError] = useState("");
 
   const set =
@@ -43,6 +45,10 @@ export default function PublicationForm({ draft, onContinue }: PublicationFormPr
       setError("Title is required");
       return;
     }
+    if (form.category === "__custom__" && !customCategory.trim()) {
+      setError("Please enter a category name");
+      return;
+    }
     const tags = form.tags
       .split(",")
       .map((t) => t.trim())
@@ -51,7 +57,7 @@ export default function PublicationForm({ draft, onContinue }: PublicationFormPr
       title: form.title.trim(),
       description: form.description.trim() || undefined,
       image_url: form.image_url.trim() || undefined,
-      category: form.category,
+      category: form.category === "__custom__" ? customCategory.trim() : form.category,
       tags,
     });
   };
@@ -98,7 +104,18 @@ export default function PublicationForm({ draft, onContinue }: PublicationFormPr
                 {c}
               </option>
             ))}
+            <option value="__custom__">Other / Custom…</option>
           </select>
+          {form.category === "__custom__" && (
+            <input
+              type="text"
+              value={customCategory}
+              onChange={(e) => setCustomCategory(e.target.value)}
+              placeholder="e.g. Gaming, Machine Learning…"
+              maxLength={64}
+              className={`${inputCls} mt-2`}
+            />
+          )}
         </div>
         <div>
           <label className="block text-xs text-gray-500 mb-1.5 font-medium">Tags</label>

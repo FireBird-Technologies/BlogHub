@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Link2, Users, TrendingUp, Zap } from "lucide-react";
+import { Link2, Users, TrendingUp, Sparkles } from "lucide-react";
 
 interface AboutCard {
   icon: React.ReactNode;
@@ -27,10 +27,10 @@ const aboutCards: AboutCard[] = [
       "Featured publications get exposure to a growing community of readers. Build your subscriber base and increase your reach.",
   },
   {
-    icon: <Zap size={28} className="text-red-600" />,
-    title: "Zero Cost",
+    icon: <Sparkles size={28} className="text-red-600" />,
+    title: "AI-Powered Search",
     description:
-      "Submit unlimited publications for free. No hidden fees, no premium tiers, no credit required. Completely free.",
+      "Intelligent search and recommendations powered by AI. Find relevant articles effortlessly and get personalized suggestions based on your interests.",
   },
 ];
 
@@ -80,6 +80,16 @@ export default function LandingAboutSection() {
             </motion.div>
           ))}
         </div>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 0.55, delay: 0.4 }}
+          viewport={{ once: true, margin: "-100px" }}
+          className="text-center text-sm text-gray-500 mt-12"
+        >
+          Submit unlimited publications with zero cost. No hidden fees, no premium tiers, no credit required.
+        </motion.p>
       </div>
     </section>
   );
