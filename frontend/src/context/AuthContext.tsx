@@ -6,6 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { isAxiosError } from "axios";
 import api from "../lib/api";
 import { getToken, removeToken, setToken } from "../lib/auth";
 import type { User } from "../types/models";
@@ -29,6 +30,10 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+function isUnauthorized(err: unknown): boolean {
+  return isAxiosError(err) && err.response?.status === 401;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,19 +50,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     api
-      .get<User>("/api/me")
+      .get<User>("/api/me", { skipAuthRedirect: true })
       .then((res) => setUser(res.data))
-      .catch(() => removeToken())
+      .catch((err) => {
+        if (isUnauthorized(err) && getToken() === token) {
+          removeToken();
+        }
+      })
       .finally(() => setLoading(false));
   }, []);
 
   const loginWithGoogle = useCallback(async (idToken: string) => {
     setSigningIn(true);
+    let issuedToken: string | null = null;
     try {
-      const res = await api.post<AuthTokenResponse>("/auth/google/id-token", { id_token: idToken });
-      setToken(res.data.token);
-      const me = await api.get<User>("/api/me");
+      const res = await api.post<AuthTokenResponse>(
+        "/auth/google/id-token",
+        { id_token: idToken },
+        { skipAuthRedirect: true }
+      );
+      issuedToken = res.data.token;
+      setToken(issuedToken);
+      const me = await api.get<User>("/api/me", { skipAuthRedirect: true });
       setUser(me.data);
+    } catch (err) {
+      if (issuedToken && isUnauthorized(err) && getToken() === issuedToken) {
+        removeToken();
+      }
+      throw err;
     } finally {
       setSigningIn(false);
     }
@@ -71,10 +91,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshUser = useCallback(async () => {
     try {
-      const res = await api.get<User>("/api/me");
+      const res = await api.get<User>("/api/me", { skipAuthRedirect: true });
       setUser(res.data);
-    } catch {
-      /* ignore */
+    } catch (err) {
+      if (isUnauthorized(err)) {
+        removeToken();
+        setUser(null);
+      }
     }
   }, []);
 

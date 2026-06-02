@@ -1,4 +1,5 @@
 import uuid
+import logging
 from datetime import datetime, timedelta, timezone
 
 import httpx
@@ -12,6 +13,7 @@ from app.settings import settings
 GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
 GOOGLE_TOKENINFO_URL = "https://oauth2.googleapis.com/tokeninfo"
 GOOGLE_ISSUERS = {"accounts.google.com", "https://accounts.google.com"}
+logger = logging.getLogger(__name__)
 
 
 async def get_google_user_info(access_token: str) -> dict:
@@ -23,6 +25,7 @@ async def get_google_user_info(access_token: str) -> dict:
             timeout=20.0,
         )
     if response.status_code != 200:
+        logger.warning("Google userinfo verification failed with status %s", response.status_code)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid Google access token",
@@ -43,6 +46,7 @@ async def get_google_user_from_id_token(id_token: str) -> dict:
             timeout=20.0,
         )
     if response.status_code != 200:
+        logger.warning("Google ID token verification failed with status %s", response.status_code)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid Google ID token",
@@ -50,16 +54,19 @@ async def get_google_user_from_id_token(id_token: str) -> dict:
     claims = response.json()
 
     if claims.get("iss") not in GOOGLE_ISSUERS:
+        logger.warning("Google ID token has unexpected issuer: %s", claims.get("iss"))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Google ID token has unexpected issuer",
         )
     if claims.get("aud") != settings.GOOGLE_CLIENT_ID:
+        logger.warning("Google ID token audience mismatch")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Google ID token was issued for a different client",
         )
     if "sub" not in claims or "email" not in claims:
+        logger.warning("Google ID token missing required claims")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Google ID token missing required claims",

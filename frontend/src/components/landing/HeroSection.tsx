@@ -228,7 +228,7 @@ export default function HeroSection() {
             transition={{ duration: 0.55, delay: 0.08 }}
             className="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-[1.12] tracking-tight text-gray-900"
           >
-            Where great reads <span className="text-gradient">find their audience</span>
+            Promote your publication —<br /><span className="text-gradient"> real readers, zero cost</span>
           </motion.h1>
 
           <motion.p
@@ -237,19 +237,17 @@ export default function HeroSection() {
             transition={{ duration: 0.55, delay: 0.16 }}
             className="text-lg text-gray-500 leading-relaxed"
           >
-            Discover and share the publications that actually matter. Curated by people who read everything.
+            Submit your blog or newsletter once. BlogHub promotes it to thousands of readers, drives real traffic to your site, and builds SEO backlinks — completely free.
           </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.24 }}
-            className="flex flex-col items-start gap-3"
+            className="flex flex-col items-start gap-6"
           >
+           
             <GoogleSignInButton onSignedIn={() => navigate("/dashboard")} />
-            <a href="#preview" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">
-              See what's inside →
-            </a>
           </motion.div>
         </div>
 
