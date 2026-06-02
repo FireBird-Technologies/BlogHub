@@ -14,6 +14,10 @@ export default function GoogleSignInButton({ onSignedIn, width }: GoogleSignInBu
 
   const handleSuccess = async (cred: CredentialResponse) => {
     if (!cred.credential) {
+      console.warn("Google sign-in did not return a credential", {
+        clientId: cred.clientId,
+        selectBy: cred.select_by,
+      });
       setError("Google did not return a credential. Please retry.");
       return;
     }
@@ -22,6 +26,7 @@ export default function GoogleSignInButton({ onSignedIn, width }: GoogleSignInBu
       await loginWithGoogle(cred.credential);
       onSignedIn?.();
     } catch (e) {
+      console.warn("BlogHub sign-in failed after Google credential response", e);
       setError(formatApiErrorDetail(e, "Sign-in failed. Please retry."));
     }
   };
@@ -30,13 +35,17 @@ export default function GoogleSignInButton({ onSignedIn, width }: GoogleSignInBu
     <div className="flex flex-col gap-2">
       <GoogleLogin
         onSuccess={handleSuccess}
-        onError={() => setError("Google sign-in was cancelled or failed.")}
+        onError={() => {
+          console.warn("Google sign-in was cancelled or failed before returning a credential");
+          setError("Google sign-in was cancelled or failed. Please retry.");
+        }}
         shape="pill"
         theme="outline"
         size="large"
         text="signin_with"
-        width={width}
+        width={width ?? 320}
         useOneTap={false}
+        use_fedcm_for_button
       />
       {error && <p className="text-red-600 text-sm">{error}</p>}
     </div>

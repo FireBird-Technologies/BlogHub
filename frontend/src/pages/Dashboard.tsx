@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import FilterBar from "../components/filters/FilterBar";
 import DashboardPublicationList from "../components/publication/DashboardPublicationList";
@@ -10,8 +11,9 @@ import { useAuth } from "../context/AuthContext";
 
 export default function Dashboard() {
   const { user, openLoginModal } = useAuth();
+  const [searchParams] = useSearchParams();
   const [category, setCategory] = useState("");
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [modalOpen, setModalOpen] = useState(false);
 
   const queryKey = ["publications", { category, search, sort: "ranked" }] as const;
@@ -25,7 +27,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <FilterBar category={category} onCategory={setCategory} onSearch={setSearch} />
+      <FilterBar category={category} onCategory={setCategory} onSearch={setSearch} searchDefaultValue={searchParams.get("q") ?? ""} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="flex items-center justify-between gap-3 mb-6 sm:mb-8">

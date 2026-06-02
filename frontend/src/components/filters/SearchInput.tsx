@@ -4,10 +4,11 @@ import { Search } from "lucide-react";
 interface SearchInputProps {
   onSearch: (q: string) => void;
   placeholder?: string;
+  defaultValue?: string;
 }
 
-export default function SearchInput({ onSearch, placeholder = "Search publications…" }: SearchInputProps) {
-  const [value, setValue] = useState("");
+export default function SearchInput({ onSearch, placeholder = "Search publications…", defaultValue = "" }: SearchInputProps) {
+  const [value, setValue] = useState(defaultValue);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {

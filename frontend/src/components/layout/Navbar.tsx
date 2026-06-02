@@ -5,7 +5,7 @@ import Avatar from "../ui/Avatar";
 import Button from "../ui/Button";
 
 export default function Navbar() {
-  const { user, logout, openLoginModal } = useAuth();
+  const { user, loading, logout, openLoginModal } = useAuth();
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-gray-200">
@@ -26,7 +26,9 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
-          {user ? (
+          {loading ? (
+            <div className="h-8 w-20 rounded-full bg-gray-100 animate-pulse" aria-label="Checking sign-in status" />
+          ) : user ? (
             <>
               <Link
                 to="/profile"
