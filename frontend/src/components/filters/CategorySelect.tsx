@@ -1,17 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Check } from "lucide-react";
 import { CATEGORIES } from "../../constants/categories";
+import { useCategories } from "../../hooks/useCategories";
 
 interface MobileDropdownProps {
   value: string;
   onChange: (v: string) => void;
+  customCategories: string[];
 }
 
-function MobileDropdown({ value, onChange }: MobileDropdownProps) {
+function MobileDropdown({ value, onChange, customCategories }: MobileDropdownProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const all = ["All", ...CATEGORIES] as const;
-  const label = value || "All";
+  const predefined = ["All", ...CATEGORIES] as const;
+  const isCustomActive = customCategories.includes(value);
+  const label = isCustomActive ? "Other" : value || "All";
 
   useEffect(() => {
     if (!open) return;
@@ -35,7 +38,7 @@ function MobileDropdown({ value, onChange }: MobileDropdownProps) {
 
       {open && (
         <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
-          {all.map((cat) => {
+          {predefined.map((cat) => {
             const isAll = cat === "All";
             const active = isAll ? value === "" : value === cat;
             return (
@@ -54,6 +57,24 @@ function MobileDropdown({ value, onChange }: MobileDropdownProps) {
               </button>
             );
           })}
+
+          {customCategories.length > 0 && (
+            <>
+              <div className="h-px bg-gray-200" />
+              <button
+                type="button"
+                onClick={() => {
+                  onChange("__custom__");
+                  setOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-4 py-2.5 text-sm text-left transition-colors
+                  ${value === "__custom__" || customCategories.includes(value) ? "text-red-600 font-semibold bg-red-50" : "text-gray-700 hover:bg-gray-50"}`}
+              >
+                <span>Other</span>
+                {(value === "__custom__" || customCategories.includes(value)) && <Check size={14} className="text-red-600 flex-shrink-0" />}
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>
@@ -66,24 +87,27 @@ interface CategorySelectProps {
 }
 
 export default function CategorySelect({ value, onChange }: CategorySelectProps) {
-  const all = ["All", ...CATEGORIES] as const;
+  const { data: allCategories = [] } = useCategories();
+  const customCategories = allCategories.filter((cat) => !CATEGORIES.includes(cat as any));
+  const predefined = ["All", ...CATEGORIES] as const;
 
   return (
     <>
       <div className="sm:hidden">
-        <MobileDropdown value={value} onChange={onChange} />
+        <MobileDropdown value={value} onChange={onChange} customCategories={customCategories} />
       </div>
 
       <div className="hidden sm:flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-        {all.map((cat) => {
+        {predefined.map((cat) => {
           const isAll = cat === "All";
           const active = isAll ? value === "" : value === cat;
+
           return (
             <button
               key={cat}
               type="button"
               onClick={() => onChange(isAll ? "" : cat)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap
+              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap flex-shrink-0
                 ${active
                   ? "bg-red-600 border-red-600 text-white"
                   : "bg-white border-gray-200 text-gray-600 hover:border-red-300 hover:text-red-600"
@@ -93,6 +117,20 @@ export default function CategorySelect({ value, onChange }: CategorySelectProps)
             </button>
           );
         })}
+
+        {customCategories.length > 0 && (
+          <button
+            type="button"
+            onClick={() => onChange("__custom__")}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap flex-shrink-0
+              ${value === "__custom__" || customCategories.includes(value)
+                ? "bg-red-600 border-red-600 text-white"
+                : "bg-white border-gray-200 text-gray-600 hover:border-red-300 hover:text-red-600"
+              }`}
+          >
+            Other
+          </button>
+        )}
       </div>
     </>
   );

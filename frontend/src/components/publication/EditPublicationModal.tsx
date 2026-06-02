@@ -28,7 +28,7 @@ interface PublicationUpdatePayload {
   title: string;
   description?: string;
   image_url?: string;
-  category: Category;
+  category: string;
   tags: string[];
   additional_links: string[];
   social_links: SocialLinkInput[];
@@ -47,7 +47,8 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [category, setCategory] = useState<Category>(CATEGORIES[0]);
+  const [category, setCategory] = useState<string>(CATEGORIES[0]);
+  const [customCategory, setCustomCategory] = useState("");
   const [tagsStr, setTagsStr] = useState("");
   const [fieldError, setFieldError] = useState("");
   const [extraSlots, setExtraSlots] = useState(() => initLinkExtraSlots([]));
@@ -61,7 +62,9 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
     setTitle(publication.title ?? "");
     setDescription(publication.description ?? "");
     setImageUrl(publication.image_url ?? "");
-    setCategory(isCategory(publication.category) ? publication.category : CATEGORIES[0]);
+    const isPredefined = isCategory(publication.category);
+    setCategory(isPredefined ? publication.category : "__custom__");
+    setCustomCategory(isPredefined ? "" : publication.category);
     setTagsStr(tagsToString(publication.tags));
     setExtraSlots(initLinkExtraSlots(publication.additional_links ?? []));
     setSocials(initLinkSocialRows(publication.social_links ?? []));
@@ -101,6 +104,10 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
       setFieldError("URL is required");
       return;
     }
+    if (category === "__custom__" && !customCategory.trim()) {
+      setFieldError("Please enter a category name");
+      return;
+    }
     const tags = tagsStr
       .split(",")
       .map((t) => t.trim())
@@ -113,7 +120,7 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
         title: title.trim(),
         description: description.trim() || undefined,
         image_url: imageUrl.trim() || undefined,
-        category,
+        category: category === "__custom__" ? customCategory.trim() : category,
         tags,
         additional_links,
         social_links,
@@ -178,7 +185,7 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
             <label className="block text-xs text-gray-500 mb-1.5 font-medium">Category *</label>
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value as Category)}
+              onChange={(e) => setCategory(e.target.value)}
               className={inputCls}
             >
               {CATEGORIES.map((c) => (
@@ -186,7 +193,18 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
                   {c}
                 </option>
               ))}
+              <option value="__custom__">Other / Custom…</option>
             </select>
+            {category === "__custom__" && (
+              <input
+                type="text"
+                value={customCategory}
+                onChange={(e) => setCustomCategory(e.target.value)}
+                placeholder="e.g. Gaming, Machine Learning…"
+                maxLength={64}
+                className={`${inputCls} mt-2`}
+              />
+            )}
           </div>
           <div>
             <label className="block text-xs text-gray-500 mb-1.5 font-medium">Tags</label>

@@ -10,6 +10,7 @@ from sqlalchemy.orm import selectinload
 
 from app.schemas.publication import PublicationOut, PaginatedPublications, SocialLinkOut, UpvoteResponse
 from app.schemas.user import UserOut
+from app.models.publication import CATEGORIES
 
 SHORT_ID_RE = re.compile(r"^[0-9a-f]{8}$")
 
@@ -158,7 +159,11 @@ async def build_publications_query(
     if filter_by_user_id:
         stmt = stmt.where(Publication.user_id == filter_by_user_id)
     if category:
-        stmt = stmt.where(Publication.category == category)
+        if category == "__custom__":
+            # Show all custom categories (not in predefined list)
+            stmt = stmt.where(~Publication.category.in_(CATEGORIES))
+        else:
+            stmt = stmt.where(Publication.category == category)
     if search:
         pattern = f"%{search}%"
         stmt = stmt.where(or_(
@@ -229,7 +234,10 @@ async def _ranked_query(
         if filter_by_user_id:
             q = q.where(Publication.user_id == filter_by_user_id)
         if category:
-            q = q.where(Publication.category == category)
+            if category == "__custom__":
+                q = q.where(~Publication.category.in_(CATEGORIES))
+            else:
+                q = q.where(Publication.category == category)
         if search:
             pattern = f"%{search}%"
             q = q.where(or_(
@@ -239,11 +247,16 @@ async def _ranked_query(
         return q
 
     # Total count (without cursor)
+    category_where = (
+        ~Publication.category.in_(CATEGORIES) if category == "__custom__"
+        else (Publication.category == category) if category
+        else True
+    )
     count_q = select(func.count()).select_from(
         select(Publication.id)
         .outerjoin(cc_sub, Publication.id == cc_sub.c.publication_id)
         .where(*([Publication.user_id == filter_by_user_id] if filter_by_user_id else [True]))
-        .where(*([Publication.category == category] if category else [True]))
+        .where(category_where)
         .subquery()
     )
     total_result = await db.execute(count_q)
