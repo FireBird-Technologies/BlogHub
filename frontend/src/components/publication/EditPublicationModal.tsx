@@ -12,6 +12,7 @@ import {
   emptySocialRow,
 } from "../submit/PublicationLinksStep";
 import api, { formatApiErrorDetail } from "../../lib/api";
+import { publicationShortId } from "../../lib/publicationUrl";
 import type { Publication, SocialLinkInput } from "../../types/models";
 
 const inputCls =
@@ -80,9 +81,16 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
       queryClient.invalidateQueries({ queryKey: ["publications"] });
       queryClient.invalidateQueries({ queryKey: ["user-publications"] });
       queryClient.invalidateQueries({ queryKey: ["sidebar-publications"] });
+      queryClient.invalidateQueries({ queryKey: ["publications-preview"] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      // The detail page keys its query by the truncated short id (not the full
+      // UUID), so match on that too — otherwise it shows stale data until refresh.
+      const shortId = publicationShortId(id);
       queryClient.invalidateQueries({
         predicate: (q) =>
-          Array.isArray(q.queryKey) && q.queryKey[0] === "publication" && String(q.queryKey[1]) === String(id),
+          Array.isArray(q.queryKey) &&
+          q.queryKey[0] === "publication" &&
+          (String(q.queryKey[1]) === String(id) || String(q.queryKey[1]) === shortId),
       });
       onClose();
     },

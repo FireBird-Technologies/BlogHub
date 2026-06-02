@@ -7,6 +7,7 @@ import Spinner from "../ui/Spinner";
 import CustomDropdown from "../ui/CustomDropdown";
 import api, { formatApiErrorDetail } from "../../lib/api";
 import { CATEGORIES, isCategory, type Category } from "../../constants/categories";
+import { publicationShortId } from "../../lib/publicationUrl";
 import {
   SOCIAL_OPTIONS,
   DEFAULT_SOCIAL_LABEL,
@@ -110,15 +111,21 @@ export default function EditPublicationFieldModal({
   const { mutate, isPending } = useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: PublicationUpdatePayload }) =>
       api.patch<Publication>(`/api/publications/${id}`, payload).then((r) => r.data),
-    onSuccess: (_data, vars) => {
+    onSuccess: async (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: ["publications"] });
       queryClient.invalidateQueries({ queryKey: ["user-publications"] });
       queryClient.invalidateQueries({ queryKey: ["sidebar-publications"] });
-      queryClient.invalidateQueries({
+      queryClient.invalidateQueries({ queryKey: ["publications-preview"] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      // Refetch the specific publication detail query to ensure data updates
+      // immediately. The detail page keys its query by the truncated short id
+      // (not the full UUID), so match on that too.
+      const shortId = publicationShortId(vars.id);
+      await queryClient.refetchQueries({
         predicate: (q) =>
           Array.isArray(q.queryKey) &&
           q.queryKey[0] === "publication" &&
-          String(q.queryKey[1]) === String(vars.id),
+          (String(q.queryKey[1]) === String(vars.id) || String(q.queryKey[1]) === shortId),
       });
       onClose();
     },

@@ -59,6 +59,7 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["publications"] });
       queryClient.invalidateQueries({ queryKey: ["user-publications"] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
       handleClose();
     },
     onError: (err: unknown) => {
