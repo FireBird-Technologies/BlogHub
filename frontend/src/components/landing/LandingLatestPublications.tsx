@@ -162,7 +162,7 @@ export default function LandingLatestPublications() {
   return (
     <>
       <div className="w-full">
-        <div className="mb-6 sm:mb-8 text-center flex flex-col items-center">
+        <div className="mb-6 sm:mb-8 text-center flex flex-col items-center mt-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
             Latest publications
           </h2>
