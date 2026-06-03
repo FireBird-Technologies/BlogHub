@@ -2,6 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { MessageCircle } from "lucide-react";
 import type { QueryKey } from "@tanstack/react-query";
 import Badge from "../ui/Badge";
+import VerificationBadge from "../ui/VerificationBadge";
+import VerifiedTick from "../ui/VerifiedTick";
 import Avatar from "../ui/Avatar";
 import UpvoteButton from "./UpvoteButton";
 import type { Publication } from "../../types/models";
@@ -65,6 +67,7 @@ export default function PublicationRow({ publication, queryKey, showTopTodayBadg
         </span>
       )}
 
+
       <div className="flex-shrink-0 w-24 h-16 sm:w-32 sm:h-[4.5rem] rounded-lg bg-gray-100 overflow-hidden border border-gray-100">
         {image_url ? (
           <img
@@ -104,15 +107,23 @@ export default function PublicationRow({ publication, queryKey, showTopTodayBadg
             <span className="text-[10px] text-gray-400">+{(tags?.length ?? 0) - 4}</span>
           )}
         </div>
-        <h3 className="text-sm sm:text-base font-semibold text-gray-900 leading-snug line-clamp-2">{title}</h3>
+        <h3 className="text-sm sm:text-base font-semibold text-gray-900 leading-snug line-clamp-2">
+          {title}
+          {publication.is_verified && (
+            <VerifiedTick verifiedAt={publication.verified_at} size={16} className="ml-1.5 -mt-0.5" />
+          )}
+        </h3>
         {description && (
           <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 hidden sm:block">{description}</p>
         )}
-        <div className="flex items-center gap-2 mt-auto pt-1">
+        <div className="flex flex-wrap items-center gap-2 mt-auto pt-1">
           <Avatar src={author?.avatar_url} name={author?.name} size={22} />
           <span className="text-xs text-gray-500 truncate">{author?.name}</span>
           {created_at && (
             <span className="text-[10px] text-gray-400 ml-1">{formatShortDate(created_at)}</span>
+          )}
+          {!publication.is_verified && (
+            <VerificationBadge isVerified={false} verifiedAt={publication.verified_at} />
           )}
         </div>
       </div>

@@ -15,6 +15,8 @@ from app.helpers.publications import (
     toggle_upvote,
 )
 from app.models.publication import Publication
+from app.models.publication_claim import PublicationClaim
+from app.schemas.claim import ClaimCreate, ClaimOut
 from app.schemas.publication import (
     PaginatedPublications,
     PublicationCreate,
@@ -22,6 +24,7 @@ from app.schemas.publication import (
     PublicationUpdate,
     UpvoteResponse,
 )
+from app.helpers.email import send_claim_notification
 
 router = APIRouter(tags=["publications"])
 
@@ -201,3 +204,89 @@ async def upvote_publication(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
 
     return await toggle_upvote(db, user_id=current_user.id, publication_id=publication_id)
+
+
+@router.post(
+    "/publications/{publication_id}/claim",
+    response_model=ClaimOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def claim_publication(
+    publication_id: uuid.UUID,
+    data: ClaimCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    result = await db.execute(select(Publication).where(Publication.id == publication_id))
+    pub = result.scalar_one_or_none()
+    if not pub:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
+
+    # Once a publication is verified (by anyone), claiming is closed.
+    verified_exists = await db.execute(
+        select(PublicationClaim.id).where(
+            PublicationClaim.publication_id == publication_id,
+            PublicationClaim.status == "verified",
+        )
+    )
+    if verified_exists.first() is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="This publication is already verified"
+        )
+
+    social_links = [sl.model_dump(mode="json") for sl in data.social_links]
+    original_url = str(data.original_url) if data.original_url else None
+
+    existing_result = await db.execute(
+        select(PublicationClaim).where(
+            PublicationClaim.publication_id == publication_id,
+            PublicationClaim.user_id == current_user.id,
+        )
+    )
+    existing = existing_result.scalar_one_or_none()
+
+    if existing and existing.status in ("pending", "verified"):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="You already submitted a claim"
+        )
+
+    if existing:  # previously rejected — allow re-claim
+        existing.claimer_name = data.name
+        existing.claimer_email = current_user.email
+        existing.social_links = social_links
+        existing.original_url = original_url
+        existing.comment = data.comment
+        existing.status = "pending"
+        existing.verified_at = None
+        claim = existing
+    else:
+        claim = PublicationClaim(
+            publication_id=publication_id,
+            user_id=current_user.id,
+            claimer_name=data.name,
+            claimer_email=current_user.email,
+            social_links=social_links,
+            original_url=original_url,
+            comment=data.comment,
+            status="pending",
+        )
+        db.add(claim)
+
+    await db.commit()
+    await db.refresh(claim)
+
+    # Best-effort owner notification; must not fail the request.
+    try:
+        await send_claim_notification(
+            claim_id=claim.id,
+            publication=pub,
+            claimer_name=data.name,
+            claimer_email=current_user.email,
+            social_links=social_links,
+            original_url=original_url,
+            comment=data.comment,
+        )
+    except Exception:  # noqa: BLE001
+        pass
+
+    return claim

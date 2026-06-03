@@ -7,6 +7,9 @@ import Navbar from "../components/layout/Navbar";
 import Spinner from "../components/ui/Spinner";
 import Avatar from "../components/ui/Avatar";
 import Badge from "../components/ui/Badge";
+import VerificationBadge from "../components/ui/VerificationBadge";
+import VerifiedTick from "../components/ui/VerifiedTick";
+import ClaimButton from "../components/publication/ClaimButton";
 import CommentsSection from "../components/publication/CommentsSection";
 import SidebarPublications from "../components/publication/SidebarPublications";
 import EditPublicationFieldModal, { type EditableField } from "../components/publication/EditPublicationFieldModal";
@@ -439,6 +442,7 @@ export default function PublicationDetail() {
 
           <div className="flex flex-wrap items-center gap-2">
             <Badge category={pub.category} />
+            {!pub.is_verified && <VerificationBadge isVerified={false} verifiedAt={pub.verified_at} />}
             {pub.tags?.map((tag) => (
               <span
                 key={tag}
@@ -449,17 +453,23 @@ export default function PublicationDetail() {
                 {tag}
               </span>
             ))}
-            <a
-              href="https://blog2video.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-gray-200 text-xs font-medium
-                         text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors shadow-sm flex-shrink-0"
-            >
-              <Video size={12} className="text-red-500" />
-              Convert to video
-              <ExternalLink size={10} className="text-gray-400" />
-            </a>
+            <div className="ml-auto flex flex-col items-end gap-2 flex-shrink-0">
+              {pub.is_verified && <VerifiedTick verifiedAt={pub.verified_at} size={26} />}
+              <div className="flex items-center gap-2">
+                <ClaimButton publication={pub} />
+                <a
+                  href="https://blog2video.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-gray-200 text-xs font-medium
+                             text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors shadow-sm flex-shrink-0"
+                >
+                  <Video size={12} className="text-red-500" />
+                  Convert to video
+                  <ExternalLink size={10} className="text-gray-400" />
+                </a>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-start gap-2">
