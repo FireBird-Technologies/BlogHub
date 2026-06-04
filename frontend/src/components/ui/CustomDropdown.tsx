@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronDown, Check } from "lucide-react";
 
 export interface CustomDropdownOption {
   value: string;
   label: string;
+  icon?: ReactNode;
 }
 
 interface CustomDropdownProps {
@@ -46,7 +47,10 @@ export default function CustomDropdown({
         className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-gray-200
                     bg-white text-gray-700 text-sm font-medium hover:border-gray-300 transition-colors ${buttonClassName}`}
       >
-        <span className="truncate">{label}</span>
+        <span className="flex items-center gap-2 min-w-0">
+          {selected?.icon && <span className="shrink-0 flex items-center text-gray-500">{selected.icon}</span>}
+          <span className="truncate">{label}</span>
+        </span>
         <ChevronDown
           size={15}
           className={`transition-transform flex-shrink-0 ${open ? "rotate-180" : ""}`}
@@ -68,7 +72,14 @@ export default function CustomDropdown({
                 className={`w-full flex items-center justify-between gap-2 px-4 py-2.5 text-sm text-left transition-colors
                   ${active ? "text-red-600 font-semibold bg-red-50" : "text-gray-700 hover:bg-gray-50"}`}
               >
-                <span className="truncate">{opt.label}</span>
+                <span className="flex items-center gap-2 min-w-0">
+                  {opt.icon && (
+                    <span className={`shrink-0 flex items-center ${active ? "text-red-600" : "text-gray-500"}`}>
+                      {opt.icon}
+                    </span>
+                  )}
+                  <span className="truncate">{opt.label}</span>
+                </span>
                 {active && <Check size={14} className="text-red-600 flex-shrink-0" />}
               </button>
             );
