@@ -1,9 +1,11 @@
 export const SOCIAL_OPTIONS = [
+  { value: "Substack", label: "Substack" },
+  { value: "Medium", label: "Medium" },
+  { value: "Ghost", label: "Ghost" },
+  { value: "Beehiiv", label: "Beehiiv" },
   { value: "Twitter / X", label: "Twitter / X" },
   { value: "LinkedIn", label: "LinkedIn" },
   { value: "GitHub", label: "GitHub" },
-  { value: "Medium", label: "Medium" },
-  { value: "Substack", label: "Substack" },
   { value: "Facebook", label: "Facebook" },
   { value: "Instagram", label: "Instagram" },
   { value: "YouTube", label: "YouTube" },
@@ -21,4 +23,4 @@ export function isKnownSocialLabel(label: string): boolean {
   return SOCIAL_OPTION_VALUES.includes(label);
 }
 
-export const DEFAULT_SOCIAL_LABEL: SocialOptionValue = "Website";
+export const DEFAULT_SOCIAL_LABEL: SocialOptionValue = "Substack";

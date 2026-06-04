@@ -9,6 +9,7 @@ import {
   DEFAULT_SOCIAL_LABEL,
   isKnownSocialLabel,
 } from "../../constants/socials";
+import { socialIconForLabel } from "../../lib/socialIcons";
 
 const defaultInputCls =
   "w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-lg px-3 py-2.5 placeholder:text-gray-400 focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400/20 hover:border-gray-300 transition-colors";
@@ -93,7 +94,10 @@ export function PublicationLinksFields({
             const hasLegacyLabel = !!(row.label && !isKnownSocialLabel(row.label));
             const dropdownOptions = [
               ...(hasLegacyLabel ? [{ value: row.label, label: `${row.label} (current)` }] : []),
-              ...SOCIAL_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
+              ...SOCIAL_OPTIONS.map((o) => {
+                const Icon = socialIconForLabel(o.value);
+                return { value: o.value, label: o.label, icon: <Icon size={16} /> };
+              }),
             ];
             return (
               <div key={i} className="flex gap-2 items-start">
@@ -107,7 +111,7 @@ export function PublicationLinksFields({
                       return next;
                     })
                   }
-                  className="w-28 shrink-0"
+                  className="w-32 shrink-0"
                 />
                 <input
                   type="url"
