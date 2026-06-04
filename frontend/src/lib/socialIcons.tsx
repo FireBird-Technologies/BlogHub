@@ -68,7 +68,12 @@ export function resolveSocialIcon(url: string, userLabel: string): ResolvedSocia
   }
   const hint = `${host} ${(userLabel || "").toLowerCase()}`;
 
-  if (hint.includes("twitter") || host === "x.com" || host.endsWith(".x.com"))
+  if (
+    hint.includes("twitter") ||
+    host === "x.com" ||
+    host.endsWith(".x.com") ||
+    (userLabel || "").trim().toLowerCase() === "x"
+  )
     return { Icon: IconX as IconComponent, label: userLabel || "X" };
   if (hint.includes("linkedin")) return { Icon: Linkedin, label: userLabel || "LinkedIn" };
   if (hint.includes("github")) return { Icon: Github, label: userLabel || "GitHub" };

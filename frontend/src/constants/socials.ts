@@ -1,5 +1,5 @@
 export const SOCIAL_OPTIONS = [
-  { value: "Twitter / X", label: "Twitter / X" },
+  { value: "X", label: "X" },
   { value: "LinkedIn", label: "LinkedIn" },
   { value: "GitHub", label: "GitHub" },
   { value: "Medium", label: "Medium" },

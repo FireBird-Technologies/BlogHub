@@ -43,7 +43,7 @@ export default function ClaimPublicationModal({ publication, isOpen, onClose }: 
   const [socials, setSocials] = useState<SocialLinkInput[]>(() => [
     { label: "Substack", url: "" },
     { label: "Medium", url: "" },
-    { label: "Twitter / X", url: "" },
+    { label: "X", url: "" },
     { label: "LinkedIn", url: "" },
   ]);
   const [originalUrl, setOriginalUrl] = useState("");
