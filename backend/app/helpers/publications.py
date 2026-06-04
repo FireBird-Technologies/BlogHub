@@ -70,6 +70,8 @@ def _pub_to_out(
     upvoted_ids: set[uuid.UUID],
     comment_counts: dict[uuid.UUID, int],
     rank: int | None = None,
+    verified_map: dict[uuid.UUID, datetime] | None = None,
+    my_status_map: dict[uuid.UUID, str] | None = None,
 ) -> PublicationOut:
     raw_social = pub.social_links or []
     social_out = [
@@ -77,6 +79,10 @@ def _pub_to_out(
         for entry in raw_social
         if isinstance(entry, dict) and entry.get("url") and str(entry.get("label", "")).strip()
     ]
+
+    verified_map = verified_map or {}
+    my_status_map = my_status_map or {}
+    verified_at = verified_map.get(pub.id)
 
     return PublicationOut(
         id=pub.id,
@@ -92,9 +98,55 @@ def _pub_to_out(
         comment_count=comment_counts.get(pub.id, 0),
         rank=rank,
         is_upvoted=pub.id in upvoted_ids,
+        is_verified=verified_at is not None,
+        verified_at=verified_at,
+        my_claim_status=my_status_map.get(pub.id, "none"),
         created_at=pub.created_at,
         author=UserOut.model_validate(pub.author),
     )
+
+
+async def _batch_claims(
+    db: AsyncSession,
+    pubs: list,
+    user_id: uuid.UUID | None,
+) -> tuple[dict[uuid.UUID, datetime], dict[uuid.UUID, str]]:
+    """Batch-fetch verification state and the current user's claim status.
+
+    Returns (verified_map, my_status_map):
+      - verified_map: publication_id -> verified_at, for publications that have a
+        verified claim (verification is conveyed by presence in this map).
+      - my_status_map: publication_id -> status, for the current user's own claims.
+    """
+    from app.models.publication_claim import PublicationClaim
+
+    verified_map: dict[uuid.UUID, datetime] = {}
+    my_status_map: dict[uuid.UUID, str] = {}
+    if not pubs:
+        return verified_map, my_status_map
+
+    pub_ids = [p.id for p in pubs]
+    conditions = [PublicationClaim.status == "verified"]
+    if user_id:
+        conditions.append(PublicationClaim.user_id == user_id)
+
+    result = await db.execute(
+        select(
+            PublicationClaim.publication_id,
+            PublicationClaim.user_id,
+            PublicationClaim.status,
+            PublicationClaim.verified_at,
+            PublicationClaim.created_at,
+        ).where(
+            and_(PublicationClaim.publication_id.in_(pub_ids), or_(*conditions))
+        )
+    )
+    for pub_id, claim_user_id, claim_status, verified_at, created_at in result.all():
+        if claim_status == "verified":
+            verified_map[pub_id] = verified_at or created_at
+        if user_id and claim_user_id == user_id:
+            my_status_map[pub_id] = claim_status
+    return verified_map, my_status_map
 
 
 async def _batch_meta(
@@ -201,7 +253,8 @@ async def build_publications_query(
 
     next_cursor = encode_cursor(pubs[-1].created_at, pubs[-1].id) if has_more and pubs else None
     upvoted_ids, comment_counts = await _batch_meta(db, pubs, user_id)
-    items = [_pub_to_out(p, upvoted_ids, comment_counts) for p in pubs]
+    verified_map, my_status_map = await _batch_claims(db, pubs, user_id)
+    items = [_pub_to_out(p, upvoted_ids, comment_counts, verified_map=verified_map, my_status_map=my_status_map) for p in pubs]
     return PaginatedPublications(items=items, next_cursor=next_cursor, total=total)
 
 
@@ -282,7 +335,8 @@ async def _ranked_query(
 
     next_cursor = encode_score_cursor(scores[-1], pubs[-1].id) if has_more and pubs else None
     upvoted_ids, comment_counts = await _batch_meta(db, pubs, user_id)
-    items = [_pub_to_out(p, upvoted_ids, comment_counts) for p in pubs]
+    verified_map, my_status_map = await _batch_claims(db, pubs, user_id)
+    items = [_pub_to_out(p, upvoted_ids, comment_counts, verified_map=verified_map, my_status_map=my_status_map) for p in pubs]
     return PaginatedPublications(items=items, next_cursor=next_cursor, total=total)
 
 
@@ -349,7 +403,11 @@ async def get_publication_by_id(
     )
     rank = rank_result.scalar_one() + 1
 
-    return _pub_to_out(pub, upvoted_ids, comment_counts, rank=rank)
+    verified_map, my_status_map = await _batch_claims(db, [pub], user_id)
+    return _pub_to_out(
+        pub, upvoted_ids, comment_counts, rank=rank,
+        verified_map=verified_map, my_status_map=my_status_map,
+    )
 
 
 # ── upvote ────────────────────────────────────────────────────────────────────

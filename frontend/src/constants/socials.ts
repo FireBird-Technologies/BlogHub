@@ -1,9 +1,5 @@
 export const SOCIAL_OPTIONS = [
-  { value: "Substack", label: "Substack" },
-  { value: "Medium", label: "Medium" },
-  { value: "Ghost", label: "Ghost" },
-  { value: "Beehiiv", label: "Beehiiv" },
-  { value: "Twitter / X", label: "Twitter / X" },
+  { value: "X", label: "X" },
   { value: "LinkedIn", label: "LinkedIn" },
   { value: "GitHub", label: "GitHub" },
   { value: "Facebook", label: "Facebook" },

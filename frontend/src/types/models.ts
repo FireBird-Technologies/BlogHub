@@ -30,6 +30,9 @@ export interface Publication {
   comment_count: number;
   rank?: number | null;
   is_upvoted: boolean;
+  is_verified: boolean;
+  verified_at: string | null;
+  my_claim_status: "none" | "pending" | "rejected";
   created_at: string;
   author: User;
 }
