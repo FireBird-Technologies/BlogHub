@@ -54,6 +54,70 @@ function IconDiscord({ size = 20, className = "", ...rest }: CustomIconProps) {
   );
 }
 
+function IconSubstack({ size = 20, className = "", ...rest }: CustomIconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={`shrink-0 ${className}`}
+      aria-hidden
+      {...rest}
+    >
+      <path d="M22.539 8.242H1.46V5.406h21.08v2.836zM1.46 10.812V24L12 18.11 22.54 24V10.812H1.46zM22.54 0H1.46v2.836h21.08V0z" />
+    </svg>
+  );
+}
+
+function IconMedium({ size = 20, className = "", ...rest }: CustomIconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={`shrink-0 ${className}`}
+      aria-hidden
+      {...rest}
+    >
+      <path d="M13.54 12a6.8 6.8 0 0 1-6.77 6.82A6.8 6.8 0 0 1 0 12a6.8 6.8 0 0 1 6.77-6.82A6.8 6.8 0 0 1 13.54 12zM20.96 12c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42M24 12c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75C23.47 6.25 24 8.83 24 12z" />
+    </svg>
+  );
+}
+
+function IconGhost({ size = 20, className = "", ...rest }: CustomIconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={`shrink-0 ${className}`}
+      aria-hidden
+      {...rest}
+    >
+      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm.256 2.313c2.47.005 5.116 2.008 5.898 2.962l.244.3c1.64 1.994 3.569 4.34 3.569 6.966 0 3.719-2.98 5.808-6.158 7.508-1.433.766-2.98 1.508-4.748 1.508-4.543 0-8.366-3.569-8.366-8.112 0-.706.17-1.425.342-2.15.122-.515.244-1.033.307-1.549.548-4.539 2.967-6.795 8.422-7.408a4.29 4.29 0 01.49-.026Z" />
+    </svg>
+  );
+}
+
+function IconBeehiiv({ size = 20, className = "", ...rest }: CustomIconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={`shrink-0 ${className}`}
+      aria-hidden
+      {...rest}
+    >
+      <path d="M12 1.5l9 5.25v10.5L12 22.5l-9-5.25V6.75L12 1.5zm0 4.04L6.5 8.7v6.6L12 18.46l5.5-3.16V8.7L12 5.54z" />
+    </svg>
+  );
+}
+
 export interface ResolvedSocialIcon {
   Icon: IconComponent;
   label: string;
@@ -82,7 +146,34 @@ export function resolveSocialIcon(url: string, userLabel: string): ResolvedSocia
   if (hint.includes("youtube") || host === "youtu.be") return { Icon: Youtube, label: userLabel || "YouTube" };
   if (hint.includes("tiktok")) return { Icon: IconTikTok as IconComponent, label: userLabel || "TikTok" };
   if (hint.includes("discord")) return { Icon: IconDiscord as IconComponent, label: userLabel || "Discord" };
+  if (hint.includes("substack")) return { Icon: IconSubstack as IconComponent, label: userLabel || "Substack" };
+  if (hint.includes("medium")) return { Icon: IconMedium as IconComponent, label: userLabel || "Medium" };
+  if (hint.includes("ghost")) return { Icon: IconGhost as IconComponent, label: userLabel || "Ghost" };
+  if (hint.includes("beehiiv") || hint.includes("beehive"))
+    return { Icon: IconBeehiiv as IconComponent, label: userLabel || "Beehiiv" };
   if (url.startsWith("mailto:")) return { Icon: Mail, label: userLabel || "Email" };
 
   return { Icon: Globe, label: userLabel || "Website" };
+}
+
+/** Icon for a known social-option label, used to render logos in the picker. */
+const LABEL_ICONS: Record<string, IconComponent> = {
+  "Twitter / X": IconX as IconComponent,
+  LinkedIn: Linkedin,
+  GitHub: Github,
+  Medium: IconMedium as IconComponent,
+  Substack: IconSubstack as IconComponent,
+  Ghost: IconGhost as IconComponent,
+  Beehiiv: IconBeehiiv as IconComponent,
+  Facebook: Facebook,
+  Instagram: Instagram,
+  YouTube: Youtube,
+  TikTok: IconTikTok as IconComponent,
+  Discord: IconDiscord as IconComponent,
+  Email: Mail,
+  Website: Globe,
+};
+
+export function socialIconForLabel(label: string): IconComponent {
+  return LABEL_ICONS[label] ?? Globe;
 }

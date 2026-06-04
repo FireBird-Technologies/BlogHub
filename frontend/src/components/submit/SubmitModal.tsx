@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { CheckCircle2, Video, ExternalLink } from "lucide-react";
 import Modal from "../ui/Modal";
+import Button from "../ui/Button";
 import UrlPhase from "./UrlPhase";
 import UrlPreview from "./UrlPreview";
 import PublicationForm from "./PublicationForm";
@@ -11,7 +13,7 @@ import type { Publication, PublicationDraft, ScrapeResult, SocialLinkInput } fro
 import type { PublicationFormContinuePayload } from "./PublicationForm";
 import type { LinksPayload } from "./PublicationLinksStep";
 
-type Phase = "url" | "details" | "links";
+type Phase = "url" | "details" | "links" | "success";
 
 interface SubmitDraft extends PublicationDraft {
   additional_links?: string[];
@@ -60,7 +62,7 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
       queryClient.invalidateQueries({ queryKey: ["publications"] });
       queryClient.invalidateQueries({ queryKey: ["user-publications"] });
       queryClient.invalidateQueries({ queryKey: ["categories"] });
-      handleClose();
+      setPhase("success");
     },
     onError: (err: unknown) => {
       setPublishError(formatApiErrorDetail(err, "Failed to publish. Try again."));
@@ -104,10 +106,16 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
   };
 
   const title =
-    phase === "url" ? "Share a publication" : phase === "details" ? "Fill in the details" : "Links & socials";
+    phase === "url"
+      ? "Share a publication"
+      : phase === "details"
+        ? "Fill in the details"
+        : phase === "links"
+          ? "Links & socials"
+          : "Publication added";
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={title}>
+    <Modal isOpen={isOpen} onClose={handleClose} title={title} maxWidth={phase === "success" ? "max-w-md" : "max-w-2xl"}>
       <div className="flex flex-col gap-5">
         {phase === "url" && <UrlPhase onScraped={handleScraped} />}
 
@@ -127,6 +135,32 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
             isPending={publishing}
             error={publishError}
           />
+        )}
+
+        {phase === "success" && (
+          <div className="flex flex-col items-center text-center gap-3">
+            <div className="w-11 h-11 rounded-full bg-green-50 flex items-center justify-center">
+              <CheckCircle2 size={26} className="text-green-600" />
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <h3 className="text-base font-semibold text-gray-900">Your publication is live!</h3>
+              <p className="text-sm text-gray-500 max-w-sm">
+                Want to reach a wider audience? Turn it into a video with blog2video.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+              <a href="https://blog2video.app" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+                <Button className="w-full justify-center">
+                  <Video size={16} />
+                  Convert to video
+                  <ExternalLink size={14} className="opacity-80" />
+                </Button>
+              </a>
+              <Button variant="ghost" onClick={handleClose} className="w-full sm:w-auto justify-center">
+                Close
+              </Button>
+            </div>
+          </div>
         )}
       </div>
     </Modal>
