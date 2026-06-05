@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     OPEN_ROUTER_KEY: str | None = None
     OPENROUTER_MODEL: str = "deepseek/deepseek-chat"
     FIRECRAWL_API_KEY: str | None = None
+    # Publication claim notifications (Resend)
+    RESEND_API_KEY: str | None = None
+    CLAIM_NOTIFY_EMAIL: str | None = None
+    CLAIM_FROM_EMAIL: str = "BlogHub <claims@bloghub.app>"
 
     class Config:
         env_file = ".env"

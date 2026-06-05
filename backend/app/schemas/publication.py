@@ -89,6 +89,9 @@ class PublicationOut(BaseModel):
     comment_count: int = 0
     rank: int | None = None
     is_upvoted: bool = False
+    is_verified: bool = False
+    verified_at: datetime | None = None
+    my_claim_status: str = "none"  # none | pending | rejected
     created_at: datetime
     author: UserOut
 

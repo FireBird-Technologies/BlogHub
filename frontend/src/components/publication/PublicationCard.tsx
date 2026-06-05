@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MessageCircle, Pencil, Trash2 } from "lucide-react";
 import type { QueryKey } from "@tanstack/react-query";
 import Badge from "../ui/Badge";
+import VerifiedTick from "../ui/VerifiedTick";
 import Avatar from "../ui/Avatar";
 import Spinner from "../ui/Spinner";
 import UpvoteButton from "./UpvoteButton";
@@ -95,7 +96,12 @@ export default function PublicationCard({ publication, queryKey, onDelete, onEdi
 
       <div className="flex flex-col flex-1 p-4 gap-2">
         <Badge category={category} />
-        <h3 className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2">{title}</h3>
+        <h3 className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2">
+          {title}
+          {publication.is_verified && (
+            <VerifiedTick verifiedAt={publication.verified_at} size={14} className="ml-1 -mt-0.5" />
+          )}
+        </h3>
         {description && (
           <p className="text-xs text-gray-500 leading-relaxed line-clamp-3">{description}</p>
         )}
