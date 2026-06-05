@@ -140,7 +140,7 @@ function DemoPanel() {
               className="flex flex-col gap-4"
             >
               <div className="flex gap-4 items-start">
-                <div className="w-20 h-20 flex-shrink-0 rounded-xl bg-gradient-to-br from-purple-100 via-pink-50 to-rose-100 flex items-center justify-center">
+                <div className="w-20 h-20 flex-shrink-0 rounded-xl bg-purple-50 flex items-center justify-center">
                   <svg className="w-7 h-7 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
                       strokeLinecap="round"
@@ -191,69 +191,53 @@ function DemoPanel() {
   );
 }
 
-/** Blur + grid accents; render once inside the merged landing hero shell. */
-export function HeroBackdrop() {
-  return (
-    <>
-      <div aria-hidden className="absolute top-1/3 left-0 w-[500px] h-[500px] rounded-full bg-red-600/5 blur-[120px] pointer-events-none" />
-      <div aria-hidden className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full bg-red-400/5 blur-[100px] pointer-events-none" />
-      <div
-        aria-hidden
-        className="absolute inset-0 opacity-[0.02]"
-        style={{
-          backgroundImage:
-            "linear-gradient(#dc2626 1px, transparent 1px), linear-gradient(to right, #dc2626 1px, transparent 1px)",
-          backgroundSize: "64px 64px",
-        }}
-      />
-    </>
-  );
-}
-
 export default function HeroSection() {
   const navigate = useNavigate();
 
-  return (
-    <div className="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center pb-5 sm:pb-7">
-        <div className="flex flex-col gap-5">
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <span className="inline-flex items-center gap-2 text-xs font-medium text-red-600 border border-red-200 bg-red-50 rounded-full px-4 py-1.5 tracking-wide uppercase">
-              BlogHub
-            </span>
-          </motion.div>
+ return (
+  <div className="max-w-6xl mx-auto w-full grid grid-cols-1 gap-8 lg:gap-12 items-center pb-5 sm:pb-7">
+    <div className="flex flex-col gap-5 items-center text-center">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+      </motion.div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.08 }}
-            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-[1.12] tracking-tight text-gray-900"
-          >
-            Promote your publication —<br /><span className="text-gradient"> real readers, zero cost</span>
-          </motion.h1>
+      <motion.h1
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, delay: 0.08 }}
+        className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.15] lg:leading-[1.2] tracking-tight text-gray-900"
+      >
+        Promote your publication
+        <br />
+        <span className="text-red-600">real readers, zero cost</span>
+      </motion.h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.16 }}
-            className="text-lg text-gray-500 leading-relaxed"
-          >
-            Submit your blog or newsletter once. BlogHub promotes it to thousands of readers, drives real traffic to your site, and builds SEO backlinks — completely free.
-          </motion.p>
+      <motion.p
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, delay: 0.16 }}
+        className="text-lg text-gray-500 leading-relaxed max-w-2xl"
+      >
+        Submit your blog or newsletter once. BlogHub promotes it to
+        thousands of readers, drives real traffic to your site, and builds
+        SEO backlinks — completely free.
+      </motion.p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.24 }}
-            className="flex flex-col items-start gap-6"
-          >
-           
-            <GoogleSignInButton onSignedIn={() => navigate("/dashboard")} />
-          </motion.div>
-        </div>
-
-        <motion.div initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.3 }}>
-          <DemoPanel />
-        </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, delay: 0.24 }}
+        className="flex flex-col items-center gap-3 mt-8"
+      >
+        <GoogleSignInButton onSignedIn={() => navigate("/dashboard")} />
+        <p className="text-xs text-gray-400">
+          Free forever — no credit card required.
+        </p>
+      </motion.div>
     </div>
-  );
+  </div>
+);
 }

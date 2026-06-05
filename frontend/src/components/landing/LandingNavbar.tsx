@@ -33,12 +33,13 @@ export default function LandingNavbar() {
   return (
     <nav className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur border-b border-gray-100">
       {/* Large screens: One row, full width layout */}
-      <div className="hidden sm:block w-full px-6 sm:px-8 lg:px-12 h-16">
+      <div className="hidden sm:block w-full max-w-7xl mx-auto px-4 sm:px-6 h-16">
         <div className="w-full h-full flex items-center justify-between gap-6">
-          {/* Left — Logo */}
+          {/* Left — Logo + Search */}
+          <div className="flex items-center gap-6 min-w-0 flex-1">
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <Link to="/" className="text-lg font-bold tracking-tight">
-              <span className="text-gradient">BlogHub</span>
+            <Link to={user ? "/dashboard" : "/"} className="text-lg font-bold tracking-tight">
+              <span className="text-red-600">BlogHub</span>
             </Link>
             <ArrowRight size={12} className="text-gray-300 flex-shrink-0" />
             <a
@@ -51,10 +52,10 @@ export default function LandingNavbar() {
             </a>
           </div>
 
-          {/* Center — Search */}
+          {/* Search — sits just right of the logo */}
           <form
             onSubmit={handleSearchSubmit}
-            className="flex-1 max-w-sm"
+            className="w-full max-w-sm"
           >
             <div className="relative">
               <Search
@@ -74,6 +75,7 @@ export default function LandingNavbar() {
               />
             </div>
           </form>
+          </div>
 
           {/* Right — Auth */}
           <div className="flex-shrink-0 flex items-center gap-3">
@@ -123,13 +125,13 @@ export default function LandingNavbar() {
       </div>
 
       {/* Small screens: Two rows */}
-      <div className="sm:hidden w-full px-6">
+      <div className="sm:hidden w-full max-w-7xl mx-auto px-4 sm:px-6">
         {/* Row 1: Logo and Auth */}
         <div className="h-14 flex items-center justify-between gap-3">
           {/* Left — Logo */}
           <div className="flex items-center gap-1 flex-shrink-0 min-w-0">
-            <Link to="/" className="text-base font-bold tracking-tight">
-              <span className="text-gradient">BlogHub</span>
+            <Link to={user ? "/dashboard" : "/"} className="text-base font-bold tracking-tight">
+              <span className="text-red-600">BlogHub</span>
             </Link>
             <ArrowRight size={12} className="text-gray-300 flex-shrink-0" />
             <a

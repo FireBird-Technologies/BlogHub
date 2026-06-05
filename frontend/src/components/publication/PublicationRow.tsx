@@ -9,6 +9,7 @@ import UpvoteButton from "./UpvoteButton";
 import type { Publication } from "../../types/models";
 import { useAuth } from "../../context/AuthContext";
 import { publicationPath } from "../../lib/publicationUrl";
+import { firstSentence } from "../../lib/text";
 
 function formatShortDate(iso: string) {
   if (!iso) return "";
@@ -114,7 +115,7 @@ export default function PublicationRow({ publication, queryKey, showTopTodayBadg
           )}
         </h3>
         {description && (
-          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 hidden sm:block">{description}</p>
+          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 hidden sm:block">{firstSentence(description)}</p>
         )}
         <div className="flex flex-wrap items-center gap-2 mt-auto pt-1">
           <Avatar src={author?.avatar_url} name={author?.name} size={22} />
