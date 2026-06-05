@@ -13,7 +13,7 @@ export default function ClaimButton({ publication, className = "" }: ClaimButton
   const { user, openLoginModal } = useAuth();
   const [open, setOpen] = useState(false);
 
-  const sizeCls = "px-3.5 py-2 text-sm rounded-lg gap-1.5";
+  const sizeCls = "h-8 px-3.5 text-sm rounded-lg gap-1.5";
 
   // Already verified — the blue tick communicates this; no button needed.
   if (publication.is_verified) return null;

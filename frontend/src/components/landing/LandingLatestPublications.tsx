@@ -2,13 +2,20 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowBigUp, MessageCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { usePublicationsPreview } from "../../hooks/usePublications";
+import { usePublicationsPreviewInfinite } from "../../hooks/usePublications";
 import Badge from "../ui/Badge";
 import Avatar from "../ui/Avatar";
 import GoogleSignInButton from "../ui/GoogleSignInButton";
 import Modal from "../ui/Modal";
 import Spinner from "../ui/Spinner";
 import { publicationPath } from "../../lib/publicationUrl";
+import { firstSentence } from "../../lib/text";
+import {
+  groupPublicationsByLocalDay,
+  sectionTitleForKey,
+  todayKey,
+  yesterdayKey,
+} from "../../lib/publicationGrouping";
 import type { Publication } from "../../types/models";
 
 function formatShortDate(iso: string) {
@@ -65,7 +72,7 @@ function LandingPreviewRow({
             }}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-50 to-rose-50">
+          <div className="w-full h-full flex items-center justify-center bg-red-50">
             <svg className="w-8 h-8 text-red-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 strokeLinecap="round"
@@ -95,7 +102,7 @@ function LandingPreviewRow({
         </div>
         <h3 className="text-sm sm:text-base font-semibold text-gray-900 leading-snug line-clamp-2">{title}</h3>
         {description && (
-          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 hidden sm:block">{description}</p>
+          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 hidden sm:block">{firstSentence(description)}</p>
         )}
         <div className="flex items-center gap-2 mt-auto pt-1">
           <Avatar src={author?.avatar_url} name={author?.name} size={22} />
@@ -131,11 +138,15 @@ const PREVIEW_LIMIT = 10;
 export default function LandingLatestPublications() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data, isLoading, isError } = usePublicationsPreview(PREVIEW_LIMIT);
+  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    usePublicationsPreviewInfinite(PREVIEW_LIMIT, "latest");
   const [signInOpen, setSignInOpen] = useState(false);
   const pendingPathRef = useRef<string | null>(null);
 
-  const items = data?.items?.slice(0, PREVIEW_LIMIT) ?? [];
+  const items = data?.pages.flatMap((p) => p.items) ?? [];
+  const sections = groupPublicationsByLocalDay(items);
+  const todayK = todayKey();
+  const yesterdayK = yesterdayKey();
 
   const handleActivate = (publication: Publication) => {
     const path = publicationPath(publication);
@@ -162,13 +173,13 @@ export default function LandingLatestPublications() {
   return (
     <>
       <div className="w-full">
-        <div className="mb-6 sm:mb-8 text-center flex flex-col items-center mt-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+        <div className="mb-6 sm:mb-8 text-center flex flex-col items-center mt-6">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
             Latest publications
           </h2>
 
-          <p className="text-sm text-gray-500 mt-3 mb-5 max-w-2xl">
-            A live snapshot of what readers are sharing—same layout as the dashboard.
+          <p className="text-base sm:text-lg text-gray-500 mt-3 mb-5 max-w-2xl">
+            A live snapshot of what readers are sharing.
             Sign in to open a story, comment, or add your own.
           </p>
         </div>
@@ -190,13 +201,45 @@ export default function LandingLatestPublications() {
         )}
 
         {!isLoading && !isError && items.length > 0 && (
-          <ul className="flex flex-col gap-3 list-none p-0 m-0">
-            {items.map((pub) => (
-              <li key={pub.id}>
-                <LandingPreviewRow publication={pub} onActivate={() => handleActivate(pub)} />
-              </li>
+          <div className="flex flex-col gap-10">
+            {sections.map(({ key, items: dayItems }) => (
+              <section key={key} className="flex flex-col gap-3">
+                <h3 className="text-sm font-bold text-gray-800 border-b border-gray-200 pb-2 text-left">
+                  {sectionTitleForKey(key, todayK, yesterdayK)}
+                  <span className="font-normal text-gray-400 ml-2">({dayItems.length})</span>
+                </h3>
+                <ul className="flex flex-col gap-3 list-none p-0 m-0">
+                  {dayItems.map((pub) => (
+                    <li key={pub.id}>
+                      <LandingPreviewRow publication={pub} onActivate={() => handleActivate(pub)} />
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ))}
-          </ul>
+
+            {hasNextPage && (
+              <div className="flex justify-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-gray-200 bg-white
+                             text-sm font-semibold text-gray-700 transition-colors
+                             hover:border-red-300 hover:text-red-600 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isFetchingNextPage ? (
+                    <>
+                      <Spinner size={16} />
+                      Loading…
+                    </>
+                  ) : (
+                    "Load more Publications"
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </div>
 

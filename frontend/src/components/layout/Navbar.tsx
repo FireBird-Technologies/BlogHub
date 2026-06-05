@@ -12,7 +12,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <Link to={user ? "/dashboard" : "/"} className="text-lg font-bold tracking-tight">
-            <span className="text-gradient">BlogHub</span>
+            <span className="text-red-600">BlogHub</span>
           </Link>
           <ArrowRight size={13} className="text-gray-300 flex-shrink-0" />
           <a
