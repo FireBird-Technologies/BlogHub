@@ -208,9 +208,9 @@ export default function HeroSection() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, delay: 0.08 }}
-        className="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-[1.6] tracking-tight text-gray-900"
+        className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.15] lg:leading-[1.2] tracking-tight text-gray-900"
       >
-        Promote your publication —
+        Promote your publication
         <br />
         <span className="text-red-600">real readers, zero cost</span>
       </motion.h1>
