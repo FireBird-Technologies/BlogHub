@@ -32,9 +32,9 @@ export default function LoginPromptModal() {
         </button>
 
         <div className="text-center">
-          <h2 className="text-xl font-bold text-gray-900 mb-1">Sign in to continue</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-1">Sign in</h2>
           <p className="text-sm text-gray-500">
-            You need to be signed in to perform this action.
+            Create a free account with Google to read full publications, join the discussion, and share links with the community.
           </p>
         </div>
 

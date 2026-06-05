@@ -234,7 +234,7 @@ export default function HeroSection() {
       >
         <GoogleSignInButton onSignedIn={() => navigate("/dashboard")} />
         <p className="text-xs text-gray-400">
-          Free forever — no credit card required.
+          Join thousands of writers — Get Started Now.
         </p>
       </motion.div>
     </div>
