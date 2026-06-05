@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Link2, Users, TrendingUp, Sparkles } from "lucide-react";
+import { Link, BookOpen, LineChart, Search } from "lucide-react";
 
 interface AboutCard {
   icon: React.ReactNode;
@@ -9,25 +9,25 @@ interface AboutCard {
 
 const aboutCards: AboutCard[] = [
   {
-    icon: <Link2 size={28} className="text-red-600" />,
+    icon: <Link size={28} className="text-red-600" />,
     title: "Build Backlinks",
     description:
       "Get quality backlinks from a curated directory. Every publication you submit creates a permanent link back to your site, boosting SEO.",
   },
   {
-    icon: <Users size={28} className="text-red-600" />,
+    icon: <BookOpen size={28} className="text-red-600" />,
     title: "Reach Real Readers",
     description:
       "Connect with thousands of curious readers actively looking for great content. Get genuine traffic to your blog or newsletter.",
   },
   {
-    icon: <TrendingUp size={28} className="text-red-600" />,
+    icon: <LineChart size={28} className="text-red-600" />,
     title: "Grow Audience",
     description:
       "Featured publications get exposure to a growing community of readers. Build your subscriber base and increase your reach.",
   },
   {
-  icon: <Sparkles size={28} className="text-red-600" />,
+  icon: <Search size={28} className="text-red-600" />,
     title: "Rank Higher in AI Search",
     description:
       "Every publication gets a clean page that SEO crawlers and AI engines index easily."
