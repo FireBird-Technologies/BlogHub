@@ -7,6 +7,7 @@ export const SOCIAL_OPTIONS = [
   { value: "YouTube", label: "YouTube" },
   { value: "TikTok", label: "TikTok" },
   { value: "Discord", label: "Discord" },
+  { value: "Substack", label: "Substack" },
   { value: "Email", label: "Email" },
   { value: "Website", label: "Website" },
 ] as const;
