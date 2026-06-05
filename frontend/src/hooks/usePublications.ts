@@ -52,6 +52,22 @@ export function usePublicationsPreview(limit: number, sort = "ranked") {
   });
 }
 
+/** Cursor-paginated publications for the landing "Latest" section (Load more). */
+export function usePublicationsPreviewInfinite(limit: number, sort = "ranked") {
+  return useInfiniteQuery<PaginatedPublications, Error>({
+    queryKey: ["publications-preview-infinite", limit, sort],
+    queryFn: ({ pageParam }) =>
+      api
+        .get<PaginatedPublications>("/api/publications", {
+          params: { cursor: pageParam, limit, sort },
+        })
+        .then((r) => r.data),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
+    staleTime: 60_000,
+  });
+}
+
 export function usePublication(id: string | undefined) {
   const tz = getClientTimezone();
   const queryKey = ["publication", id, tz] as const;

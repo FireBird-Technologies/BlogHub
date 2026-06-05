@@ -22,21 +22,21 @@ const aboutCards: AboutCard[] = [
   },
   {
     icon: <TrendingUp size={28} className="text-red-600" />,
-    title: "Grow Your Audience",
+    title: "Grow Audience",
     description:
       "Featured publications get exposure to a growing community of readers. Build your subscriber base and increase your reach.",
   },
   {
-    icon: <Sparkles size={28} className="text-red-600" />,
-    title: "AI-Powered Search",
+  icon: <Sparkles size={28} className="text-red-600" />,
+    title: "Rank Higher in AI Search",
     description:
-      "Intelligent search and recommendations powered by AI. Find relevant articles effortlessly and get personalized suggestions based on your interests.",
+      "Every publication gets a clean page that SEO crawlers and AI engines index easily."
   },
 ];
 
 export default function LandingAboutSection() {
   return (
-    <section className="relative bg-gray-50 px-4 sm:px-6 py-16 sm:py-20 lg:py-24">
+    <section className="relative bg-white px-4 sm:px-6 pt-16 sm:pt-20 lg:pt-24 pb-14 sm:pb-16">
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -46,11 +46,10 @@ export default function LandingAboutSection() {
           className="text-center mb-12 sm:mb-16"
         >
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 mb-4">
-            How BlogHub Works
+            Grow Your Publication
           </h2>
           <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            BlogHub is a community-curated directory that connects great publications with real readers.
-            Submit your blog or newsletter once and get discovered by thousands of engaged readers looking for quality content.
+            Submit once and get SEO backlinks, AI-search visibility, and real readers.
           </p>
         </motion.div>
 
@@ -81,15 +80,6 @@ export default function LandingAboutSection() {
           ))}
         </div>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.55, delay: 0.4 }}
-          viewport={{ once: true, margin: "-100px" }}
-          className="text-center text-sm text-gray-500 mt-12"
-        >
-          Submit unlimited publications with zero cost. No hidden fees, no premium tiers, no credit required.
-        </motion.p>
       </div>
     </section>
   );
