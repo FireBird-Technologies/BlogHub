@@ -179,7 +179,7 @@ export default function LandingLatestPublications() {
           </h2>
 
           <p className="text-base sm:text-lg text-gray-500 mt-3 mb-5 max-w-2xl">
-            A live snapshot of what readers are sharing.
+            A live snapshot of what writers are sharing.
             Sign in to open a story, comment, or add your own.
           </p>
         </div>
