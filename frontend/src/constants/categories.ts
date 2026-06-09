@@ -10,6 +10,14 @@ export const CATEGORIES = [
   "Entertainment",
   "Fashion",
   "Politics",
+  "Philosophy",
+  "Economics",
+  "History",
+  "Biology",
+  "Life Sciences",
+  "Physics",
+  "Maths",
+  "Chemistry",
 ] as const;
 
 export type Category = (typeof CATEGORIES)[number];
@@ -30,4 +38,12 @@ export const CATEGORY_COLORS: Record<string, string> = {
   Entertainment: "bg-red-50 text-red-700 border-red-200",
   Fashion: "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200",
   Politics: "bg-slate-50 text-slate-700 border-slate-200",
+  Philosophy: "bg-stone-50 text-stone-700 border-stone-200",
+  Economics: "bg-orange-50 text-orange-700 border-orange-200",
+  History: "bg-amber-50 text-amber-700 border-amber-200",
+  Biology: "bg-lime-50 text-lime-700 border-lime-200",
+  "Life Sciences": "bg-teal-50 text-teal-700 border-teal-200",
+  Physics: "bg-sky-50 text-sky-700 border-sky-200",
+  Maths: "bg-cyan-50 text-cyan-700 border-cyan-200",
+  Chemistry: "bg-purple-50 text-purple-700 border-purple-200",
 };

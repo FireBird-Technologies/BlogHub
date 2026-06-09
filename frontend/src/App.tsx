@@ -8,6 +8,7 @@ import SigningInOverlay from "./components/auth/SigningInOverlay";
 import { OnboardingModal } from "./components/auth/ProfileModal";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
+import RankingPage from "./pages/RankingPage";
 import Profile from "./pages/Profile";
 import PublicationDetail from "./pages/PublicationDetail";
 import NotFound from "./pages/NotFound";
@@ -32,6 +33,7 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/category/:category" element={<RankingPage />} />
               <Route
                 path="/profile"
                 element={

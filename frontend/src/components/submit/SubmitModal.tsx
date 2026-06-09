@@ -145,7 +145,7 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
             <div className="flex flex-col gap-0.5">
               <h3 className="text-base font-semibold text-gray-900">Your publication is live!</h3>
               <p className="text-sm text-gray-500 max-w-sm">
-                Want to reach a wider audience? Turn it into a video with blog2video.
+                Convert your posts into videos
               </p>
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">

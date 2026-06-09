@@ -19,6 +19,14 @@ CATEGORIES = [
     "Entertainment",
     "Fashion",
     "Politics",
+    "Philosophy",
+    "Economics",
+    "History",
+    "Biology",
+    "Life Sciences",
+    "Physics",
+    "Maths",
+    "Chemistry",
 ]
 
 

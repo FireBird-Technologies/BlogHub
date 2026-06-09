@@ -16,7 +16,7 @@ export default function Dashboard() {
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [modalOpen, setModalOpen] = useState(false);
 
-  const queryKey = ["publications", { category, search, sort: "ranked" }] as const;
+  const queryKey = ["publications", { category, search, sort: "ranked", limit: 20 }] as const;
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = usePublications({
     category,
