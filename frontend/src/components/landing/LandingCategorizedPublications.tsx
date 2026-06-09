@@ -19,7 +19,7 @@ export default function LandingCategorizedPublications() {
           </p>
         </div>
 
-        <div className="grid grid-cols-5 w-full">
+        <div className="grid grid-cols-5 max-w-6xl mx-auto">
           {TILES.map(({ label, category }) => (
             <Link
               key={label}
