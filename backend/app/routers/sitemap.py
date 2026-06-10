@@ -1,4 +1,5 @@
 import re
+from urllib.parse import quote
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,7 +7,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import Response
 
 from app.database import get_db
-from app.models.publication import Publication
+from app.models.publication import CATEGORIES, Publication
 
 router = APIRouter()
 
@@ -37,6 +38,13 @@ async def sitemap(db: AsyncSession = Depends(get_db)):
 
     for u in STATIC_URLS:
         entries.append(_url_entry(u["loc"], changefreq=u["changefreq"], priority=u["priority"]))
+
+    # Category ranking pages (builtin categories + "Others"). Slugs must match
+    # the frontend's categoryPath(): encodeURIComponent(name), "others" for custom.
+    for category in [*CATEGORIES, "others"]:
+        slug = category if category == "others" else quote(category)
+        loc = f"{FRONTEND_URL}/category/{slug}"
+        entries.append(_url_entry(loc, changefreq="daily", priority="0.8"))
 
     result = await db.execute(
         select(Publication.id, Publication.title, Publication.created_at).order_by(

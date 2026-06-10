@@ -28,7 +28,7 @@ export default function PublicationForm({ draft, onContinue }: PublicationFormPr
     title: draft?.title ?? "",
     description: draft?.description ?? "",
     image_url: draft?.image_url ?? "",
-    category: (isPredefinedCategory ? draft.category : (draft?.category ? "__custom__" : CATEGORIES[0])) as string,
+    category: (isPredefinedCategory ? draft.category : (draft?.category ? "__custom__" : "")) as string,
     tags: tagsToString(draft?.tags),
   }));
   const [customCategory, setCustomCategory] = useState(isPredefinedCategory ? "" : (draft?.category ?? ""));
@@ -43,6 +43,10 @@ export default function PublicationForm({ draft, onContinue }: PublicationFormPr
     setError("");
     if (!form.title.trim()) {
       setError("Title is required");
+      return;
+    }
+    if (!form.category) {
+      setError("Please select a category");
       return;
     }
     if (form.category === "__custom__" && !customCategory.trim()) {
@@ -99,6 +103,9 @@ export default function PublicationForm({ draft, onContinue }: PublicationFormPr
         <div>
           <label className="block text-xs text-gray-500 mb-1.5 font-medium">Category *</label>
           <select value={form.category} onChange={set("category")} className={inputCls}>
+            <option value="" disabled>
+              Select a category…
+            </option>
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>
                 {c}
@@ -131,7 +138,7 @@ export default function PublicationForm({ draft, onContinue }: PublicationFormPr
 
       {error && <p className="text-red-600 text-sm">{error}</p>}
 
-      <Button type="submit" className="self-end">
+      <Button type="submit" className="self-end" disabled={!form.category}>
         Continue
       </Button>
     </form>

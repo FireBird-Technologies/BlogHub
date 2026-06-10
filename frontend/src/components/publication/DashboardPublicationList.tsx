@@ -20,6 +20,8 @@ interface DashboardPublicationListProps {
   queryKey: QueryKey;
   onSubmit?: () => void;
   isLoading?: boolean;
+  /** Show a manual "Load more" button instead of auto-loading on scroll. */
+  manualLoadMore?: boolean;
 }
 
 export default function DashboardPublicationList({
@@ -30,10 +32,12 @@ export default function DashboardPublicationList({
   queryKey,
   onSubmit,
   isLoading,
+  manualLoadMore = false,
 }: DashboardPublicationListProps) {
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (manualLoadMore) return;
     const el = sentinelRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
@@ -44,7 +48,7 @@ export default function DashboardPublicationList({
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [manualLoadMore, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const publications: Publication[] = pages?.flatMap((p) => p.items) ?? [];
 
@@ -93,11 +97,37 @@ export default function DashboardPublicationList({
           </ul>
         </section>
       ))}
-      <div ref={sentinelRef} className="h-4" />
-      {isFetchingNextPage && (
-        <div className="flex justify-center py-8">
-          <Spinner size={28} />
-        </div>
+      {manualLoadMore ? (
+        hasNextPage && (
+          <div className="flex justify-center pt-2">
+            <button
+              type="button"
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-gray-200 bg-white
+                         text-sm font-semibold text-gray-700 transition-colors
+                         hover:border-red-300 hover:text-red-600 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isFetchingNextPage ? (
+                <>
+                  <Spinner size={16} />
+                  Loading…
+                </>
+              ) : (
+                "Load more Publications"
+              )}
+            </button>
+          </div>
+        )
+      ) : (
+        <>
+          <div ref={sentinelRef} className="h-4" />
+          {isFetchingNextPage && (
+            <div className="flex justify-center py-8">
+              <Spinner size={28} />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

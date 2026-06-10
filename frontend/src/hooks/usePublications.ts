@@ -15,11 +15,12 @@ interface UsePublicationsParams {
   category: string;
   search: string;
   sort?: string;
+  limit?: number;
 }
 
-export function usePublications({ category, search, sort = "ranked" }: UsePublicationsParams) {
+export function usePublications({ category, search, sort = "ranked", limit = 20 }: UsePublicationsParams) {
   return useInfiniteQuery<PaginatedPublications, Error>({
-    queryKey: ["publications", { category, search, sort }],
+    queryKey: ["publications", { category, search, sort, limit }],
     queryFn: ({ pageParam }) =>
       api
         .get<PaginatedPublications>("/api/publications", {
@@ -28,7 +29,7 @@ export function usePublications({ category, search, sort = "ranked" }: UsePublic
             category: category || undefined,
             search: search || undefined,
             sort,
-            limit: 20,
+            limit,
           },
         })
         .then((r) => r.data),
