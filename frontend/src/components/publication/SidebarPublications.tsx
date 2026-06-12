@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { ArrowBigUp, MessageCircle } from "lucide-react";
-import { CATEGORIES } from "../../constants/categories";
+import { CATEGORIES, formatCategoryDisplay } from "../../constants/categories";
 import Spinner from "../ui/Spinner";
 import CustomDropdown from "../ui/CustomDropdown";
 import api from "../../lib/api";
@@ -92,7 +92,9 @@ export default function SidebarPublications({ currentId }: SidebarPublicationsPr
                     <p className="text-xs text-gray-400 italic line-clamp-1">No description</p>
                   )}
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-gray-500 pt-0.5">
-                    <span className="font-medium text-gray-600 truncate max-w-full">{pub.category}</span>
+                    <span className="font-medium text-gray-600 truncate max-w-full">
+                      {formatCategoryDisplay(pub.category)}
+                    </span>
                     <span className="text-gray-300 select-none" aria-hidden>·</span>
                     <span className="inline-flex items-center">
                       <ArrowBigUp width={32} height={16} className="text-gray-400" aria-hidden />

@@ -64,6 +64,18 @@ def decode_score_cursor(cursor: str) -> tuple[str, int, uuid.UUID]:
     return day_str, int(score_str), uuid.UUID(uid)
 
 
+def encode_global_rank_cursor(score: int, pub_id: uuid.UUID) -> str:
+    raw = f"g:{score}|{pub_id}"
+    return base64.urlsafe_b64encode(raw.encode()).decode()
+
+
+def decode_global_rank_cursor(cursor: str) -> tuple[int, uuid.UUID]:
+    raw = base64.urlsafe_b64decode(cursor.encode()).decode()
+    _, rest = raw.split(":", 1)
+    score_str, uid = rest.split("|", 1)
+    return int(score_str), uuid.UUID(uid)
+
+
 # ── shared helpers ────────────────────────────────────────────────────────────
 
 def _pub_to_out(
@@ -262,6 +274,13 @@ async def build_publications_query(
             user_id=user_id, filter_by_user_id=filter_by_user_id,
         )
 
+    if sort == "ranked_global":
+        return await _ranked_global_query(
+            db, cursor=cursor, limit=limit, category=category, search=search,
+            tag=tag, date_from=date_from, date_to=date_to,
+            user_id=user_id, filter_by_user_id=filter_by_user_id,
+        )
+
     # ── date / seed ordering ─────────────────────────────────────────────────
     stmt = select(Publication).options(selectinload(Publication.author))
     stmt = _apply_publication_filters(
@@ -389,6 +408,87 @@ async def _ranked_query(
     engagements = [int(row[2]) for row in rows]
 
     next_cursor = encode_score_cursor(days[-1], engagements[-1], pubs[-1].id) if has_more and pubs else None
+    upvoted_ids, comment_counts = await _batch_meta(db, pubs, user_id)
+    verified_map, my_status_map = await _batch_claims(db, pubs, user_id)
+    items = [_pub_to_out(p, upvoted_ids, comment_counts, verified_map=verified_map, my_status_map=my_status_map) for p in pubs]
+    return PaginatedPublications(items=items, next_cursor=next_cursor, total=total)
+
+
+async def _ranked_global_query(
+    db: AsyncSession,
+    *,
+    cursor: str | None,
+    limit: int,
+    category: str | None,
+    search: str | None,
+    tag: str | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    user_id: uuid.UUID | None,
+    filter_by_user_id: uuid.UUID | None = None,
+) -> PaginatedPublications:
+    """All-time ranking: sort purely by engagement (upvotes + comments), ignoring publish date."""
+    from app.models.publication import Publication
+    from app.models.comment import Comment
+
+    cc_sub = (
+        select(Comment.publication_id, func.count(Comment.id).label("cnt"))
+        .group_by(Comment.publication_id)
+        .subquery("cc")
+    )
+    score_expr = Publication.upvote_count + func.coalesce(cc_sub.c.cnt, 0)
+
+    def _base():
+        q = (
+            select(Publication, score_expr.label("score"))
+            .outerjoin(cc_sub, Publication.id == cc_sub.c.publication_id)
+            .options(selectinload(Publication.author))
+        )
+        return _apply_publication_filters(
+            q,
+            category=category,
+            search=search,
+            tag=tag,
+            date_from=date_from,
+            date_to=date_to,
+            filter_by_user_id=filter_by_user_id,
+        )
+
+    count_base = select(Publication.id).outerjoin(
+        cc_sub, Publication.id == cc_sub.c.publication_id
+    )
+    count_base = _apply_publication_filters(
+        count_base,
+        category=category,
+        search=search,
+        tag=tag,
+        date_from=date_from,
+        date_to=date_to,
+        filter_by_user_id=filter_by_user_id,
+    )
+    count_q = select(func.count()).select_from(count_base.subquery())
+    total_result = await db.execute(count_q)
+    total = total_result.scalar_one()
+
+    stmt = _base()
+    if cursor:
+        cs, cursor_id = decode_global_rank_cursor(cursor)
+        stmt = stmt.where(or_(
+            score_expr < cs,
+            and_(score_expr == cs, Publication.id < cursor_id),
+        ))
+
+    stmt = stmt.order_by(score_expr.desc(), Publication.id.desc()).limit(limit + 1)
+    rows = list((await db.execute(stmt)).all())
+
+    has_more = len(rows) > limit
+    if has_more:
+        rows = rows[:limit]
+
+    pubs = [row[0] for row in rows]
+    scores = [int(row[1]) for row in rows]
+
+    next_cursor = encode_global_rank_cursor(scores[-1], pubs[-1].id) if has_more and pubs else None
     upvoted_ids, comment_counts = await _batch_meta(db, pubs, user_id)
     verified_map, my_status_map = await _batch_claims(db, pubs, user_id)
     items = [_pub_to_out(p, upvoted_ids, comment_counts, verified_map=verified_map, my_status_map=my_status_map) for p in pubs]

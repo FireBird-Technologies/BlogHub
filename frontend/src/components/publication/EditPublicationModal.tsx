@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import Spinner from "../ui/Spinner";
-import { CATEGORIES, isCategory, type Category } from "../../constants/categories";
+import { CATEGORIES, isCategory, normalizeCategoryForStorage, type Category } from "../../constants/categories";
 import {
   PublicationLinksFields,
   collectLinksPayload,
@@ -128,7 +128,7 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
         title: title.trim(),
         description: description.trim() || undefined,
         image_url: imageUrl.trim() || undefined,
-        category: category === "__custom__" ? customCategory.trim() : category,
+        category: normalizeCategoryForStorage(category === "__custom__" ? customCategory : category),
         tags,
         additional_links,
         social_links,

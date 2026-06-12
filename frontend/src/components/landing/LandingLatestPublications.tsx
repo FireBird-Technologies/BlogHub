@@ -11,6 +11,7 @@ import Modal from "../ui/Modal";
 import Spinner from "../ui/Spinner";
 import { publicationPath } from "../../lib/publicationUrl";
 import { firstSentence } from "../../lib/text";
+import { formatCategoryDisplay } from "../../constants/categories";
 import {
   groupPublicationsByLocalDay,
   sectionTitleForKey,
@@ -37,6 +38,7 @@ function LandingPreviewRow({
     comment_count,
     author,
   } = publication;
+  const categoryLabel = formatCategoryDisplay(category);
 
   return (
     <article
@@ -78,7 +80,7 @@ function LandingPreviewRow({
 
       <div className="flex-1 min-w-0 flex flex-col gap-1">
         <div className="flex items-center gap-1.5 min-w-0">
-          <span className="text-xs font-medium text-gray-400 whitespace-nowrap">{category}</span>
+          <span className="text-xs font-medium text-gray-400 whitespace-nowrap">{categoryLabel}</span>
           <span className="text-gray-300 text-xs">|</span>
           <h3 className="text-sm font-semibold text-gray-900 leading-snug truncate">
             {title}
