@@ -81,22 +81,24 @@ function LandingPreviewRow({
       <div className="flex-1 min-w-0 flex flex-col gap-1">
         <div className="flex items-center gap-1.5 min-w-0">
           <span className="text-xs font-medium text-gray-400 whitespace-nowrap">{categoryLabel}</span>
-          <span className="text-gray-300 text-xs">|</span>
-          <h3 className="text-sm font-semibold text-gray-900 leading-snug truncate min-w-0 flex-1">
-            {title}
-          </h3>
-        </div>
-        {description && (
-          <p className="text-xs text-gray-500 leading-relaxed line-clamp-1">{firstSentence(description)}</p>
-        )}
-        <div className="flex flex-wrap items-center gap-2 mt-auto">
-          <Avatar src={author?.avatar_url} name={author?.name} size={18} />
-          <span className="text-xs text-gray-500 truncate">{author?.name}</span>
+          <span className="text-gray-300 text-xs" aria-hidden>|</span>
           {publication.is_verified ? (
             <VerifiedTick verifiedAt={publication.verified_at} size={14} className="flex-shrink-0" />
           ) : (
             <VerificationBadge isVerified={false} verifiedAt={publication.verified_at} />
           )}
+        </div>
+        <h3 className="text-sm font-semibold text-gray-900 leading-snug truncate min-w-0">
+          {title}
+        </h3>
+        {description && (
+          <p className="text-xs text-gray-500 leading-relaxed line-clamp-1">{firstSentence(description)}</p>
+        )}
+        <div className="flex flex-wrap items-center gap-2 mt-auto">
+          <Avatar src={author?.avatar_url} name={author?.name} size={18} />
+          <span className="text-xs text-gray-500 truncate">
+            {author?.tag ? `@${author.tag}` : author?.name}
+          </span>
         </div>
       </div>
 
