@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { MessageCircle, Trophy } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import type { QueryKey } from "@tanstack/react-query";
-import Badge from "../ui/Badge";
 import VerificationBadge from "../ui/VerificationBadge";
 import VerifiedTick from "../ui/VerifiedTick";
 import Avatar from "../ui/Avatar";
@@ -9,29 +8,39 @@ import UpvoteButton from "./UpvoteButton";
 import type { Publication } from "../../types/models";
 import { useAuth } from "../../context/AuthContext";
 import { publicationPath } from "../../lib/publicationUrl";
+import { firstSentence } from "../../lib/text";
+import { formatCategoryDisplay } from "../../constants/categories";
 
 interface PublicationRowProps {
   publication: Publication;
   queryKey: QueryKey;
   showTopTodayBadge?: boolean;
+  /** Override rank badge (e.g. global position on category ranking page). */
+  listRank?: number;
 }
 
-export default function PublicationRow({ publication, queryKey, showTopTodayBadge }: PublicationRowProps) {
+export default function PublicationRow({
+  publication,
+  queryKey,
+  showTopTodayBadge,
+  listRank,
+}: PublicationRowProps) {
   const navigate = useNavigate();
   const { user, openLoginModal } = useAuth();
   const {
     id,
     title,
+    description,
     image_url,
     category,
     upvote_count,
     comment_count,
     is_upvoted,
     author,
-    rank,
   } = publication;
   const detailPath = publicationPath(publication);
   const byline = author?.tag ? `@${author.tag}` : author?.name?.split(/\s+/)[0] ?? "Reader";
+  const categoryLabel = formatCategoryDisplay(category);
 
   return (
     <article
@@ -55,6 +64,16 @@ export default function PublicationRow({ publication, queryKey, showTopTodayBadg
         >
           Top today
         </span>
+      )}
+
+      {listRank != null && (
+        <div
+          className="flex-shrink-0 w-8 sm:w-9 flex items-center justify-center self-center
+                     text-base sm:text-lg font-bold text-gray-900 tabular-nums select-none"
+          aria-hidden
+        >
+          #{listRank}
+        </div>
       )}
 
       <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-gray-100 overflow-hidden border border-gray-100">
@@ -82,22 +101,24 @@ export default function PublicationRow({ publication, queryKey, showTopTodayBadg
       </div>
 
       <div className="flex-1 min-w-0 flex flex-col gap-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge category={category} />
-          {typeof rank === "number" && rank > 0 && rank <= 10 && (
-            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-              <Trophy size={10} />
-              #{rank}
-            </span>
-          )}
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="text-xs font-medium text-gray-400 whitespace-nowrap">{categoryLabel}</span>
+          <span className="text-gray-300 text-xs" aria-hidden>
+            |
+          </span>
+          <h3 className="text-sm font-bold text-gray-900 leading-snug truncate min-w-0">
+            {title}
+            {publication.is_verified && (
+              <VerifiedTick verifiedAt={publication.verified_at} size={16} className="ml-1.5 -mt-0.5" />
+            )}
+          </h3>
         </div>
 
-        <h3 className="text-sm font-bold text-gray-900 leading-snug line-clamp-1">
-          {title}
-          {publication.is_verified && (
-            <VerifiedTick verifiedAt={publication.verified_at} size={16} className="ml-1.5 -mt-0.5" />
-          )}
-        </h3>
+        {description && (
+          <p className="text-xs text-gray-500 leading-relaxed line-clamp-1">
+            {firstSentence(description)}
+          </p>
+        )}
 
         <div className="flex flex-wrap items-center gap-2 mt-auto">
           <Avatar src={author?.avatar_url} name={author?.name} size={20} />

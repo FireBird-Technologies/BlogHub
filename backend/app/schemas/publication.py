@@ -47,12 +47,15 @@ class _PublicationWritableFields(BaseModel):
     @field_validator("category")
     @classmethod
     def validate_category(cls, v: str) -> str:
-        normalized = v.strip().capitalize()
-        if not normalized:
+        s = v.strip()
+        if not s:
             raise ValueError("category is required")
-        if len(normalized) > 64:
+        if len(s) > 64:
             raise ValueError("category must be 64 characters or fewer")
-        return normalized
+        for cat in CATEGORIES:
+            if cat.lower() == s.lower():
+                return cat
+        return s[0].upper() + s[1:].lower()
 
     @field_validator("additional_links")
     @classmethod

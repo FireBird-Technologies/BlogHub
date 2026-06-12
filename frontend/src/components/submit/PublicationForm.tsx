@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
-import { CATEGORIES, isCategory, type Category } from "../../constants/categories";
+import { CATEGORIES, isCategory, normalizeCategoryForStorage, type Category } from "../../constants/categories";
 import type { PublicationDraft } from "../../types/models";
 import Button from "../ui/Button";
 
@@ -61,7 +61,9 @@ export default function PublicationForm({ draft, onContinue }: PublicationFormPr
       title: form.title.trim(),
       description: form.description.trim() || undefined,
       image_url: form.image_url.trim() || undefined,
-      category: form.category === "__custom__" ? customCategory.trim() : form.category,
+      category: normalizeCategoryForStorage(
+        form.category === "__custom__" ? customCategory : form.category
+      ),
       tags,
     });
   };

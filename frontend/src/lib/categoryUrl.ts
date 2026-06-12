@@ -1,3 +1,5 @@
+import { formatCategoryDisplay } from "../constants/categories";
+
 /** Sentinel used by the backend to filter publications whose category is not builtin. */
 export const CUSTOM_CATEGORY = "__custom__";
 
@@ -14,5 +16,5 @@ export function categoryPath(category: string): string {
 export function resolveCategoryParam(raw: string | undefined): { apiCategory: string; title: string } {
   if (!raw || raw === OTHERS_SLUG) return { apiCategory: CUSTOM_CATEGORY, title: "Others" };
   const decoded = decodeURIComponent(raw);
-  return { apiCategory: decoded, title: decoded };
+  return { apiCategory: decoded, title: formatCategoryDisplay(decoded) };
 }
