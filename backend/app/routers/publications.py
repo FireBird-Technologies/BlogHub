@@ -350,6 +350,10 @@ async def claim_publication(
     await db.refresh(claim)
 
     # Best-effort owner notification; must not fail the request.
+    approve_url = (
+        f"{settings.FRONTEND_URL}/admin/approve-claim"
+        f"?pub_id={publication_id}&claim_id={claim.id}"
+    )
     try:
         await send_claim_notification(
             claim_id=claim.id,
@@ -359,6 +363,7 @@ async def claim_publication(
             social_links=social_links,
             original_url=original_url,
             comment=data.comment,
+            approve_url=approve_url,
         )
     except Exception:  # noqa: BLE001
         pass
