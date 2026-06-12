@@ -106,11 +106,8 @@ export default function PublicationRow({
           <span className="text-gray-300 text-xs" aria-hidden>
             |
           </span>
-          <h3 className="text-sm font-bold text-gray-900 leading-snug truncate min-w-0">
+          <h3 className="text-sm font-bold text-gray-900 leading-snug truncate min-w-0 flex-1">
             {title}
-            {publication.is_verified && (
-              <VerifiedTick verifiedAt={publication.verified_at} size={16} className="ml-1.5 -mt-0.5" />
-            )}
           </h3>
         </div>
 
@@ -123,7 +120,9 @@ export default function PublicationRow({
         <div className="flex flex-wrap items-center gap-2 mt-auto">
           <Avatar src={author?.avatar_url} name={author?.name} size={20} />
           <span className="text-xs font-medium text-gray-600 truncate">{byline}</span>
-          {!publication.is_verified && (
+          {publication.is_verified ? (
+            <VerifiedTick verifiedAt={publication.verified_at} size={16} className="flex-shrink-0" />
+          ) : (
             <VerificationBadge isVerified={false} verifiedAt={publication.verified_at} />
           )}
         </div>

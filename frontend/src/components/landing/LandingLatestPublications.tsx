@@ -82,20 +82,19 @@ function LandingPreviewRow({
         <div className="flex items-center gap-1.5 min-w-0">
           <span className="text-xs font-medium text-gray-400 whitespace-nowrap">{categoryLabel}</span>
           <span className="text-gray-300 text-xs">|</span>
-          <h3 className="text-sm font-semibold text-gray-900 leading-snug truncate">
+          <h3 className="text-sm font-semibold text-gray-900 leading-snug truncate min-w-0 flex-1">
             {title}
-            {publication.is_verified && (
-              <VerifiedTick verifiedAt={publication.verified_at} size={14} className="ml-1.5 -mt-0.5" />
-            )}
           </h3>
         </div>
         {description && (
           <p className="text-xs text-gray-500 leading-relaxed line-clamp-1">{firstSentence(description)}</p>
         )}
-        <div className="flex items-center gap-2 mt-auto">
+        <div className="flex flex-wrap items-center gap-2 mt-auto">
           <Avatar src={author?.avatar_url} name={author?.name} size={18} />
           <span className="text-xs text-gray-500 truncate">{author?.name}</span>
-          {!publication.is_verified && (
+          {publication.is_verified ? (
+            <VerifiedTick verifiedAt={publication.verified_at} size={14} className="flex-shrink-0" />
+          ) : (
             <VerificationBadge isVerified={false} verifiedAt={publication.verified_at} />
           )}
         </div>
