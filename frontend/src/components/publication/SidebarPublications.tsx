@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { ArrowBigUp, MessageCircle } from "lucide-react";
 import { CATEGORIES } from "../../constants/categories";
 import Spinner from "../ui/Spinner";
 import CustomDropdown from "../ui/CustomDropdown";
 import api from "../../lib/api";
+import { useAuth } from "../../context/AuthContext";
 import { publicationPath } from "../../lib/publicationUrl";
 import type { PaginatedPublications, PublicationId } from "../../types/models";
+
+const PAGE_SIZE = 10;
 
 interface SidebarPublicationsProps {
   currentId: PublicationId;
@@ -16,25 +19,42 @@ interface SidebarPublicationsProps {
 export default function SidebarPublications({ currentId }: SidebarPublicationsProps) {
   const [category, setCategory] = useState("");
   const navigate = useNavigate();
+  const { user, openLoginModal } = useAuth();
 
-  const { data, isLoading } = useQuery<PaginatedPublications>({
-    queryKey: ["sidebar-publications", category],
-    queryFn: () =>
-      api
-        .get<PaginatedPublications>("/api/publications", {
-          params: { sort: "ranked", limit: 20, category: category || undefined },
-        })
-        .then((r) => r.data),
-    staleTime: 30_000,
-  });
+  const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useInfiniteQuery<PaginatedPublications>({
+      queryKey: ["sidebar-publications", category],
+      queryFn: ({ pageParam }) =>
+        api
+          .get<PaginatedPublications>("/api/publications", {
+            params: {
+              sort: "ranked",
+              limit: PAGE_SIZE,
+              category: category || undefined,
+              cursor: pageParam,
+            },
+          })
+          .then((r) => r.data),
+      initialPageParam: undefined as string | undefined,
+      getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
+      staleTime: 30_000,
+    });
 
-  const pubs = data?.items ?? [];
+  const pubs = data?.pages.flatMap((p) => p.items) ?? [];
+
+  function handleCategoryChange(val: string) {
+    if (val !== "" && !user) {
+      openLoginModal();
+      return;
+    }
+    setCategory(val);
+  }
 
   return (
     <div className="flex flex-col gap-4 pb-2">
       <CustomDropdown
         value={category}
-        onChange={setCategory}
+        onChange={handleCategoryChange}
         options={[
           { value: "", label: "All Categories" },
           ...CATEGORIES.map((c) => ({ value: c, label: c })),
@@ -63,10 +83,7 @@ export default function SidebarPublications({ currentId }: SidebarPublicationsPr
                   }`}
               >
                 <div className="min-w-0 flex flex-col gap-1.5">
-                  <p
-                    className={`text-sm font-semibold leading-snug line-clamp-2
-                    ${active ? "text-red-700" : "text-gray-900"}`}
-                  >
+                  <p className={`text-sm font-semibold leading-snug line-clamp-2 ${active ? "text-red-700" : "text-gray-900"}`}>
                     {pub.title}
                   </p>
                   {pub.description ? (
@@ -76,9 +93,7 @@ export default function SidebarPublications({ currentId }: SidebarPublicationsPr
                   )}
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-gray-500 pt-0.5">
                     <span className="font-medium text-gray-600 truncate max-w-full">{pub.category}</span>
-                    <span className="text-gray-300 select-none" aria-hidden>
-                      ·
-                    </span>
+                    <span className="text-gray-300 select-none" aria-hidden>·</span>
                     <span className="inline-flex items-center">
                       <ArrowBigUp width={32} height={16} className="text-gray-400" aria-hidden />
                       <span>{pub.upvote_count ?? 0}</span>
@@ -92,6 +107,19 @@ export default function SidebarPublications({ currentId }: SidebarPublicationsPr
               </button>
             );
           })}
+
+          {hasNextPage && (
+            <button
+              type="button"
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-gray-200
+                         bg-white text-xs font-semibold text-gray-500 hover:border-red-200 hover:text-red-600
+                         transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-1"
+            >
+              {isFetchingNextPage ? <><Spinner size={13} /> Loading…</> : "Load more"}
+            </button>
+          )}
         </div>
       )}
     </div>

@@ -38,7 +38,7 @@ export default function CategorySelect({ value, onChange }: CategorySelectProps)
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-gray-900 transition-colors whitespace-nowrap"
+        className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors whitespace-nowrap"
       >
         <span>{label}</span>
         <ChevronDown size={15} className={`transition-transform flex-shrink-0 ${open ? "rotate-180" : ""}`} />

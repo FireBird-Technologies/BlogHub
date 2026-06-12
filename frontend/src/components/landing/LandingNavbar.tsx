@@ -24,9 +24,12 @@ export default function LandingNavbar() {
   const handleSearchSubmit = (e: React.FormEvent | React.KeyboardEvent) => {
     if (e.type === "submit" || (e as React.KeyboardEvent).key === "Enter") {
       e.preventDefault();
-      if (search.trim()) {
-        navigate(`/dashboard?q=${encodeURIComponent(search.trim())}`);
+      if (!search.trim()) return;
+      if (!user) {
+        openLoginModal();
+        return;
       }
+      navigate(`/dashboard?q=${encodeURIComponent(search.trim())}`);
     }
   };
 

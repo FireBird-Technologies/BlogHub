@@ -73,7 +73,7 @@ export default function DashboardPublicationList({
   }
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-10 pb-12">
       {sections.map(({ key, items }) => (
         <section key={key} className="flex flex-col gap-3">
           <h2 className="text-sm font-bold text-gray-800 border-b border-gray-200 pb-2">
@@ -99,7 +99,7 @@ export default function DashboardPublicationList({
       ))}
       {manualLoadMore ? (
         hasNextPage && (
-          <div className="flex justify-center pt-2">
+          <div className="flex justify-center pt-2 -mt-6">
             <button
               type="button"
               onClick={() => fetchNextPage()}

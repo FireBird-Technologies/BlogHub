@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { ArrowBigUp, MessageCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { usePublicationsPreviewInfinite } from "../../hooks/usePublications";
-import Badge from "../ui/Badge";
 import Avatar from "../ui/Avatar";
+import VerifiedTick from "../ui/VerifiedTick";
+import VerificationBadge from "../ui/VerificationBadge";
 import GoogleSignInButton from "../ui/GoogleSignInButton";
 import Modal from "../ui/Modal";
 import Spinner from "../ui/Spinner";
@@ -18,14 +19,6 @@ import {
 } from "../../lib/publicationGrouping";
 import type { Publication } from "../../types/models";
 
-function formatShortDate(iso: string) {
-  if (!iso) return "";
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 /** Dashboard-style row; stats are display-only. Entire card is one click target for guests. */
 function LandingPreviewRow({
@@ -40,11 +33,9 @@ function LandingPreviewRow({
     description,
     image_url,
     category,
-    tags,
     upvote_count,
     comment_count,
     author,
-    created_at,
   } = publication;
 
   return (
@@ -58,10 +49,10 @@ function LandingPreviewRow({
           onActivate();
         }
       }}
-      className="group relative flex gap-3 sm:gap-4 w-full text-left bg-white border border-gray-200 rounded-xl p-3 sm:p-4
+      className="group relative flex gap-3 w-full text-left bg-white border border-gray-200 rounded-xl p-3 sm:p-4
                  cursor-pointer transition-all hover:border-gray-300 hover:shadow-md hover:shadow-black/[0.04]"
     >
-      <div className="flex-shrink-0 w-24 h-16 sm:w-32 sm:h-[4.5rem] rounded-lg bg-gray-100 overflow-hidden border border-gray-100">
+      <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-gray-100 overflow-hidden border border-gray-100">
         {image_url ? (
           <img
             src={image_url}
@@ -85,30 +76,25 @@ function LandingPreviewRow({
         )}
       </div>
 
-      <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge category={category} />
-          {tags?.slice(0, 4).map((tag) => (
-            <span
-              key={tag}
-              className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200"
-            >
-              {tag}
-            </span>
-          ))}
-          {(tags?.length ?? 0) > 4 && (
-            <span className="text-[10px] text-gray-400">+{(tags?.length ?? 0) - 4}</span>
-          )}
+      <div className="flex-1 min-w-0 flex flex-col gap-1">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="text-xs font-medium text-gray-400 whitespace-nowrap">{category}</span>
+          <span className="text-gray-300 text-xs">|</span>
+          <h3 className="text-sm font-semibold text-gray-900 leading-snug truncate">
+            {title}
+            {publication.is_verified && (
+              <VerifiedTick verifiedAt={publication.verified_at} size={14} className="ml-1.5 -mt-0.5" />
+            )}
+          </h3>
         </div>
-        <h3 className="text-sm sm:text-base font-semibold text-gray-900 leading-snug line-clamp-2">{title}</h3>
         {description && (
-          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 hidden sm:block">{firstSentence(description)}</p>
+          <p className="text-xs text-gray-500 leading-relaxed line-clamp-1">{firstSentence(description)}</p>
         )}
-        <div className="flex items-center gap-2 mt-auto pt-1">
-          <Avatar src={author?.avatar_url} name={author?.name} size={22} />
+        <div className="flex items-center gap-2 mt-auto">
+          <Avatar src={author?.avatar_url} name={author?.name} size={18} />
           <span className="text-xs text-gray-500 truncate">{author?.name}</span>
-          {created_at && (
-            <span className="text-[10px] text-gray-400 ml-1">{formatShortDate(created_at)}</span>
+          {!publication.is_verified && (
+            <VerificationBadge isVerified={false} verifiedAt={publication.verified_at} />
           )}
         </div>
       </div>

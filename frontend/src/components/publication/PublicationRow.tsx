@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Trophy } from "lucide-react";
 import type { QueryKey } from "@tanstack/react-query";
 import Badge from "../ui/Badge";
 import VerificationBadge from "../ui/VerificationBadge";
@@ -9,16 +9,6 @@ import UpvoteButton from "./UpvoteButton";
 import type { Publication } from "../../types/models";
 import { useAuth } from "../../context/AuthContext";
 import { publicationPath } from "../../lib/publicationUrl";
-import { firstSentence } from "../../lib/text";
-
-function formatShortDate(iso: string) {
-  if (!iso) return "";
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 interface PublicationRowProps {
   publication: Publication;
@@ -32,17 +22,16 @@ export default function PublicationRow({ publication, queryKey, showTopTodayBadg
   const {
     id,
     title,
-    description,
     image_url,
     category,
-    tags,
     upvote_count,
     comment_count,
     is_upvoted,
     author,
-    created_at,
+    rank,
   } = publication;
   const detailPath = publicationPath(publication);
+  const byline = author?.tag ? `@${author.tag}` : author?.name?.split(/\s+/)[0] ?? "Reader";
 
   return (
     <article
@@ -55,8 +44,8 @@ export default function PublicationRow({ publication, queryKey, showTopTodayBadg
           navigate(detailPath);
         }
       }}
-      className="group relative flex gap-3 sm:gap-4 w-full text-left bg-white border border-gray-200 rounded-xl p-3 sm:p-4
-                 cursor-pointer transition-all hover:border-gray-300 hover:shadow-md hover:shadow-black/[0.04]"
+      className="group relative flex gap-3 w-full text-left bg-white border border-gray-200 rounded-xl p-2.5 sm:p-3
+                 cursor-pointer transition-all hover:border-red-200 hover:shadow-md hover:shadow-red-500/5"
     >
       {showTopTodayBadge && (
         <span
@@ -68,8 +57,7 @@ export default function PublicationRow({ publication, queryKey, showTopTodayBadg
         </span>
       )}
 
-
-      <div className="flex-shrink-0 w-24 h-16 sm:w-32 sm:h-[4.5rem] rounded-lg bg-gray-100 overflow-hidden border border-gray-100">
+      <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-gray-100 overflow-hidden border border-gray-100">
         {image_url ? (
           <img
             src={image_url}
@@ -93,36 +81,27 @@ export default function PublicationRow({ publication, queryKey, showTopTodayBadg
         )}
       </div>
 
-      <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+      <div className="flex-1 min-w-0 flex flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
           <Badge category={category} />
-          {tags?.slice(0, 4).map((tag) => (
-            <span
-              key={tag}
-              className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200"
-            >
-              {tag}
+          {typeof rank === "number" && rank > 0 && rank <= 10 && (
+            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+              <Trophy size={10} />
+              #{rank}
             </span>
-          ))}
-          {(tags?.length ?? 0) > 4 && (
-            <span className="text-[10px] text-gray-400">+{(tags?.length ?? 0) - 4}</span>
           )}
         </div>
-        <h3 className="text-sm sm:text-base font-semibold text-gray-900 leading-snug line-clamp-2">
+
+        <h3 className="text-sm font-bold text-gray-900 leading-snug line-clamp-1">
           {title}
           {publication.is_verified && (
             <VerifiedTick verifiedAt={publication.verified_at} size={16} className="ml-1.5 -mt-0.5" />
           )}
         </h3>
-        {description && (
-          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 hidden sm:block">{firstSentence(description)}</p>
-        )}
-        <div className="flex flex-wrap items-center gap-2 mt-auto pt-1">
-          <Avatar src={author?.avatar_url} name={author?.name} size={22} />
-          <span className="text-xs text-gray-500 truncate">{author?.name}</span>
-          {created_at && (
-            <span className="text-[10px] text-gray-400 ml-1">{formatShortDate(created_at)}</span>
-          )}
+
+        <div className="flex flex-wrap items-center gap-2 mt-auto">
+          <Avatar src={author?.avatar_url} name={author?.name} size={20} />
+          <span className="text-xs font-medium text-gray-600 truncate">{byline}</span>
           {!publication.is_verified && (
             <VerificationBadge isVerified={false} verifiedAt={publication.verified_at} />
           )}
