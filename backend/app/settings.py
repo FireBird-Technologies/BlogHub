@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     RESEND_API_KEY: str | None = None
     CLAIM_NOTIFY_EMAIL: str | None = None
     CLAIM_FROM_EMAIL: str = "BlogHub <claims@bloghub.app>"
+    CLAIM_APPROVE_PASSWORD: str | None = None
 
     class Config:
         env_file = ".env"

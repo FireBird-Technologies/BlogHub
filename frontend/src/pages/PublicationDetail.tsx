@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../lib/api";
 import { ArrowLeft, ExternalLink, Tag, ArrowBigUp, MessageCircle, Calendar, Video, Trophy, Pencil, Trash2 } from "lucide-react";
@@ -13,6 +13,7 @@ import ClaimButton from "../components/publication/ClaimButton";
 import CommentsSection from "../components/publication/CommentsSection";
 import SidebarPublications from "../components/publication/SidebarPublications";
 import EditPublicationFieldModal, { type EditableField } from "../components/publication/EditPublicationFieldModal";
+import ConvertToVideoModal from "../components/publication/ConvertToVideoModal";
 import NotFound from "./NotFound";
 import { usePublication, getClientTimezone } from "../hooks/usePublications";
 import { useAuth } from "../context/AuthContext";
@@ -287,6 +288,7 @@ export default function PublicationDetail() {
   const { id: slugParam } = useParams<{ id: string }>();
   const shortId = parseShortIdFromParam(slugParam);
   const navigate = useNavigate();
+  const location = useLocation();
   const { data: pub, isLoading, isError, queryKey, tz } = usePublication(shortId);
   const { user } = useAuth();
   const tzShort = tz || getClientTimezone();
@@ -294,7 +296,24 @@ export default function PublicationDetail() {
   const [commentFocusSignal, setCommentFocusSignal] = useState(0);
   const [editField, setEditField] = useState<EditableField | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const showVideoOnLoad = useRef(
+    (location.state as { showVideoPrompt?: boolean } | null)?.showVideoPrompt === true
+  );
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (showVideoOnLoad.current) {
+      navigate(location.pathname + location.hash, { replace: true, state: {} });
+    }
+  }, [location.pathname, location.hash, navigate]);
+
+  useEffect(() => {
+    if (!showVideoOnLoad.current || isLoading || !pub) return;
+    showVideoOnLoad.current = false;
+    const timer = window.setTimeout(() => setVideoModalOpen(true), 7000);
+    return () => window.clearTimeout(timer);
+  }, [isLoading, pub]);
 
   const { mutate: deletePublication, isPending: isDeleting } = useMutation({
     mutationFn: (publicationId: string) =>
@@ -642,6 +661,8 @@ export default function PublicationDetail() {
         isOpen={editField !== null}
         onClose={() => setEditField(null)}
       />
+
+      <ConvertToVideoModal isOpen={videoModalOpen} onClose={() => setVideoModalOpen(false)} />
     </div>
   );
 }

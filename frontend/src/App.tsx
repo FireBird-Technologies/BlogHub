@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import RankingPage from "./pages/RankingPage";
 import Profile from "./pages/Profile";
 import PublicationDetail from "./pages/PublicationDetail";
+import AdminApproveClaim from "./pages/AdminApproveClaim";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -43,6 +44,7 @@ export default function App() {
                 }
               />
               <Route path="/publications/:id" element={<PublicationDetail />} />
+              <Route path="/admin/approve-claim" element={<AdminApproveClaim />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <LoginPromptModal />
