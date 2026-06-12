@@ -27,6 +27,7 @@ async def send_claim_notification(
     social_links: list[dict],
     original_url: str | None,
     comment: str | None = None,
+    approve_url: str | None = None,
 ) -> None:
     """Best-effort email to the site owner when a publication is claimed.
 
@@ -63,18 +64,26 @@ async def send_claim_notification(
     pub_url = html.escape(publication.url or "")
     claim_id_str = html.escape(str(claim_id))
 
-    verify_sql = (
-        "UPDATE publication_claims\n"
-        "SET status = 'verified', verified_at = now()\n"
-        f"WHERE id = '{claim_id_str}';"
-    )
+    approve_button_html = ""
+    if approve_url:
+        safe_approve_url = html.escape(approve_url)
+        approve_button_html = f"""
+      <div style="margin-top:24px;text-align:center;">
+        <a href="{safe_approve_url}"
+           style="display:inline-block;background:#dc2626;color:#ffffff;font-size:14px;
+                  font-weight:600;text-decoration:none;padding:12px 28px;border-radius:8px;">
+          Approve &amp; Transfer Ownership
+        </a>
+        <p style="color:#9ca3af;font-size:11px;margin-top:10px;">
+          Clicking this button will take you to a password-protected page to confirm the approval.
+        </p>
+      </div>"""
 
     body = f"""
     <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;">
       <h2 style="color:#111827;font-size:18px;margin:0 0 4px;">New publication claim</h2>
       <p style="color:#6b7280;font-size:13px;margin:0 0 16px;">
-        Someone has claimed a publication on BlogHub. Review the details below, then verify it
-        manually in the database if it checks out.
+        Someone has claimed a publication on BlogHub. Review the details below and approve if it checks out.
       </p>
       <table style="font-size:14px;border-collapse:collapse;width:100%;">
         {_row("Publication", f'<a href="{pub_url}" style="color:#dc2626;">{pub_title}</a>')}
@@ -86,12 +95,7 @@ async def send_claim_notification(
         {_row("Social profiles", socials_html)}
         {_row("Message", comment_html)}
       </table>
-      <p style="color:#374151;font-size:13px;margin:20px 0 6px;font-weight:600;">To verify this claim, run:</p>
-      <pre style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:8px;padding:12px;
-                  font-size:12px;color:#111827;overflow-x:auto;white-space:pre-wrap;">{html.escape(verify_sql)}</pre>
-      <p style="color:#9ca3af;font-size:12px;margin-top:12px;">
-        Run this in the Neon SQL editor. To undo, set <code>status='pending', verified_at=NULL</code>.
-      </p>
+      {approve_button_html}
     </div>
     """
 

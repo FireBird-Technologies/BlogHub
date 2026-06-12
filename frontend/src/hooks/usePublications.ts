@@ -16,11 +16,22 @@ interface UsePublicationsParams {
   search: string;
   sort?: string;
   limit?: number;
+  tag?: string;
+  dateFrom?: string;
+  dateTo?: string;
 }
 
-export function usePublications({ category, search, sort = "ranked", limit = 20 }: UsePublicationsParams) {
+export function usePublications({
+  category,
+  search,
+  sort = "ranked",
+  limit = 20,
+  tag = "",
+  dateFrom,
+  dateTo,
+}: UsePublicationsParams) {
   return useInfiniteQuery<PaginatedPublications, Error>({
-    queryKey: ["publications", { category, search, sort, limit }],
+    queryKey: ["publications", { category, search, sort, limit, tag, dateFrom, dateTo }],
     queryFn: ({ pageParam }) =>
       api
         .get<PaginatedPublications>("/api/publications", {
@@ -28,6 +39,9 @@ export function usePublications({ category, search, sort = "ranked", limit = 20 
             cursor: pageParam,
             category: category || undefined,
             search: search || undefined,
+            tag: tag || undefined,
+            date_from: dateFrom || undefined,
+            date_to: dateTo || undefined,
             sort,
             limit,
           },

@@ -6,7 +6,7 @@ import Button from "../ui/Button";
 import Spinner from "../ui/Spinner";
 import CustomDropdown from "../ui/CustomDropdown";
 import api, { formatApiErrorDetail } from "../../lib/api";
-import { CATEGORIES, isCategory, type Category } from "../../constants/categories";
+import { CATEGORIES, isCategory, normalizeCategoryForStorage, type Category } from "../../constants/categories";
 import { publicationShortId } from "../../lib/publicationUrl";
 import {
   SOCIAL_OPTIONS,
@@ -157,7 +157,7 @@ export default function EditPublicationFieldModal({
           ...base,
           title: t,
           image_url: imageUrl.trim() || undefined,
-          category: category === "__custom__" ? customCategory.trim() : category,
+          category: normalizeCategoryForStorage(category === "__custom__" ? customCategory : category),
           tags: tagsStr
             .split(",")
             .map((tag) => tag.trim())

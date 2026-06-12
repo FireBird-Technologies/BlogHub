@@ -27,6 +27,29 @@ export function isCategory(value: string): value is Category {
   return (CATEGORIES as readonly string[]).includes(value);
 }
 
+/** First letter uppercase, rest lowercase — for custom category labels. */
+export function normalizeCustomCategory(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return trimmed;
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+}
+
+/** Resolve predefined categories exactly; normalize custom ones for display. */
+export function formatCategoryDisplay(category: string): string {
+  if (isCategory(category)) return category;
+  const predefined = CATEGORIES.find((c) => c.toLowerCase() === category.trim().toLowerCase());
+  if (predefined) return predefined;
+  return normalizeCustomCategory(category);
+}
+
+/** Normalize category on submit: match predefined case-insensitively, else title-case custom. */
+export function normalizeCategoryForStorage(category: string): string {
+  const trimmed = category.trim();
+  const predefined = CATEGORIES.find((c) => c.toLowerCase() === trimmed.toLowerCase());
+  if (predefined) return predefined;
+  return normalizeCustomCategory(trimmed);
+}
+
 export const CATEGORY_COLORS: Record<string, string> = {
   Tech: "bg-blue-50 text-blue-700 border-blue-200",
   Design: "bg-violet-50 text-violet-700 border-violet-200",

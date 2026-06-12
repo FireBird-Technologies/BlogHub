@@ -22,6 +22,8 @@ interface DashboardPublicationListProps {
   isLoading?: boolean;
   /** Show a manual "Load more" button instead of auto-loading on scroll. */
   manualLoadMore?: boolean;
+  /** Flat list sorted by global rank (no date grouping). Used on category ranking pages. */
+  flatRankedList?: boolean;
 }
 
 export default function DashboardPublicationList({
@@ -33,6 +35,7 @@ export default function DashboardPublicationList({
   onSubmit,
   isLoading,
   manualLoadMore = false,
+  flatRankedList = false,
 }: DashboardPublicationListProps) {
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -51,10 +54,48 @@ export default function DashboardPublicationList({
   }, [manualLoadMore, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const publications: Publication[] = pages?.flatMap((p) => p.items) ?? [];
+  const total = pages?.[0]?.total;
+  const canLoadMore =
+    hasNextPage || (typeof total === "number" && publications.length < total);
 
   const sections = useMemo(() => groupPublicationsByLocalDay(publications), [publications]);
   const todayK = todayKey();
   const yesterdayK = yesterdayKey();
+
+  const loadMoreControl = manualLoadMore ? (
+    canLoadMore && (
+      <div
+        className={`flex justify-center ${flatRankedList ? "pt-6" : "pt-2 -mt-6"}`}
+      >
+        <button
+          type="button"
+          onClick={() => fetchNextPage()}
+          disabled={isFetchingNextPage}
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-gray-200 bg-white
+                     text-sm font-semibold text-gray-700 transition-colors
+                     hover:border-red-300 hover:text-red-600 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {isFetchingNextPage ? (
+            <>
+              <Spinner size={16} />
+              Loading…
+            </>
+          ) : (
+            "Load more Publications"
+          )}
+        </button>
+      </div>
+    )
+  ) : (
+    <>
+      <div ref={sentinelRef} className="h-4" />
+      {isFetchingNextPage && (
+        <div className="flex justify-center py-8">
+          <Spinner size={28} />
+        </div>
+      )}
+    </>
+  );
 
   if (isLoading) {
     return (
@@ -72,8 +113,23 @@ export default function DashboardPublicationList({
     );
   }
 
+  if (flatRankedList) {
+    return (
+      <div className="flex flex-col gap-3 pb-12">
+        <ul className="flex flex-col gap-3 list-none p-0 m-0">
+          {publications.map((pub, idx) => (
+            <li key={pub.id}>
+              <PublicationRow publication={pub} queryKey={queryKey} listRank={idx + 1} />
+            </li>
+          ))}
+        </ul>
+        {loadMoreControl}
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-10 pb-12">
       {sections.map(({ key, items }) => (
         <section key={key} className="flex flex-col gap-3">
           <h2 className="text-sm font-bold text-gray-800 border-b border-gray-200 pb-2">
@@ -97,38 +153,7 @@ export default function DashboardPublicationList({
           </ul>
         </section>
       ))}
-      {manualLoadMore ? (
-        hasNextPage && (
-          <div className="flex justify-center pt-2">
-            <button
-              type="button"
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-gray-200 bg-white
-                         text-sm font-semibold text-gray-700 transition-colors
-                         hover:border-red-300 hover:text-red-600 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {isFetchingNextPage ? (
-                <>
-                  <Spinner size={16} />
-                  Loading…
-                </>
-              ) : (
-                "Load more Publications"
-              )}
-            </button>
-          </div>
-        )
-      ) : (
-        <>
-          <div ref={sentinelRef} className="h-4" />
-          {isFetchingNextPage && (
-            <div className="flex justify-center py-8">
-              <Spinner size={28} />
-            </div>
-          )}
-        </>
-      )}
+      {loadMoreControl}
     </div>
   );
 }

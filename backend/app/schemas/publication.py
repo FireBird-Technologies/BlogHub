@@ -3,6 +3,7 @@ from datetime import datetime
 
 from pydantic import AnyHttpUrl, BaseModel, ConfigDict, field_validator
 
+from app.helpers.url_normalize import normalize_publication_url
 from app.schemas.user import UserOut
 from app.models.publication import CATEGORIES
 
@@ -35,15 +36,26 @@ class _PublicationWritableFields(BaseModel):
     additional_links: list[AnyHttpUrl] = []
     social_links: list[SocialLinkIn] = []
 
+    @field_validator("url")
+    @classmethod
+    def normalize_url(cls, v: str) -> str:
+        canonical = normalize_publication_url(v)
+        if not canonical:
+            raise ValueError("url must be a valid site URL")
+        return canonical
+
     @field_validator("category")
     @classmethod
     def validate_category(cls, v: str) -> str:
-        normalized = v.strip().capitalize()
-        if not normalized:
+        s = v.strip()
+        if not s:
             raise ValueError("category is required")
-        if len(normalized) > 64:
+        if len(s) > 64:
             raise ValueError("category must be 64 characters or fewer")
-        return normalized
+        for cat in CATEGORIES:
+            if cat.lower() == s.lower():
+                return cat
+        return s[0].upper() + s[1:].lower()
 
     @field_validator("additional_links")
     @classmethod
@@ -105,3 +117,8 @@ class PaginatedPublications(BaseModel):
 class UpvoteResponse(BaseModel):
     upvote_count: int
     is_upvoted: bool
+
+
+class ResubmitRequiredResponse(BaseModel):
+    requires_claim: bool = True
+    publication_id: uuid.UUID

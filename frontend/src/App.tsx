@@ -11,7 +11,10 @@ import Dashboard from "./pages/Dashboard";
 import RankingPage from "./pages/RankingPage";
 import Profile from "./pages/Profile";
 import PublicationDetail from "./pages/PublicationDetail";
+import AdminApproveClaim from "./pages/AdminApproveClaim";
 import NotFound from "./pages/NotFound";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,6 +46,9 @@ export default function App() {
                 }
               />
               <Route path="/publications/:id" element={<PublicationDetail />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/admin/approve-claim" element={<AdminApproveClaim />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <LoginPromptModal />

@@ -19,12 +19,15 @@ export default function RankingPage() {
     type: "website",
   });
 
-  const queryKey = ["publications", { category: apiCategory, search: "", sort: "ranked", limit: PAGE_SIZE }] as const;
+  const queryKey = [
+    "publications",
+    { category: apiCategory, search: "", sort: "ranked_global", limit: PAGE_SIZE },
+  ] as const;
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = usePublications({
     category: apiCategory,
     search: "",
-    sort: "ranked",
+    sort: "ranked_global",
     limit: PAGE_SIZE,
   });
 
@@ -58,6 +61,7 @@ export default function RankingPage() {
           queryKey={queryKey}
           isLoading={isLoading}
           manualLoadMore
+          flatRankedList
         />
       </main>
     </div>

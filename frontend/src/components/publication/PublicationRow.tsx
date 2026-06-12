@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { MessageCircle } from "lucide-react";
 import type { QueryKey } from "@tanstack/react-query";
-import Badge from "../ui/Badge";
 import VerificationBadge from "../ui/VerificationBadge";
 import VerifiedTick from "../ui/VerifiedTick";
 import Avatar from "../ui/Avatar";
@@ -10,23 +9,22 @@ import type { Publication } from "../../types/models";
 import { useAuth } from "../../context/AuthContext";
 import { publicationPath } from "../../lib/publicationUrl";
 import { firstSentence } from "../../lib/text";
-
-function formatShortDate(iso: string) {
-  if (!iso) return "";
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+import { formatCategoryDisplay } from "../../constants/categories";
 
 interface PublicationRowProps {
   publication: Publication;
   queryKey: QueryKey;
   showTopTodayBadge?: boolean;
+  /** Override rank badge (e.g. global position on category ranking page). */
+  listRank?: number;
 }
 
-export default function PublicationRow({ publication, queryKey, showTopTodayBadge }: PublicationRowProps) {
+export default function PublicationRow({
+  publication,
+  queryKey,
+  showTopTodayBadge,
+  listRank,
+}: PublicationRowProps) {
   const navigate = useNavigate();
   const { user, openLoginModal } = useAuth();
   const {
@@ -35,14 +33,14 @@ export default function PublicationRow({ publication, queryKey, showTopTodayBadg
     description,
     image_url,
     category,
-    tags,
     upvote_count,
     comment_count,
     is_upvoted,
     author,
-    created_at,
   } = publication;
   const detailPath = publicationPath(publication);
+  const byline = author?.tag ? `@${author.tag}` : author?.name?.split(/\s+/)[0] ?? "Reader";
+  const categoryLabel = formatCategoryDisplay(category);
 
   return (
     <article
@@ -55,8 +53,8 @@ export default function PublicationRow({ publication, queryKey, showTopTodayBadg
           navigate(detailPath);
         }
       }}
-      className="group relative flex gap-3 sm:gap-4 w-full text-left bg-white border border-gray-200 rounded-xl p-3 sm:p-4
-                 cursor-pointer transition-all hover:border-gray-300 hover:shadow-md hover:shadow-black/[0.04]"
+      className="group relative flex gap-3 w-full text-left bg-white border border-gray-200 rounded-xl p-2.5 sm:p-3
+                 cursor-pointer transition-all hover:border-red-200 hover:shadow-md hover:shadow-red-500/5"
     >
       {showTopTodayBadge && (
         <span
@@ -68,8 +66,17 @@ export default function PublicationRow({ publication, queryKey, showTopTodayBadg
         </span>
       )}
 
+      {listRank != null && (
+        <div
+          className="flex-shrink-0 w-8 sm:w-9 flex items-center justify-center self-center
+                     text-base sm:text-lg font-bold text-gray-900 tabular-nums select-none"
+          aria-hidden
+        >
+          #{listRank}
+        </div>
+      )}
 
-      <div className="flex-shrink-0 w-24 h-16 sm:w-32 sm:h-[4.5rem] rounded-lg bg-gray-100 overflow-hidden border border-gray-100">
+      <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-gray-100 overflow-hidden border border-gray-100">
         {image_url ? (
           <img
             src={image_url}
@@ -93,36 +100,29 @@ export default function PublicationRow({ publication, queryKey, showTopTodayBadg
         )}
       </div>
 
-      <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge category={category} />
-          {tags?.slice(0, 4).map((tag) => (
-            <span
-              key={tag}
-              className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200"
-            >
-              {tag}
-            </span>
-          ))}
-          {(tags?.length ?? 0) > 4 && (
-            <span className="text-[10px] text-gray-400">+{(tags?.length ?? 0) - 4}</span>
-          )}
+      <div className="flex-1 min-w-0 flex flex-col gap-1">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="text-xs font-medium text-gray-400 whitespace-nowrap">{categoryLabel}</span>
+          <span className="text-gray-300 text-xs" aria-hidden>
+            |
+          </span>
+          <h3 className="text-sm font-bold text-gray-900 leading-snug truncate min-w-0">
+            {title}
+            {publication.is_verified && (
+              <VerifiedTick verifiedAt={publication.verified_at} size={16} className="ml-1.5 -mt-0.5" />
+            )}
+          </h3>
         </div>
-        <h3 className="text-sm sm:text-base font-semibold text-gray-900 leading-snug line-clamp-2">
-          {title}
-          {publication.is_verified && (
-            <VerifiedTick verifiedAt={publication.verified_at} size={16} className="ml-1.5 -mt-0.5" />
-          )}
-        </h3>
+
         {description && (
-          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 hidden sm:block">{firstSentence(description)}</p>
+          <p className="text-xs text-gray-500 leading-relaxed line-clamp-1">
+            {firstSentence(description)}
+          </p>
         )}
-        <div className="flex flex-wrap items-center gap-2 mt-auto pt-1">
-          <Avatar src={author?.avatar_url} name={author?.name} size={22} />
-          <span className="text-xs text-gray-500 truncate">{author?.name}</span>
-          {created_at && (
-            <span className="text-[10px] text-gray-400 ml-1">{formatShortDate(created_at)}</span>
-          )}
+
+        <div className="flex flex-wrap items-center gap-2 mt-auto">
+          <Avatar src={author?.avatar_url} name={author?.name} size={20} />
+          <span className="text-xs font-medium text-gray-600 truncate">{byline}</span>
           {!publication.is_verified && (
             <VerificationBadge isVerified={false} verifiedAt={publication.verified_at} />
           )}

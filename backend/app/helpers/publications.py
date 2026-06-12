@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import String, Text, bindparam, cast, select, update, func, delete, and_, or_
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -51,12 +52,24 @@ def decode_cursor(cursor: str) -> tuple[datetime, uuid.UUID]:
     return datetime.fromisoformat(iso), uuid.UUID(uid)
 
 
-def encode_score_cursor(score: int, pub_id: uuid.UUID) -> str:
-    raw = f"r:{score}|{pub_id}"
+def encode_score_cursor(day: str, score: int, pub_id: uuid.UUID) -> str:
+    raw = f"r:{day}|{score}|{pub_id}"
     return base64.urlsafe_b64encode(raw.encode()).decode()
 
 
-def decode_score_cursor(cursor: str) -> tuple[int, uuid.UUID]:
+def decode_score_cursor(cursor: str) -> tuple[str, int, uuid.UUID]:
+    raw = base64.urlsafe_b64decode(cursor.encode()).decode()
+    _, rest = raw.split(":", 1)
+    day_str, score_str, uid = rest.split("|", 2)
+    return day_str, int(score_str), uuid.UUID(uid)
+
+
+def encode_global_rank_cursor(score: int, pub_id: uuid.UUID) -> str:
+    raw = f"g:{score}|{pub_id}"
+    return base64.urlsafe_b64encode(raw.encode()).decode()
+
+
+def decode_global_rank_cursor(cursor: str) -> tuple[int, uuid.UUID]:
     raw = base64.urlsafe_b64decode(cursor.encode()).decode()
     _, rest = raw.split(":", 1)
     score_str, uid = rest.split("|", 1)
@@ -182,6 +195,58 @@ async def _batch_meta(
     return upvoted_ids, comment_counts
 
 
+def _apply_publication_filters(
+    stmt,
+    *,
+    category: str | None,
+    search: str | None,
+    tag: str | None,
+    date_from: datetime | None,
+    date_to: datetime | None,
+    filter_by_user_id: uuid.UUID | None,
+):
+    from app.models.publication import Publication
+
+    if filter_by_user_id:
+        stmt = stmt.where(Publication.user_id == filter_by_user_id)
+    if category:
+        if category == "__custom__":
+            stmt = stmt.where(~Publication.category.in_(CATEGORIES))
+        else:
+            stmt = stmt.where(Publication.category == category)
+    if search:
+        pattern = f"%{search}%"
+        tag_val = search.strip().lower()
+        stmt = stmt.where(or_(
+            Publication.title.ilike(pattern),
+            Publication.description.ilike(pattern),
+            cast(Publication.tags, JSONB).contains([tag_val]),
+        ))
+    if tag:
+        tag_val = tag.strip().lower()
+        if tag_val:
+            stmt = stmt.where(cast(Publication.tags, JSONB).contains([tag_val]))
+    if date_from:
+        stmt = stmt.where(Publication.created_at >= date_from)
+    if date_to:
+        stmt = stmt.where(Publication.created_at <= date_to)
+    return stmt
+
+
+async def list_distinct_tags(db: AsyncSession) -> list[str]:
+    from app.models.publication import Publication
+
+    result = await db.execute(select(Publication.tags))
+    seen: set[str] = set()
+    for row in result.scalars().all():
+        if not isinstance(row, list):
+            continue
+        for t in row:
+            if isinstance(t, str) and t.strip():
+                seen.add(t.strip().lower())
+    return sorted(seen)
+
+
 # ── main query ────────────────────────────────────────────────────────────────
 
 async def build_publications_query(
@@ -191,6 +256,9 @@ async def build_publications_query(
     limit: int,
     category: str | None,
     search: str | None,
+    tag: str | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
     seed: int | None,
     user_id: uuid.UUID | None,
     filter_by_user_id: uuid.UUID | None = None,
@@ -202,26 +270,28 @@ async def build_publications_query(
     if sort == "ranked":
         return await _ranked_query(
             db, cursor=cursor, limit=limit, category=category, search=search,
+            tag=tag, date_from=date_from, date_to=date_to,
+            user_id=user_id, filter_by_user_id=filter_by_user_id,
+        )
+
+    if sort == "ranked_global":
+        return await _ranked_global_query(
+            db, cursor=cursor, limit=limit, category=category, search=search,
+            tag=tag, date_from=date_from, date_to=date_to,
             user_id=user_id, filter_by_user_id=filter_by_user_id,
         )
 
     # ── date / seed ordering ─────────────────────────────────────────────────
     stmt = select(Publication).options(selectinload(Publication.author))
-
-    if filter_by_user_id:
-        stmt = stmt.where(Publication.user_id == filter_by_user_id)
-    if category:
-        if category == "__custom__":
-            # Show all custom categories (not in predefined list)
-            stmt = stmt.where(~Publication.category.in_(CATEGORIES))
-        else:
-            stmt = stmt.where(Publication.category == category)
-    if search:
-        pattern = f"%{search}%"
-        stmt = stmt.where(or_(
-            Publication.title.ilike(pattern),
-            Publication.description.ilike(pattern),
-        ))
+    stmt = _apply_publication_filters(
+        stmt,
+        category=category,
+        search=search,
+        tag=tag,
+        date_from=date_from,
+        date_to=date_to,
+        filter_by_user_id=filter_by_user_id,
+    )
 
     count_stmt = select(func.count()).select_from(stmt.subquery())
     total_result = await db.execute(count_stmt)
@@ -234,7 +304,7 @@ async def build_publications_query(
             and_(Publication.created_at == cursor_dt, Publication.id < cursor_id),
         ))
 
-    has_filters = bool(category or search or filter_by_user_id)
+    has_filters = bool(category or search or tag or date_from or date_to or filter_by_user_id)
     if has_filters or cursor or not seed:
         stmt = stmt.order_by(Publication.created_at.desc(), Publication.id.desc())
     else:
@@ -265,6 +335,9 @@ async def _ranked_query(
     limit: int,
     category: str | None,
     search: str | None,
+    tag: str | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
     user_id: uuid.UUID | None,
     filter_by_user_id: uuid.UUID | None = None,
 ) -> PaginatedPublications:
@@ -276,7 +349,94 @@ async def _ranked_query(
         .group_by(Comment.publication_id)
         .subquery("cc")
     )
-    score_expr = (Publication.upvote_count + func.coalesce(cc_sub.c.cnt, 0))
+    # Primary sort: calendar day (UTC) the post was submitted — newest day first.
+    # Secondary sort within each day: total engagement (upvotes + comments), highest first.
+    day_expr = func.date_trunc("day", Publication.created_at)
+    engagement_expr = (Publication.upvote_count + func.coalesce(cc_sub.c.cnt, 0))
+
+    def _base():
+        q = (
+            select(Publication, day_expr.label("day"), engagement_expr.label("engagement"))
+            .outerjoin(cc_sub, Publication.id == cc_sub.c.publication_id)
+            .options(selectinload(Publication.author))
+        )
+        return _apply_publication_filters(
+            q,
+            category=category,
+            search=search,
+            tag=tag,
+            date_from=date_from,
+            date_to=date_to,
+            filter_by_user_id=filter_by_user_id,
+        )
+
+    count_base = select(Publication.id).outerjoin(
+        cc_sub, Publication.id == cc_sub.c.publication_id
+    )
+    count_base = _apply_publication_filters(
+        count_base,
+        category=category,
+        search=search,
+        tag=tag,
+        date_from=date_from,
+        date_to=date_to,
+        filter_by_user_id=filter_by_user_id,
+    )
+    count_q = select(func.count()).select_from(count_base.subquery())
+    total_result = await db.execute(count_q)
+    total = total_result.scalar_one()
+
+    stmt = _base()
+    if cursor:
+        cursor_day_str, cursor_engagement, cursor_id = decode_score_cursor(cursor)
+        cursor_day_ts = datetime.fromisoformat(cursor_day_str)
+        stmt = stmt.where(or_(
+            day_expr < cursor_day_ts,
+            and_(day_expr == cursor_day_ts, engagement_expr < cursor_engagement),
+            and_(day_expr == cursor_day_ts, engagement_expr == cursor_engagement, Publication.id < cursor_id),
+        ))
+
+    stmt = stmt.order_by(day_expr.desc(), engagement_expr.desc(), Publication.id.desc()).limit(limit + 1)
+    rows = list((await db.execute(stmt)).all())
+
+    has_more = len(rows) > limit
+    if has_more:
+        rows = rows[:limit]
+
+    pubs = [row[0] for row in rows]
+    days = [row[1].isoformat() for row in rows]
+    engagements = [int(row[2]) for row in rows]
+
+    next_cursor = encode_score_cursor(days[-1], engagements[-1], pubs[-1].id) if has_more and pubs else None
+    upvoted_ids, comment_counts = await _batch_meta(db, pubs, user_id)
+    verified_map, my_status_map = await _batch_claims(db, pubs, user_id)
+    items = [_pub_to_out(p, upvoted_ids, comment_counts, verified_map=verified_map, my_status_map=my_status_map) for p in pubs]
+    return PaginatedPublications(items=items, next_cursor=next_cursor, total=total)
+
+
+async def _ranked_global_query(
+    db: AsyncSession,
+    *,
+    cursor: str | None,
+    limit: int,
+    category: str | None,
+    search: str | None,
+    tag: str | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    user_id: uuid.UUID | None,
+    filter_by_user_id: uuid.UUID | None = None,
+) -> PaginatedPublications:
+    """All-time ranking: sort purely by engagement (upvotes + comments), ignoring publish date."""
+    from app.models.publication import Publication
+    from app.models.comment import Comment
+
+    cc_sub = (
+        select(Comment.publication_id, func.count(Comment.id).label("cnt"))
+        .group_by(Comment.publication_id)
+        .subquery("cc")
+    )
+    score_expr = Publication.upvote_count + func.coalesce(cc_sub.c.cnt, 0)
 
     def _base():
         q = (
@@ -284,40 +444,35 @@ async def _ranked_query(
             .outerjoin(cc_sub, Publication.id == cc_sub.c.publication_id)
             .options(selectinload(Publication.author))
         )
-        if filter_by_user_id:
-            q = q.where(Publication.user_id == filter_by_user_id)
-        if category:
-            if category == "__custom__":
-                q = q.where(~Publication.category.in_(CATEGORIES))
-            else:
-                q = q.where(Publication.category == category)
-        if search:
-            pattern = f"%{search}%"
-            q = q.where(or_(
-                Publication.title.ilike(pattern),
-                Publication.description.ilike(pattern),
-            ))
-        return q
+        return _apply_publication_filters(
+            q,
+            category=category,
+            search=search,
+            tag=tag,
+            date_from=date_from,
+            date_to=date_to,
+            filter_by_user_id=filter_by_user_id,
+        )
 
-    # Total count (without cursor)
-    category_where = (
-        ~Publication.category.in_(CATEGORIES) if category == "__custom__"
-        else (Publication.category == category) if category
-        else True
+    count_base = select(Publication.id).outerjoin(
+        cc_sub, Publication.id == cc_sub.c.publication_id
     )
-    count_q = select(func.count()).select_from(
-        select(Publication.id)
-        .outerjoin(cc_sub, Publication.id == cc_sub.c.publication_id)
-        .where(*([Publication.user_id == filter_by_user_id] if filter_by_user_id else [True]))
-        .where(category_where)
-        .subquery()
+    count_base = _apply_publication_filters(
+        count_base,
+        category=category,
+        search=search,
+        tag=tag,
+        date_from=date_from,
+        date_to=date_to,
+        filter_by_user_id=filter_by_user_id,
     )
+    count_q = select(func.count()).select_from(count_base.subquery())
     total_result = await db.execute(count_q)
     total = total_result.scalar_one()
 
     stmt = _base()
     if cursor:
-        cs, cursor_id = decode_score_cursor(cursor)
+        cs, cursor_id = decode_global_rank_cursor(cursor)
         stmt = stmt.where(or_(
             score_expr < cs,
             and_(score_expr == cs, Publication.id < cursor_id),
@@ -333,7 +488,7 @@ async def _ranked_query(
     pubs = [row[0] for row in rows]
     scores = [int(row[1]) for row in rows]
 
-    next_cursor = encode_score_cursor(scores[-1], pubs[-1].id) if has_more and pubs else None
+    next_cursor = encode_global_rank_cursor(scores[-1], pubs[-1].id) if has_more and pubs else None
     upvoted_ids, comment_counts = await _batch_meta(db, pubs, user_id)
     verified_map, my_status_map = await _batch_claims(db, pubs, user_id)
     items = [_pub_to_out(p, upvoted_ids, comment_counts, verified_map=verified_map, my_status_map=my_status_map) for p in pubs]
