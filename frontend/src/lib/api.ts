@@ -46,16 +46,18 @@ api.interceptors.response.use(
 );
 
 export function formatApiErrorDetail(err: unknown, fallback: string): string {
-  if (err instanceof Error && err.message) return err.message;
-  if (!isAxiosError(err)) return fallback;
-  const data = err.response?.data as { detail?: unknown } | undefined;
-  const d = data?.detail;
-  if (typeof d === "string") return d;
-  if (Array.isArray(d)) {
-    return d
-      .map((x) => (typeof (x as { msg?: string })?.msg === "string" ? (x as { msg: string }).msg : JSON.stringify(x)))
-      .join(" ");
+  if (isAxiosError(err)) {
+    const data = err.response?.data as { detail?: unknown } | undefined;
+    const d = data?.detail;
+    if (typeof d === "string") return d;
+    if (Array.isArray(d)) {
+      return d
+        .map((x) => (typeof (x as { msg?: string })?.msg === "string" ? (x as { msg: string }).msg : JSON.stringify(x)))
+        .join(" ");
+    }
+    return fallback;
   }
+  if (err instanceof Error && err.message) return err.message;
   return fallback;
 }
 
