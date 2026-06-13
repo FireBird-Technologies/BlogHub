@@ -321,7 +321,7 @@ async def claim_publication(
 
     if existing and existing.status in ("pending", "verified"):
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="You already submitted a claim"
+            status_code=status.HTTP_409_CONFLICT, detail="You already submitted a claim for this publication."
         )
 
     if existing:  # previously rejected — allow re-claim
@@ -421,7 +421,7 @@ async def resubmit_and_claim(
 
     if existing_claim and existing_claim.status in ("pending", "verified"):
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="You already submitted a claim for this publication"
+            status_code=status.HTTP_409_CONFLICT, detail="You already submitted a claim for this publication."
         )
 
     if existing_claim:  # previously rejected — allow re-claim
