@@ -505,9 +505,11 @@ async def approve_claim(
     if claim.status != "pending":
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Claim is not in pending state")
 
+    now = datetime.now(timezone.utc)
     claim.status = "verified"
-    claim.verified_at = datetime.now(timezone.utc)
+    claim.verified_at = now
     pub.user_id = claim.user_id
+    pub.created_at = now
 
     await db.commit()
 

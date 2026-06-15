@@ -115,7 +115,8 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       queryClient.invalidateQueries({ queryKey: ["publication-tags"] });
       handleClose();
-      navigate(publicationPath(pub), { state: { showVideoPrompt: true } });
+      sessionStorage.setItem(`video-prompt:${pub.id}`, "1");
+      navigate(publicationPath(pub), { state: { showVideoPrompt: true, showClaimPrompt: true } });
     },
     onError: (err: unknown) => {
       if (isAxiosError(err) && err.response?.status === 409) {
@@ -137,6 +138,7 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       queryClient.invalidateQueries({ queryKey: ["publication-tags"] });
       handleClose();
+      window.location.reload();
     },
     onError: (err: unknown) => {
       setClaimError(formatApiErrorDetail(err, "Failed to submit. Try again."));

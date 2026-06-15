@@ -33,9 +33,10 @@ interface ClaimPublicationModalProps {
   publication: Publication;
   isOpen: boolean;
   onClose: () => void;
+  isAutoPrompt?: boolean;
 }
 
-export default function ClaimPublicationModal({ publication, isOpen, onClose }: ClaimPublicationModalProps) {
+export default function ClaimPublicationModal({ publication, isOpen, onClose, isAutoPrompt }: ClaimPublicationModalProps) {
   const { user } = useAuth();
   const { mutate: submitClaim, isPending } = useClaimPublication(publication.id);
 
@@ -49,6 +50,7 @@ export default function ClaimPublicationModal({ publication, isOpen, onClose }: 
   const [originalUrl, setOriginalUrl] = useState("");
   const [comment, setComment] = useState("");
   const [error, setError] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
   const addSocialRow = () => {
     if (socials.length >= LINKS_MAX_SOCIAL) return;
@@ -98,11 +100,36 @@ export default function ClaimPublicationModal({ publication, isOpen, onClose }: 
         comment: comment.trim() || undefined,
       },
       {
-        onSuccess: () => onClose(),
+        onSuccess: () => setSubmitted(true),
         onError: (err) => setError(formatApiErrorDetail(err, "Failed to submit claim. Try again.")),
       }
     );
   };
+
+  if (submitted) {
+    return (
+      <Modal isOpen={isOpen} onClose={() => { onClose(); window.location.reload(); }} title="Claim submitted" maxWidth="max-w-lg">
+        <div className="flex flex-col items-center gap-4 py-4 text-center">
+          <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center">
+            <ShieldCheck size={28} className="text-emerald-500" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <p className="text-base font-semibold text-gray-900">We've received your claim</p>
+            <p className="text-sm text-gray-500 leading-relaxed max-w-sm">
+              Our team will review it and get it verified shortly if everything checks out.
+            </p>
+          </div>
+          <Button
+            type="button"
+            onClick={() => { onClose(); window.location.reload(); }}
+            className="mt-2"
+          >
+            Done
+          </Button>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Claim this publication" maxWidth="max-w-lg">
@@ -225,7 +252,7 @@ export default function ClaimPublicationModal({ publication, isOpen, onClose }: 
 
         <div className="flex flex-wrap justify-end gap-2 pt-1">
           <Button type="button" variant="ghost" onClick={onClose} disabled={isPending}>
-            Cancel
+            {isAutoPrompt ? "Skip for now" : "Cancel"}
           </Button>
           <Button type="button" onClick={handleSubmit} disabled={isPending}>
             {isPending ? <Spinner size={16} /> : "Submit claim"}

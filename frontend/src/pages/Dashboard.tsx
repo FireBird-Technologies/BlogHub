@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
@@ -6,6 +6,7 @@ import FilterBar from "../components/filters/FilterBar";
 import { datePresetToRange, type DatePreset } from "../components/filters/DateFilter";
 import DashboardPublicationList from "../components/publication/DashboardPublicationList";
 import SubmitModal from "../components/submit/SubmitModal";
+import Pagination from "../components/ui/Pagination";
 import Button from "../components/ui/Button";
 import { usePublications } from "../hooks/usePublications";
 import { useAuth } from "../context/AuthContext";
@@ -20,6 +21,7 @@ export default function Dashboard() {
   const [datePreset, setDatePreset] = useState<DatePreset>("");
   const [modalOpen, setModalOpen] = useState(false);
   const [searchResetKey, setSearchResetKey] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
 
   function clearFilters() {
     setCategory("");
@@ -29,6 +31,11 @@ export default function Dashboard() {
   }
 
   const { dateFrom, dateTo } = useMemo(() => datePresetToRange(datePreset), [datePreset]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [category, search, datePreset]);
 
   const queryKey = [
     "publications",
@@ -43,6 +50,19 @@ export default function Dashboard() {
     dateFrom,
     dateTo,
   });
+
+  // Pre-fetch pages when user navigates ahead of what's cached
+  useEffect(() => {
+    const loaded = data?.pages.length ?? 0;
+    if (currentPage > loaded && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [currentPage, data?.pages.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const total = data?.pages?.[0]?.total ?? 0;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const currentPageData = data?.pages?.[currentPage - 1];
+  const isPageLoading = currentPage > (data?.pages.length ?? 0) && isFetchingNextPage;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -85,14 +105,20 @@ export default function Dashboard() {
         </div>
 
         <DashboardPublicationList
-          pages={data?.pages}
-          isFetchingNextPage={isFetchingNextPage}
-          hasNextPage={hasNextPage}
-          fetchNextPage={fetchNextPage}
+          currentPageData={currentPageData}
+          isPageLoading={isPageLoading}
+          currentPage={currentPage}
+          pageSize={PAGE_SIZE}
           queryKey={queryKey}
           onSubmit={() => (user ? setModalOpen(true) : openLoginModal())}
           isLoading={isLoading}
-          manualLoadMore
+        />
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          isFetching={isFetchingNextPage}
         />
       </main>
 

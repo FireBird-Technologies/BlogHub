@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
-import type { InfiniteData } from "@tanstack/react-query";
+import { useMemo } from "react";
 import type { QueryKey } from "@tanstack/react-query";
 import PublicationRow from "./PublicationRow";
 import EmptyState from "./EmptyState";
@@ -10,94 +9,45 @@ import {
   todayKey,
   yesterdayKey,
 } from "../../lib/publicationGrouping";
-import type { PaginatedPublications, Publication } from "../../types/models";
+import type { PaginatedPublications } from "../../types/models";
 
 interface DashboardPublicationListProps {
-  pages: InfiniteData<PaginatedPublications>["pages"] | undefined;
-  isFetchingNextPage: boolean;
-  hasNextPage: boolean;
-  fetchNextPage: () => void;
+  currentPageData: PaginatedPublications | undefined;
+  isPageLoading?: boolean;
+  currentPage?: number;
   queryKey: QueryKey;
   onSubmit?: () => void;
   isLoading?: boolean;
-  /** Show a manual "Load more" button instead of auto-loading on scroll. */
-  manualLoadMore?: boolean;
   /** Flat list sorted by global rank (no date grouping). Used on category ranking pages. */
   flatRankedList?: boolean;
+  pageSize?: number;
 }
 
 export default function DashboardPublicationList({
-  pages,
-  isFetchingNextPage,
-  hasNextPage,
-  fetchNextPage,
+  currentPageData,
+  isPageLoading,
+  currentPage = 1,
   queryKey,
   onSubmit,
   isLoading,
-  manualLoadMore = false,
   flatRankedList = false,
+  pageSize = 10,
 }: DashboardPublicationListProps) {
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (manualLoadMore) return;
-    const el = sentinelRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) fetchNextPage();
-      },
-      { rootMargin: "200px" }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [manualLoadMore, hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-  const publications: Publication[] = pages?.flatMap((p) => p.items) ?? [];
-  const total = pages?.[0]?.total;
-  const canLoadMore =
-    hasNextPage || (typeof total === "number" && publications.length < total);
+  const publications = currentPageData?.items ?? [];
 
   const sections = useMemo(() => groupPublicationsByLocalDay(publications), [publications]);
   const todayK = todayKey();
   const yesterdayK = yesterdayKey();
 
-  const loadMoreControl = manualLoadMore ? (
-    canLoadMore && (
-      <div
-        className={`flex justify-center ${flatRankedList ? "pt-6" : "pt-2 -mt-6"}`}
-      >
-        <button
-          type="button"
-          onClick={() => fetchNextPage()}
-          disabled={isFetchingNextPage}
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-gray-200 bg-white
-                     text-sm font-semibold text-gray-700 transition-colors
-                     hover:border-red-300 hover:text-red-600 disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {isFetchingNextPage ? (
-            <>
-              <Spinner size={16} />
-              Loading…
-            </>
-          ) : (
-            "Load more Publications"
-          )}
-        </button>
-      </div>
-    )
-  ) : (
-    <>
-      <div ref={sentinelRef} className="h-4" />
-      {isFetchingNextPage && (
-        <div className="flex justify-center py-8">
-          <Spinner size={28} />
-        </div>
-      )}
-    </>
-  );
-
   if (isLoading) {
+    return (
+      <div className="flex justify-center py-24">
+        <Spinner size={36} />
+      </div>
+    );
+  }
+
+  if (isPageLoading) {
     return (
       <div className="flex justify-center py-24">
         <Spinner size={36} />
@@ -115,21 +65,24 @@ export default function DashboardPublicationList({
 
   if (flatRankedList) {
     return (
-      <div className="flex flex-col gap-3 pb-12">
+      <div className="flex flex-col gap-3 pb-4">
         <ul className="flex flex-col gap-3 list-none p-0 m-0">
           {publications.map((pub, idx) => (
             <li key={pub.id}>
-              <PublicationRow publication={pub} queryKey={queryKey} listRank={idx + 1} />
+              <PublicationRow
+                publication={pub}
+                queryKey={queryKey}
+                listRank={pub.rank ?? (currentPage - 1) * pageSize + idx + 1}
+              />
             </li>
           ))}
         </ul>
-        {loadMoreControl}
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-10 pb-12">
+    <div className="flex flex-col gap-10 pb-4">
       {sections.map(({ key, items }) => (
         <section key={key} className="flex flex-col gap-3">
           <h2 className="text-sm font-bold text-gray-800 border-b border-gray-200 pb-2">
@@ -139,7 +92,7 @@ export default function DashboardPublicationList({
           <ul className="flex flex-col gap-3 list-none p-0 m-0">
             {items.map((pub, idx) => {
               const isToday = key === todayK;
-              const showTopToday = isToday && idx === 0;
+              const showTopToday = isToday && currentPage === 1 && idx === 0;
               return (
                 <li key={pub.id}>
                   <PublicationRow
@@ -153,7 +106,6 @@ export default function DashboardPublicationList({
           </ul>
         </section>
       ))}
-      {loadMoreControl}
     </div>
   );
 }
