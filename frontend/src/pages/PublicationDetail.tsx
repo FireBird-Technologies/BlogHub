@@ -10,6 +10,7 @@ import Badge from "../components/ui/Badge";
 import VerificationBadge from "../components/ui/VerificationBadge";
 import VerifiedTick from "../components/ui/VerifiedTick";
 import ClaimButton from "../components/publication/ClaimButton";
+import ClaimPublicationModal from "../components/publication/ClaimPublicationModal";
 import CommentsSection from "../components/publication/CommentsSection";
 import SidebarPublications from "../components/publication/SidebarPublications";
 import EditPublicationFieldModal, { type EditableField } from "../components/publication/EditPublicationFieldModal";
@@ -297,22 +298,54 @@ export default function PublicationDetail() {
   const [editField, setEditField] = useState<EditableField | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [videoModalOpen, setVideoModalOpen] = useState(false);
-  const showVideoOnLoad = useRef(
-    (location.state as { showVideoPrompt?: boolean } | null)?.showVideoPrompt === true
-  );
+  const [claimModalOpen, setClaimModalOpen] = useState(false);
+  const locationState = location.state as { showVideoPrompt?: boolean; showClaimPrompt?: boolean } | null;
+  const showVideoOnLoad = useRef(locationState?.showVideoPrompt === true);
+  const showClaimOnLoad = useRef(locationState?.showClaimPrompt === true);
+  // videoTimerReady gates the 5s video timer — false until claim modal is dismissed (or skipped)
+  const [videoTimerReady, setVideoTimerReady] = useState(!showClaimOnLoad.current);
+  // survives reload via sessionStorage — resolved once pub.id is known
+  const videoFromStorage = useRef(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (showVideoOnLoad.current) {
+    if (showVideoOnLoad.current || showClaimOnLoad.current) {
       navigate(location.pathname + location.hash, { replace: true, state: {} });
     }
   }, [location.pathname, location.hash, navigate]);
 
+  // Check sessionStorage for video prompt (survives page reload)
   useEffect(() => {
-    if (!showVideoOnLoad.current || isLoading || !pub) return;
+    if (isLoading || !pub) return;
+    const key = `video-prompt:${pub.id}`;
+    if (sessionStorage.getItem(key)) {
+      videoFromStorage.current = true;
+      // If no claim modal is pending, start the timer immediately
+      if (!showClaimOnLoad.current) setVideoTimerReady(true);
+    }
+  }, [isLoading, pub]);
+
+  useEffect(() => {
+    const shouldShow = showVideoOnLoad.current || videoFromStorage.current;
+    if (!shouldShow || isLoading || !pub || !videoTimerReady) return;
     showVideoOnLoad.current = false;
-    const timer = window.setTimeout(() => setVideoModalOpen(true), 7000);
+    videoFromStorage.current = false;
+    const pubId = pub.id;
+    const timer = window.setTimeout(() => {
+      sessionStorage.removeItem(`video-prompt:${pubId}`);
+      setVideoModalOpen(true);
+    }, 5000);
     return () => window.clearTimeout(timer);
+  }, [isLoading, pub, videoTimerReady]);
+
+  useEffect(() => {
+    if (!showClaimOnLoad.current || isLoading || !pub) return;
+    showClaimOnLoad.current = false;
+    if (!pub.is_verified && pub.my_claim_status === "none") {
+      setClaimModalOpen(true);
+    } else {
+      setVideoTimerReady(true);
+    }
   }, [isLoading, pub]);
 
   const { mutate: deletePublication, isPending: isDeleting } = useMutation({
@@ -663,6 +696,18 @@ export default function PublicationDetail() {
       />
 
       <ConvertToVideoModal isOpen={videoModalOpen} onClose={() => setVideoModalOpen(false)} />
+
+      {pub && (
+        <ClaimPublicationModal
+          publication={pub}
+          isOpen={claimModalOpen}
+          onClose={() => {
+            setClaimModalOpen(false);
+            setVideoTimerReady(true);
+          }}
+          isAutoPrompt
+        />
+      )}
     </div>
   );
 }

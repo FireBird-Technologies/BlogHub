@@ -1,7 +1,9 @@
+import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import DashboardPublicationList from "../components/publication/DashboardPublicationList";
+import Pagination from "../components/ui/Pagination";
 import { usePublications } from "../hooks/usePublications";
 import { useDocumentMeta } from "../hooks/useDocumentMeta";
 import { categoryPath, resolveCategoryParam } from "../lib/categoryUrl";
@@ -11,6 +13,7 @@ const PAGE_SIZE = 10;
 export default function RankingPage() {
   const { category } = useParams();
   const { apiCategory, title } = resolveCategoryParam(category);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useDocumentMeta({
     title: `${title} publications, ranked — BlogHub`,
@@ -30,6 +33,19 @@ export default function RankingPage() {
     sort: "ranked_global",
     limit: PAGE_SIZE,
   });
+
+  // Pre-fetch pages when user navigates ahead of what's cached
+  useEffect(() => {
+    const loaded = data?.pages.length ?? 0;
+    if (currentPage > loaded && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [currentPage, data?.pages.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const total = data?.pages?.[0]?.total ?? 0;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const currentPageData = data?.pages?.[currentPage - 1];
+  const isPageLoading = currentPage > (data?.pages.length ?? 0) && isFetchingNextPage;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -54,14 +70,20 @@ export default function RankingPage() {
         </div>
 
         <DashboardPublicationList
-          pages={data?.pages}
-          isFetchingNextPage={isFetchingNextPage}
-          hasNextPage={hasNextPage}
-          fetchNextPage={fetchNextPage}
+          currentPageData={currentPageData}
+          isPageLoading={isPageLoading}
+          currentPage={currentPage}
+          pageSize={PAGE_SIZE}
           queryKey={queryKey}
           isLoading={isLoading}
-          manualLoadMore
           flatRankedList
+        />
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          isFetching={isFetchingNextPage}
         />
       </main>
     </div>

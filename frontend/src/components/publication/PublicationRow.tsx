@@ -29,6 +29,7 @@ export default function PublicationRow({
   const {
     id,
     title,
+    description,
     image_url,
     category,
     upvote_count,
@@ -112,6 +113,10 @@ export default function PublicationRow({
         <h3 className="text-sm font-bold text-gray-900 leading-snug truncate min-w-0">
           {title}
         </h3>
+
+        {description && (
+          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{description}</p>
+        )}
 
         <div className="flex flex-wrap items-center gap-2 mt-auto">
           <Avatar src={author?.avatar_url} name={author?.name} size={20} />
