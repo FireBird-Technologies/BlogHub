@@ -82,6 +82,13 @@ export default function LandingNavbar() {
 
           {/* Right — Auth */}
           <div className="flex-shrink-0 flex items-center gap-3">
+            <Link
+              to="/blogs"
+              className="text-sm font-semibold text-gray-600 hover:text-red-600 transition-colors"
+            >
+              Blogs
+            </Link>
+            <span className="h-5 w-px bg-gray-200" aria-hidden />
             {loading ? (
               <div className="w-10 h-10 bg-gray-100 rounded-full animate-pulse" />
             ) : user ? (
@@ -148,7 +155,14 @@ export default function LandingNavbar() {
           </div>
 
           {/* Right — Auth */}
-          <div className="flex-shrink-0 flex items-center gap-2">
+          <div className="flex-shrink-0 flex items-center gap-3">
+            <Link
+              to="/blogs"
+              className="text-xs font-semibold text-gray-600 hover:text-red-600 transition-colors"
+            >
+              Blogs
+            </Link>
+            <span className="h-4 w-px bg-gray-200" aria-hidden />
             {loading ? (
               <div className="w-8 h-8 bg-gray-100 rounded-full animate-pulse" />
             ) : user ? (

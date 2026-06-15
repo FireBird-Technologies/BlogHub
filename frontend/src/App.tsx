@@ -11,6 +11,8 @@ import Dashboard from "./pages/Dashboard";
 import RankingPage from "./pages/RankingPage";
 import Profile from "./pages/Profile";
 import PublicationDetail from "./pages/PublicationDetail";
+import Blog from "./pages/Blog";
+import BlogPostPage from "./pages/BlogPostPage";
 import AdminApproveClaim from "./pages/AdminApproveClaim";
 import NotFound from "./pages/NotFound";
 import TermsOfService from "./pages/TermsOfService";
@@ -46,6 +48,8 @@ export default function App() {
                 }
               />
               <Route path="/publications/:id" element={<PublicationDetail />} />
+              <Route path="/blogs" element={<Blog />} />
+              <Route path="/blogs/:slug" element={<BlogPostPage />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/admin/approve-claim" element={<AdminApproveClaim />} />
