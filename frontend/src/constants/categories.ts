@@ -19,6 +19,7 @@ export const CATEGORIES = [
   "Maths",
   "Chemistry",
   "Self Improvement",
+  "News",
 ] as const;
 
 export type Category = (typeof CATEGORIES)[number];
@@ -71,4 +72,5 @@ export const CATEGORY_COLORS: Record<string, string> = {
   Maths: "bg-cyan-50 text-cyan-700 border-cyan-200",
   Chemistry: "bg-purple-50 text-purple-700 border-purple-200",
   "Self Improvement": "bg-rose-50 text-rose-700 border-rose-200",
+  News: "bg-gray-50 text-gray-700 border-gray-200",
 };
