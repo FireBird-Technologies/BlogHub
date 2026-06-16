@@ -26,6 +26,13 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
+          <Link
+            to="/blogs"
+            className="text-sm font-semibold text-gray-600 hover:text-red-600 transition-colors"
+          >
+            Blogs
+          </Link>
+          <span className="h-5 w-px bg-gray-200" aria-hidden />
           {loading ? (
             <div className="h-8 w-20 rounded-full bg-gray-100 animate-pulse" aria-label="Checking sign-in status" />
           ) : user ? (
