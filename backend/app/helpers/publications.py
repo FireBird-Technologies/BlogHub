@@ -52,16 +52,16 @@ def decode_cursor(cursor: str) -> tuple[datetime, uuid.UUID]:
     return datetime.fromisoformat(iso), uuid.UUID(uid)
 
 
-def encode_score_cursor(day: str, score: int, pub_id: uuid.UUID) -> str:
-    raw = f"r:{day}|{score}|{pub_id}"
+def encode_score_cursor(day: str, score: int, created_at: datetime, pub_id: uuid.UUID) -> str:
+    raw = f"r:{day}|{score}|{created_at.isoformat()}|{pub_id}"
     return base64.urlsafe_b64encode(raw.encode()).decode()
 
 
-def decode_score_cursor(cursor: str) -> tuple[str, int, uuid.UUID]:
+def decode_score_cursor(cursor: str) -> tuple[str, int, datetime, uuid.UUID]:
     raw = base64.urlsafe_b64decode(cursor.encode()).decode()
     _, rest = raw.split(":", 1)
-    day_str, score_str, uid = rest.split("|", 2)
-    return day_str, int(score_str), uuid.UUID(uid)
+    day_str, score_str, created_str, uid = rest.split("|", 3)
+    return day_str, int(score_str), datetime.fromisoformat(created_str), uuid.UUID(uid)
 
 
 def encode_global_rank_cursor(score: int, pub_id: uuid.UUID) -> str:
@@ -351,6 +351,7 @@ async def _ranked_query(
     )
     # Primary sort: calendar day (UTC) the post was submitted — newest day first.
     # Secondary sort within each day: total engagement (upvotes + comments), highest first.
+    # Ties on engagement within a day: newest publication first (created_at, then id).
     day_expr = func.date_trunc("day", Publication.created_at)
     engagement_expr = (Publication.upvote_count + func.coalesce(cc_sub.c.cnt, 0))
 
@@ -388,15 +389,27 @@ async def _ranked_query(
 
     stmt = _base()
     if cursor:
-        cursor_day_str, cursor_engagement, cursor_id = decode_score_cursor(cursor)
+        cursor_day_str, cursor_engagement, cursor_created, cursor_id = decode_score_cursor(cursor)
         cursor_day_ts = datetime.fromisoformat(cursor_day_str)
         stmt = stmt.where(or_(
             day_expr < cursor_day_ts,
             and_(day_expr == cursor_day_ts, engagement_expr < cursor_engagement),
-            and_(day_expr == cursor_day_ts, engagement_expr == cursor_engagement, Publication.id < cursor_id),
+            and_(
+                day_expr == cursor_day_ts,
+                engagement_expr == cursor_engagement,
+                Publication.created_at < cursor_created,
+            ),
+            and_(
+                day_expr == cursor_day_ts,
+                engagement_expr == cursor_engagement,
+                Publication.created_at == cursor_created,
+                Publication.id < cursor_id,
+            ),
         ))
 
-    stmt = stmt.order_by(day_expr.desc(), engagement_expr.desc(), Publication.id.desc()).limit(limit + 1)
+    stmt = stmt.order_by(
+        day_expr.desc(), engagement_expr.desc(), Publication.created_at.desc(), Publication.id.desc()
+    ).limit(limit + 1)
     rows = list((await db.execute(stmt)).all())
 
     has_more = len(rows) > limit
@@ -407,7 +420,11 @@ async def _ranked_query(
     days = [row[1].isoformat() for row in rows]
     engagements = [int(row[2]) for row in rows]
 
-    next_cursor = encode_score_cursor(days[-1], engagements[-1], pubs[-1].id) if has_more and pubs else None
+    next_cursor = (
+        encode_score_cursor(days[-1], engagements[-1], pubs[-1].created_at, pubs[-1].id)
+        if has_more and pubs
+        else None
+    )
     upvoted_ids, comment_counts = await _batch_meta(db, pubs, user_id)
     verified_map, my_status_map = await _batch_claims(db, pubs, user_id)
     items = [_pub_to_out(p, upvoted_ids, comment_counts, verified_map=verified_map, my_status_map=my_status_map) for p in pubs]
@@ -526,7 +543,7 @@ async def get_publication_by_id(
     current_score = pub.upvote_count + comment_counts.get(pub_id, 0)
 
     # Day rank in viewer timezone: same calendar day as this post, higher score first;
-    # ties broken by higher id string (matches dashboard list sort).
+    # ties broken by newer created_at, then higher id string (matches dashboard list sort).
     pub_local_date = pub.created_at.astimezone(ZoneInfo(tz_name)).date()
 
     cc_sub = (
@@ -540,7 +557,12 @@ async def get_publication_by_id(
     ) == bindparam("pub_local_date")
     ahead_that_day = or_(
         score_expr > current_score,
-        and_(score_expr == current_score, cast(Publication.id, Text) > bindparam("pub_id_text")),
+        and_(score_expr == current_score, Publication.created_at > pub.created_at),
+        and_(
+            score_expr == current_score,
+            Publication.created_at == pub.created_at,
+            cast(Publication.id, Text) > bindparam("pub_id_text"),
+        ),
     )
     rank_stmt = (
         select(func.count(Publication.id))
