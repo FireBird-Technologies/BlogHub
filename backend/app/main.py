@@ -9,6 +9,7 @@ from app.routers.comments import router as comments_router
 from app.routers.publications import router as publications_router
 from app.routers.scraper import router as scraper_router
 from app.routers.sitemap import router as sitemap_router
+from app.routers.trending import router as trending_router
 from app.routers.users import router as users_router
 from app.settings import settings
 
@@ -32,6 +33,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(sitemap_router)
 app.include_router(publications_router, prefix="/api")
+app.include_router(trending_router, prefix="/api")
 app.include_router(comments_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
 app.include_router(scraper_router, prefix="/api")
