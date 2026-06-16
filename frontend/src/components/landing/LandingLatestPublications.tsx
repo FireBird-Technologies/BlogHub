@@ -1,4 +1,3 @@
-import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowBigUp, MessageCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -6,8 +5,6 @@ import { usePublicationsPreviewInfinite } from "../../hooks/usePublications";
 import Avatar from "../ui/Avatar";
 import VerifiedTick from "../ui/VerifiedTick";
 import VerificationBadge from "../ui/VerificationBadge";
-import GoogleSignInButton from "../ui/GoogleSignInButton";
-import Modal from "../ui/Modal";
 import Spinner from "../ui/Spinner";
 import { publicationPath } from "../../lib/publicationUrl";
 import { firstSentence } from "../../lib/text";
@@ -125,12 +122,10 @@ function LandingPreviewRow({
 const PREVIEW_LIMIT = 10;
 
 export default function LandingLatestPublications() {
-  const { user } = useAuth();
+  const { user, openLoginModal } = useAuth();
   const navigate = useNavigate();
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
     usePublicationsPreviewInfinite(PREVIEW_LIMIT, "latest");
-  const [signInOpen, setSignInOpen] = useState(false);
-  const pendingPathRef = useRef<string | null>(null);
 
   const items = data?.pages.flatMap((p) => p.items) ?? [];
   const sections = groupPublicationsByLocalDay(items);
@@ -138,30 +133,15 @@ export default function LandingLatestPublications() {
   const yesterdayK = yesterdayKey();
 
   const handleActivate = (publication: Publication) => {
-    const path = publicationPath(publication);
-    if (user) {
-      navigate(path);
+    if (!user) {
+      openLoginModal();
       return;
     }
-    pendingPathRef.current = path;
-    setSignInOpen(true);
-  };
-
-  const closeModal = () => {
-    setSignInOpen(false);
-    pendingPathRef.current = null;
-  };
-
-  const handleSignedIn = () => {
-    const target = pendingPathRef.current;
-    pendingPathRef.current = null;
-    setSignInOpen(false);
-    navigate(target ?? "/dashboard");
+    navigate(publicationPath(publication));
   };
 
   return (
-    <>
-      <div className="w-full">
+    <div className="w-full">
         <div className="mb-6 sm:mb-8 text-center flex flex-col items-center mt-6">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
             Latest publications
@@ -211,7 +191,7 @@ export default function LandingLatestPublications() {
               <div className="flex justify-center pt-2">
                 <button
                   type="button"
-                  onClick={() => fetchNextPage()}
+                  onClick={() => (user ? fetchNextPage() : openLoginModal())}
                   disabled={isFetchingNextPage}
                   className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-gray-200 bg-white
                              text-sm font-semibold text-gray-700 transition-colors
@@ -230,24 +210,6 @@ export default function LandingLatestPublications() {
             )}
           </div>
         )}
-      </div>
-
-      <Modal isOpen={signInOpen} onClose={closeModal} title="Sign in to continue" maxWidth="max-w-md">
-        <p className="text-sm text-gray-600 leading-relaxed -mt-1 mb-5">
-          Create a free account with Google to read full publications, join the discussion, and share links with the
-          community.
-        </p>
-        <div className="flex flex-col gap-3 items-center">
-          <GoogleSignInButton onSignedIn={handleSignedIn} />
-          <button
-            type="button"
-            onClick={closeModal}
-            className="text-sm text-gray-500 hover:text-gray-800 transition-colors text-center pt-1"
-          >
-            Not now
-          </button>
-        </div>
-      </Modal>
-    </>
+    </div>
   );
 }

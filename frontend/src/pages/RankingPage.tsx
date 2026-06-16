@@ -7,13 +7,24 @@ import Pagination from "../components/ui/Pagination";
 import { usePublications } from "../hooks/usePublications";
 import { useDocumentMeta } from "../hooks/useDocumentMeta";
 import { categoryPath, resolveCategoryParam } from "../lib/categoryUrl";
+import { useAuth } from "../context/AuthContext";
 
 const PAGE_SIZE = 10;
 
 export default function RankingPage() {
   const { category } = useParams();
   const { apiCategory, title } = resolveCategoryParam(category);
+  const { user, openLoginModal } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Guests can view page 1 (SEO content) but must sign in to page beyond it.
+  const handlePageChange = (page: number) => {
+    if (!user && page !== 1) {
+      openLoginModal();
+      return;
+    }
+    setCurrentPage(page);
+  };
 
   useDocumentMeta({
     title: `${title} publications, ranked — BlogHub`,
@@ -82,7 +93,7 @@ export default function RankingPage() {
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
-          onPageChange={setCurrentPage}
+          onPageChange={handlePageChange}
           isFetching={isFetchingNextPage}
         />
       </main>

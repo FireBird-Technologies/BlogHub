@@ -43,7 +43,7 @@ export interface DayGroup {
   items: Publication[];
 }
 
-/** Group items by local date key; sort each bucket by score desc, id desc. */
+/** Group items by local date key; sort each bucket by score desc, then newest first, id desc. */
 export function groupPublicationsByLocalDay(publications: Publication[]): DayGroup[] {
   const map = new Map<string, Publication[]>();
   for (const pub of publications) {
@@ -55,6 +55,9 @@ export function groupPublicationsByLocalDay(publications: Publication[]): DayGro
     list.sort((a, b) => {
       const ds = publicationScore(b) - publicationScore(a);
       if (ds !== 0) return ds;
+      // Tie on score: latest publication first.
+      const dt = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      if (dt !== 0) return dt;
       return String(b.id).localeCompare(String(a.id));
     });
   }

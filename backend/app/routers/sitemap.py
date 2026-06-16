@@ -20,6 +20,11 @@ STATIC_URLS = [
     {"loc": f"{FRONTEND_URL}/privacy", "changefreq": "yearly", "priority": "0.3"},
 ]
 
+# NOTE: Blog post URLs are NOT generated here. They live in the frontend TS array
+# (frontend/src/content/blogPosts.ts) and are emitted at frontend build time to
+# /blog-sitemap.xml (see frontend/scripts/gen-blog-sitemap.mjs + robots.txt).
+# Adding a blog post therefore requires no backend change.
+
 
 def _slugify(title: str) -> str:
     slug = re.sub(r"[^a-z0-9]+", "-", (title or "").lower()).strip("-")

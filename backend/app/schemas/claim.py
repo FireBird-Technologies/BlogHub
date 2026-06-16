@@ -5,6 +5,7 @@ from datetime import datetime
 from pydantic import AnyHttpUrl, BaseModel, ConfigDict, field_validator, model_validator
 
 from app.helpers.url_normalize import normalize_publication_url
+from app.models.publication import normalize_category
 
 MAX_CLAIM_SOCIAL_LINKS = 8
 
@@ -114,6 +115,11 @@ class ResubmitAndClaimCreate(BaseModel):
         if not canonical:
             raise ValueError("url must be a valid site URL")
         return canonical
+
+    @field_validator("category")
+    @classmethod
+    def validate_category(cls, v: str) -> str:
+        return normalize_category(v)
 
     @field_validator("name")
     @classmethod

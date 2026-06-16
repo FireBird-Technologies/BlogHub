@@ -27,7 +27,28 @@ CATEGORIES = [
     "Physics",
     "Maths",
     "Chemistry",
+    "Self Improvement",
+    "News",
 ]
+
+
+def normalize_category(value: str) -> str:
+    """Canonicalize a category for storage.
+
+    Matches a builtin case-insensitively (returning its canonical spelling), else
+    title-cases each word so casing/whitespace variants of a custom category
+    collapse to one value (e.g. "data  science" / "DATA SCIENCE" -> "Data Science").
+    Raises ValueError if empty or too long.
+    """
+    s = value.strip()
+    if not s:
+        raise ValueError("category is required")
+    if len(s) > 64:
+        raise ValueError("category must be 64 characters or fewer")
+    for cat in CATEGORIES:
+        if cat.lower() == s.lower():
+            return cat
+    return " ".join(w[0].upper() + w[1:].lower() for w in s.split())
 
 
 class Publication(Base):
