@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     CLAIM_APPROVE_PASSWORD: str | None = None
     # Weekly digest (cron-triggered)
     CRON_SECRET: str | None = None
-    NEWSLETTER_FROM_EMAIL: str = "BlogHub <digest@bloghub.app>"
+    NEWSLETTER_FROM_EMAIL: str = "BlogHub <topposts@bloghub.app>"
 
     class Config:
         env_file = ".env"

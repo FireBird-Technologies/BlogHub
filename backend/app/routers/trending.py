@@ -66,12 +66,14 @@ async def send_weekly_digest_endpoint(
         return {"sent": 0, "posts": 0}
 
     result = await db.execute(
-        select(User.id, User.email).where(User.subscribed_only.is_(True))
+        select(User.id, User.email, User.name).where(User.subscribed_only.is_(True))
     )
     subscribers = result.all()
 
-    for user_id, email in subscribers:
+    for user_id, email, name in subscribers:
         token = create_unsubscribe_token(user_id)
-        await send_weekly_digest(email, pubs, token)
+        await send_weekly_digest(email, pubs, token, name)
 
     return {"sent": len(subscribers), "posts": len(pubs)}
+
+
