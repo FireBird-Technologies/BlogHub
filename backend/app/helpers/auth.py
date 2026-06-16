@@ -107,6 +107,21 @@ async def upsert_user(db: AsyncSession, google_info: dict):
     return user
 
 
+def create_unsubscribe_token(user_id) -> str:
+    payload = {"sub": str(user_id), "purpose": "unsubscribe"}
+    return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
+
+
+def verify_unsubscribe_token(token: str) -> uuid.UUID:
+    try:
+        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+        if payload.get("purpose") != "unsubscribe":
+            raise ValueError
+        return uuid.UUID(payload["sub"])
+    except (jwt.InvalidTokenError, KeyError, ValueError):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid unsubscribe link")
+
+
 def create_jwt(user_id: str) -> str:
     expire = datetime.now(timezone.utc) + timedelta(hours=settings.JWT_EXPIRE_HOURS)
     payload = {"sub": str(user_id), "exp": expire}

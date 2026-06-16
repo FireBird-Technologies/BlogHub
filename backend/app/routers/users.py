@@ -1,12 +1,15 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.deps import get_current_user
+from app.helpers.auth import verify_unsubscribe_token
 from app.helpers.publications import build_publications_query
 from app.helpers.users import get_user_by_id, update_user_fields
+from app.models.user import User
 from app.schemas.publication import PaginatedPublications
 from app.schemas.user import UserOut, UserUpdate
 
@@ -26,6 +29,28 @@ async def update_me(
 ):
     user = await update_user_fields(db, current_user, data)
     return UserOut.model_validate(user)
+
+
+@router.get("/users/unsubscribe-digest", response_class=HTMLResponse)
+async def unsubscribe_digest(token: str, db: AsyncSession = Depends(get_db)):
+    user_id = verify_unsubscribe_token(token)
+    user = await db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    user.subscribed_only = False
+    await db.commit()
+    return HTMLResponse("""
+    <html>
+      <head><title>Unsubscribed</title></head>
+      <body style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+                   max-width:480px;margin:80px auto;text-align:center;color:#111827;">
+        <h2 style="font-size:20px;margin-bottom:8px;">You've been unsubscribed</h2>
+        <p style="color:#6b7280;font-size:14px;">
+          You won't receive the weekly digest anymore.
+        </p>
+      </body>
+    </html>
+    """)
 
 
 @router.get("/users/{user_id}/publications", response_model=PaginatedPublications)
