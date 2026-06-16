@@ -32,6 +32,15 @@ export default function Dashboard() {
 
   const { dateFrom, dateTo } = useMemo(() => datePresetToRange(datePreset), [datePreset]);
 
+  // Guests can view page 1 but must sign in to page beyond it.
+  const handlePageChange = (page: number) => {
+    if (!user && page !== 1) {
+      openLoginModal();
+      return;
+    }
+    setCurrentPage(page);
+  };
+
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
@@ -117,7 +126,7 @@ export default function Dashboard() {
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
-          onPageChange={setCurrentPage}
+          onPageChange={handlePageChange}
           isFetching={isFetchingNextPage}
         />
       </main>

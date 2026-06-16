@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ArrowRight, LogOut } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import Avatar from "../ui/Avatar";
@@ -6,11 +6,9 @@ import Button from "../ui/Button";
 
 export default function Navbar() {
   const { user, loading, logout, openLoginModal } = useAuth();
-  const { pathname } = useLocation();
 
-  // Logged-out: always to landing. Logged-in: dashboard toggles back to landing,
-  // any other page goes to the dashboard.
-  const logoTo = !user ? "/" : pathname === "/dashboard" ? "/" : "/dashboard";
+  // Logged-in users go to the dashboard; logged-out users go to the landing page.
+  const logoTo = user ? "/dashboard" : "/";
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-gray-200">
