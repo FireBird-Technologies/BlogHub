@@ -27,6 +27,7 @@ CATEGORIES = [
     "Physics",
     "Maths",
     "Chemistry",
+    "Self Improvement",
 ]
 
 

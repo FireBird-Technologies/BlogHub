@@ -26,10 +26,44 @@ interface SubmitDraft extends PublicationDraft {
   social_links?: SocialLinkInput[];
 }
 
+/** Build a readable title from a URL when the scrape returns none. */
+function titleFromUrl(url: string): string {
+  let host = "";
+  let segments: string[] = [];
+  try {
+    const parsed = new URL(url);
+    host = parsed.hostname.replace(/^www\./, "");
+    segments = parsed.pathname.split("/").filter(Boolean);
+  } catch {
+    return "Untitled publication";
+  }
+
+  // Medium/LinkedIn etc. carry the publication handle in the path; prefer it.
+  // LinkedIn paths start with a route prefix (company, in, posts…) — skip it.
+  const linkedinPrefixes = new Set(["company", "in", "posts", "newsletters", "pulse", "school", "showcase", "feed"]);
+  let raw = host.split(".")[0];
+  if (/medium\.com/.test(host) && segments[0]) {
+    raw = segments[0].replace(/^@/, "");
+  } else if (/linkedin\.com/.test(host) && segments.length) {
+    const slug = linkedinPrefixes.has(segments[0]) ? segments[1] : segments[0];
+    if (slug) raw = slug.replace(/^@/, "");
+  }
+
+  const words = raw
+    .replace(/[-_]+/g, " ")
+    .replace(/[^a-zA-Z0-9 ]/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1));
+
+  return words.length ? words.join(" ") : "Untitled publication";
+}
+
 function buildDraftFromScrape(data: ScrapeResult & { url: string }): SubmitDraft {
   return {
     url: data.url,
-    title: data.title ?? "",
+    title: data.title?.trim() || titleFromUrl(data.url),
     description: data.description ?? "",
     image_url: data.image_url ?? "",
     category: undefined,
