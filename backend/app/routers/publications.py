@@ -406,6 +406,9 @@ async def resubmit_and_claim(
     pub.tags = [t.strip().lower() for t in data.tags if t.strip()]
     pub.additional_links = [str(u) for u in data.additional_links]
     pub.social_links = [sl.model_dump(mode="json") for sl in data.social_links]
+    # Resubmitting refreshes the publish date so the post resurfaces in rankings,
+    # mirroring what claim verification does.
+    pub.created_at = datetime.now(timezone.utc)
 
     # Create or re-open a claim for this user
     claim_social_links = [sl.model_dump(mode="json") for sl in data.claim_social_links]

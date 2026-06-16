@@ -5,7 +5,7 @@ from pydantic import AnyHttpUrl, BaseModel, ConfigDict, field_validator
 
 from app.helpers.url_normalize import normalize_publication_url
 from app.schemas.user import UserOut
-from app.models.publication import CATEGORIES
+from app.models.publication import normalize_category
 
 MAX_ADDITIONAL_LINKS = 5
 MAX_SOCIAL_LINKS = 8
@@ -47,15 +47,7 @@ class _PublicationWritableFields(BaseModel):
     @field_validator("category")
     @classmethod
     def validate_category(cls, v: str) -> str:
-        s = v.strip()
-        if not s:
-            raise ValueError("category is required")
-        if len(s) > 64:
-            raise ValueError("category must be 64 characters or fewer")
-        for cat in CATEGORIES:
-            if cat.lower() == s.lower():
-                return cat
-        return s[0].upper() + s[1:].lower()
+        return normalize_category(v)
 
     @field_validator("additional_links")
     @classmethod
