@@ -8,6 +8,7 @@ from fastapi.responses import Response
 
 from app.database import get_db
 from app.models.publication import CATEGORIES, Publication
+from app.models.roundup import FeaturedRoundup
 
 router = APIRouter()
 
@@ -63,6 +64,17 @@ async def sitemap(db: AsyncSession = Depends(get_db)):
         slug = _slugify(title)
         path = f"{slug}-{short_id}" if slug else short_id
         loc = f"{FRONTEND_URL}/publications/{path}"
+        lastmod = created_at.strftime("%Y-%m-%d")
+        entries.append(_url_entry(loc, lastmod=lastmod, changefreq="monthly", priority="0.7"))
+
+    # Monthly category roundup pages (auto-generated, DB-backed) under /blogs/<slug>.
+    roundups = await db.execute(
+        select(FeaturedRoundup.slug, FeaturedRoundup.created_at).order_by(
+            FeaturedRoundup.created_at.desc()
+        )
+    )
+    for slug, created_at in roundups.all():
+        loc = f"{FRONTEND_URL}/blogs/{slug}"
         lastmod = created_at.strftime("%Y-%m-%d")
         entries.append(_url_entry(loc, lastmod=lastmod, changefreq="monthly", priority="0.7"))
 

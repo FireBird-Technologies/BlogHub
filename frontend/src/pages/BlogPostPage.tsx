@@ -2,7 +2,7 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/landing/Footer";
-import NotFound from "./NotFound";
+import RoundupPage from "./RoundupPage";
 import { useDocumentMeta } from "../hooks/useDocumentMeta";
 import { useJsonLd } from "../hooks/useJsonLd";
 import {
@@ -40,8 +40,10 @@ export default function BlogPostPage() {
   });
   useJsonLd(post ? blogPostSchema(post) : null);
 
+  // Not a hand-written marketing post → it's an auto-generated weekly roundup
+  // (or a 404, which RoundupPage resolves once the API responds).
   if (!post) {
-    return <NotFound title="Article not found" message="This blog post doesn’t exist or has been removed." />;
+    return <RoundupPage slug={slug} />;
   }
 
   const relatedLinks = getStructuredInternalLinks(post.relatedPaths);

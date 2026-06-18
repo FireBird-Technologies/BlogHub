@@ -51,6 +51,30 @@ export function normalizeCategoryForStorage(category: string): string {
   return normalizeCustomCategory(trimmed);
 }
 
+export const CATEGORY_DESCRIPTIONS: Record<string, string> = {
+  Tech: "From software engineering and AI to developer tools and startups — the blogs pushing technology forward.",
+  Design: "Visual design, UX research, product thinking, and creative process — the blogs shaping how we build for people.",
+  Science: "Research breakthroughs, scientific method, and the cutting edge of discovery — the blogs making science accessible.",
+  Business: "Strategy, operations, leadership, and company-building — the blogs behind the world's best-run organizations.",
+  Culture: "Art, society, media, and the conversations that define our moment — the blogs with something to say.",
+  Health: "Medicine, wellness, mental health, and nutrition — the blogs helping readers live healthier, longer lives.",
+  Education: "Teaching, learning, edtech, and pedagogy — the blogs rethinking how knowledge is shared.",
+  Finance: "Markets, investing, personal finance, and fintech — the blogs that help you think clearly about money.",
+  Entertainment: "Film, music, gaming, and pop culture — the blogs covering what the world watches, plays, and listens to.",
+  Fashion: "Style, trends, sustainable fashion, and the industry behind the clothes — the blogs dressing the conversation.",
+  Politics: "Policy, governance, geopolitics, and civic life — the blogs making sense of power and its consequences.",
+  Philosophy: "Ethics, epistemology, existentialism, and big questions — the blogs that make you think differently.",
+  Economics: "Macro trends, behavioral economics, trade, and policy — the blogs decoding how economies really work.",
+  History: "The past illuminating the present — the blogs uncovering the stories, people, and events that shaped our world.",
+  Biology: "Genetics, ecology, evolution, and the science of life — the blogs exploring the living world.",
+  "Life Sciences": "Biotech, pharmaceuticals, and interdisciplinary life science research — the blogs at the frontier of human health.",
+  Physics: "Quantum mechanics, cosmology, and the fundamental laws of nature — the blogs explaining the universe.",
+  Maths: "Pure and applied mathematics, statistics, and problem-solving — the blogs that find beauty in numbers.",
+  Chemistry: "Molecular science, materials, and chemical innovation — the blogs breaking down matter itself.",
+  "Self Improvement": "Productivity, habits, mindset, and personal growth — the blogs helping readers become their best selves.",
+  News: "Current events, journalism, and media analysis — the blogs keeping readers informed and thinking critically.",
+};
+
 export const CATEGORY_COLORS: Record<string, string> = {
   Tech: "bg-blue-50 text-blue-700 border-blue-200",
   Design: "bg-violet-50 text-violet-700 border-violet-200",
