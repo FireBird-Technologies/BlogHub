@@ -43,6 +43,21 @@ export interface PaginatedPublications {
   total: number;
 }
 
+/** Weekly category roundup as returned by the /roundups list endpoint. */
+export interface RoundupSummary {
+  slug: string;
+  title: string;
+  category: string;
+  week_start: string;
+  count: number;
+  created_at: string;
+}
+
+/** Single roundup with its publications hydrated. */
+export interface RoundupDetail extends RoundupSummary {
+  publications: Publication[];
+}
+
 export interface Comment {
   id: string;
   content: string;
