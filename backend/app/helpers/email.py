@@ -155,11 +155,9 @@ async def send_claim_approved_notification(
 
     body = f"""
     <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;">
-      <h2 style="color:#111827;font-size:18px;margin:0 0 12px;">Your claim was approved</h2>
       <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 8px;">{greeting}</p>
       <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
-        Good news — your claim for <strong>{pub_title}</strong> on BlogHub has been approved,
-        and ownership has been transferred to you. You can now edit and manage your listing.
+        Good news — your claim for <strong>{pub_title}</strong> on BlogHub has been approved. You now have full access to manage and update your publication listing.
       </p>
       <div style="margin-top:24px;text-align:center;">
         <a href="{safe_detail_url}"
