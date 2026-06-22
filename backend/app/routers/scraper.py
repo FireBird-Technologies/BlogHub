@@ -22,8 +22,10 @@ async def scrape_url(url: str = Query(..., description="URL to scrape")):
     result = await scrape_with_firecrawl(url)
 
     if settings.OPEN_ROUTER_KEY:
+        # Use the canonical URL Firecrawl actually fetched, so the LLM summary
+        # describes the same page rather than the original (unshortened) article.
         enriched = await enrich_scraped_description(
-            url=url,
+            url=result.url,
             title=result.title,
             description=result.description,
         )

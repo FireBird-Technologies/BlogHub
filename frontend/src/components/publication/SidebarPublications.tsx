@@ -113,7 +113,13 @@ export default function SidebarPublications({ currentId }: SidebarPublicationsPr
           {hasNextPage && (
             <button
               type="button"
-              onClick={() => fetchNextPage()}
+              onClick={() => {
+                if (!user) {
+                  openLoginModal();
+                  return;
+                }
+                fetchNextPage();
+              }}
               disabled={isFetchingNextPage}
               className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-gray-200
                          bg-white text-xs font-semibold text-gray-500 hover:border-red-200 hover:text-red-600
