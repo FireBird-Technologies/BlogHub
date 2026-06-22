@@ -506,7 +506,6 @@ export default function PublicationDetail() {
               </span>
             ))}
             <div className="ml-auto flex flex-col items-end gap-2 flex-shrink-0">
-              {pub.is_verified && <VerifiedTick verifiedAt={pub.verified_at} size={26} />}
               <div className="flex items-center gap-2">
                 <ClaimButton publication={pub} />
                 <a
@@ -525,8 +524,19 @@ export default function PublicationDetail() {
           </div>
 
           <div className="flex items-start gap-2">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-snug flex-1">{pub.title}</h1>
-            {isOwner && <EditButton onClick={() => openEdit("basics")} label="Edit title, image, category & tags" />}
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-snug">
+              {pub.title}
+              {pub.is_verified && (
+                <span className="inline-flex align-middle ml-2 -translate-y-px">
+                  <VerifiedTick verifiedAt={pub.verified_at} size={22} />
+                </span>
+              )}
+            </h1>
+            {isOwner && (
+              <span className="ml-auto flex-shrink-0">
+                <EditButton onClick={() => openEdit("basics")} label="Edit title, image, category & tags" />
+              </span>
+            )}
           </div>
 
           <div className={`flex flex-col ${socials ? "lg:flex-row lg:items-stretch" : ""} gap-4 lg:gap-6`}>

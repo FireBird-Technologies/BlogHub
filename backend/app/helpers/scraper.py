@@ -1,8 +1,8 @@
 import logging
-from urllib.parse import urlparse
 
 import httpx
 
+from app.helpers.url_normalize import normalize_publication_url
 from app.schemas.scraper import ScrapeResult
 from app.settings import settings
 
@@ -12,13 +12,10 @@ _FIRECRAWL_URL = "https://api.firecrawl.dev/v1/scrape"
 
 
 def _canonical_url(url: str) -> str:
-    try:
-        parsed = urlparse(url)
-        if parsed.scheme and parsed.netloc:
-            return f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
-    except Exception:
-        pass
-    return url
+    # Resolve to the final URL Firecrawl should fetch / we should store: regular
+    # publications collapse to their base site, while Medium/LinkedIn keep their
+    # publication-identifying path so the post stays reachable.
+    return normalize_publication_url(url) or url
 
 
 def _pick(meta: dict, *keys: str) -> str | None:
@@ -45,7 +42,7 @@ async def scrape_with_firecrawl(url: str) -> ScrapeResult:
         return ScrapeResult(url=canonical)
 
     payload = {
-        "url": url,
+        "url": canonical,
         "formats": ["markdown"],
         "onlyMainContent": True,
     }
@@ -60,10 +57,10 @@ async def scrape_with_firecrawl(url: str) -> ScrapeResult:
             resp.raise_for_status()
             body = resp.json()
     except httpx.TimeoutException:
-        logger.warning("Firecrawl timed out for %s", url)
+        logger.warning("Firecrawl timed out for %s", canonical)
         return ScrapeResult(url=canonical)
     except Exception as exc:
-        logger.warning("Firecrawl failed for %s: %s", url, exc)
+        logger.warning("Firecrawl failed for %s: %s", canonical, exc)
         return ScrapeResult(url=canonical)
 
     data = body.get("data") or {}

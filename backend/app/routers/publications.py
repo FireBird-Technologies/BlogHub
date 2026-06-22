@@ -28,7 +28,7 @@ from app.schemas.publication import (
     ResubmitRequiredResponse,
     UpvoteResponse,
 )
-from app.helpers.email import send_claim_notification
+from app.helpers.email import send_claim_approved_notification, send_claim_notification
 from app.settings import settings
 
 router = APIRouter(tags=["publications"])
@@ -159,10 +159,30 @@ async def create_publication(
 
     if existing:
         if await _publication_has_verified_claim(db, existing.id):
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="This publication is verified and cannot be updated or resubmitted",
-            )
+            # Owner re-adding their own verified pub: overwrite content, keep it
+            # verified, and resurface to today. Non-owners are still blocked.
+            if existing.user_id != current_user.id:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="This publication is verified and cannot be updated or resubmitted",
+                )
+            existing.title = data.title.strip()
+            existing.description = data.description
+            existing.image_url = data.image_url
+            existing.category = data.category
+            existing.tags = [t.strip().lower() for t in data.tags if t.strip()]
+            existing.additional_links = [str(u) for u in data.additional_links]
+            existing.social_links = [sl.model_dump(mode="json") for sl in data.social_links]
+            existing.created_at = datetime.now(timezone.utc)
+            await db.commit()
+            response.status_code = status.HTTP_200_OK
+            updated = await get_publication_by_id(db, existing.id, current_user.id)
+            if not updated:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to load publication",
+                )
+            return updated
         # Unverified duplicate: do not update or transfer ownership.
         # Signal the frontend to show the claim form instead.
         response.status_code = status.HTTP_200_OK
@@ -206,12 +226,6 @@ async def update_publication(
     if pub.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your publication")
 
-    if await _publication_has_verified_claim(db, publication_id):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="This publication is verified and cannot be edited",
-        )
-
     canonical_url = normalize_publication_url(data.url)
     if not canonical_url:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid publication URL")
@@ -235,6 +249,8 @@ async def update_publication(
     pub.tags = [t.strip().lower() for t in data.tags if t.strip()]
     pub.additional_links = [str(u) for u in data.additional_links]
     pub.social_links = [sl.model_dump(mode="json") for sl in data.social_links]
+    # An owner edit resurfaces the publication to today's ranking.
+    pub.created_at = datetime.now(timezone.utc)
 
     await db.commit()
 
@@ -515,5 +531,14 @@ async def approve_claim(
     pub.created_at = now
 
     await db.commit()
+
+    try:
+        await send_claim_approved_notification(
+            to_email=claim.claimer_email,
+            publication=pub,
+            claimer_name=claim.claimer_name,
+        )
+    except Exception:  # noqa: BLE001
+        pass
 
     return {"ok": True, "publication_id": str(publication_id), "new_owner_id": str(claim.user_id)}
