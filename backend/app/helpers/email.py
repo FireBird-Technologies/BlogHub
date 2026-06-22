@@ -12,6 +12,14 @@ logger = logging.getLogger(__name__)
 RESEND_ENDPOINT = "https://api.resend.com/emails"
 
 
+def _publication_detail_url(pub) -> str:
+    """Public BlogHub detail-page URL for a publication (slug + short id)."""
+    slug = re.sub(r"[^a-z0-9]+", "-", (pub.title or "").lower()).strip("-")[:60].rstrip("-")
+    short_id = str(pub.id).replace("-", "")[:8].lower()
+    path = f"/publications/{slug}-{short_id}" if slug else f"/publications/{short_id}"
+    return f"{settings.FRONTEND_URL}{path}"
+
+
 def _row(label: str, value: str) -> str:
     return (
         f'<tr><td style="padding:4px 12px 4px 0;color:#6b7280;'
@@ -122,6 +130,67 @@ async def send_claim_notification(
         logger.warning("Resend claim email error: %s", exc)
 
 
+async def send_claim_approved_notification(
+    *,
+    to_email: str,
+    publication,
+    claimer_name: str | None = None,
+) -> None:
+    """Best-effort email to the new owner when their claim is approved.
+
+    Goes to the claimer (not the site owner), so it only requires RESEND_API_KEY.
+    Never raises: logs a warning on misconfiguration/failure and returns.
+    """
+    if not settings.RESEND_API_KEY:
+        logger.warning("Claim-approved email skipped: RESEND_API_KEY not configured.")
+        return
+    if not to_email:
+        logger.warning("Claim-approved email skipped: no recipient email.")
+        return
+
+    detail_url = _publication_detail_url(publication)
+    safe_detail_url = html.escape(detail_url)
+    pub_title = html.escape(publication.title or "your publication")
+    greeting = f"Hi {html.escape(claimer_name)}," if claimer_name and claimer_name.strip() else "Hi,"
+
+    body = f"""
+    <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;">
+      <h2 style="color:#111827;font-size:18px;margin:0 0 12px;">Your claim was approved</h2>
+      <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 8px;">{greeting}</p>
+      <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
+        Good news — your claim for <strong>{pub_title}</strong> on BlogHub has been approved,
+        and ownership has been transferred to you. You can now edit and manage your listing.
+      </p>
+      <div style="margin-top:24px;text-align:center;">
+        <a href="{safe_detail_url}"
+           style="display:inline-block;background:#dc2626;color:#ffffff;font-size:14px;
+                  font-weight:600;text-decoration:none;padding:12px 28px;border-radius:8px;">
+          Check it out
+        </a>
+      </div>
+    </div>
+    """
+
+    payload = {
+        "from": settings.CLAIM_FROM_EMAIL,
+        "to": [to_email],
+        "subject": "Your BlogHub claim was approved",
+        "html": body,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                RESEND_ENDPOINT,
+                headers={"Authorization": f"Bearer {settings.RESEND_API_KEY}"},
+                json=payload,
+            )
+        if resp.status_code >= 400:
+            logger.warning("Resend claim-approved email failed (%s): %s", resp.status_code, resp.text)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Resend claim-approved email error: %s", exc)
+
+
 async def send_weekly_digest(to_email: str, publications: list, unsubscribe_token: str, name: str | None = None) -> None:
     """Best-effort weekly digest email listing the top publications.
 
@@ -133,10 +202,7 @@ async def send_weekly_digest(to_email: str, publications: list, unsubscribe_toke
         return
 
     def _publication_url(pub) -> str:
-        slug = re.sub(r"[^a-z0-9]+", "-", (pub.title or "").lower()).strip("-")[:60].rstrip("-")
-        short_id = str(pub.id).replace("-", "")[:8].lower()
-        path = f"/publications/{slug}-{short_id}" if slug else f"/publications/{short_id}"
-        return html.escape(f"{settings.FRONTEND_URL}{path}")
+        return html.escape(_publication_detail_url(pub))
 
     frontend_url = html.escape(settings.FRONTEND_URL)
 
