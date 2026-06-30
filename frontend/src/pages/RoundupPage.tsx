@@ -27,12 +27,16 @@ function formatFullDate(iso: string): string {
   return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
-function roundupSchema(roundup: RoundupDetail) {
+function roundupSchema(roundup: RoundupDetail, variant: "top" | "underrated" = "top") {
+  const items = variant === "underrated" ? roundup.underrated ?? [] : roundup.publications;
   return {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: roundup.title,
-    itemListElement: roundup.publications.map((pub, i) => ({
+    name:
+      variant === "underrated"
+        ? `Underrated ${roundup.category} Blogs — ${formatMonth(roundup.week_start)}`
+        : roundup.title,
+    itemListElement: items.map((pub, i) => ({
       "@type": "ListItem",
       position: i + 1,
       url: `${window.location.origin}${publicationPath(pub)}`,
@@ -158,21 +162,36 @@ function RoundupItem({ pub, position }: { pub: Publication; position: number }) 
   );
 }
 
-export default function RoundupPage({ slug }: { slug: string | undefined }) {
+export default function RoundupPage({
+  slug,
+  variant = "top",
+}: {
+  slug: string | undefined;
+  variant?: "top" | "underrated";
+}) {
   const { user, openLoginModal } = useAuth();
   const [submitOpen, setSubmitOpen] = useState(false);
   const { data: roundup, isLoading, isError } = useRoundup(slug);
+  const isUnderrated = variant === "underrated";
 
   useDocumentMeta({
-    title: roundup ? `${roundup.title} — ${siteName}` : undefined,
-    description: roundup
-      ? `The top ${roundup.category} blogs on ${siteName} for ${formatMonth(roundup.week_start)}, ranked by reader upvotes and discussion.`
+    title: roundup
+      ? isUnderrated
+        ? `Underrated ${roundup.category} Blogs — ${formatMonth(roundup.week_start)} — ${siteName}`
+        : `${roundup.title} — ${siteName}`
       : undefined,
-    canonicalUrl: roundup ? `${window.location.origin}/blogs/${roundup.slug}` : undefined,
+    description: roundup
+      ? isUnderrated
+        ? `Underrated ${roundup.category} blogs on ${siteName} for ${formatMonth(roundup.week_start)} — great reads that haven't found their audience yet.`
+        : `The top ${roundup.category} blogs on ${siteName} for ${formatMonth(roundup.week_start)}, ranked by reader upvotes and discussion.`
+      : undefined,
+    canonicalUrl: roundup
+      ? `${window.location.origin}/blogs/${roundup.slug}${isUnderrated ? "/underrated" : ""}`
+      : undefined,
     image: defaultOgImage,
     type: "article",
   });
-  useJsonLd(roundup ? roundupSchema(roundup) : null);
+  useJsonLd(roundup ? roundupSchema(roundup, variant) : null);
 
   if (isLoading) {
     return (
@@ -200,11 +219,21 @@ export default function RoundupPage({ slug }: { slug: string | undefined }) {
     return <NotFound title="Roundup not found" message="This roundup doesn't exist or has been removed." />;
   }
 
-  const categoryDesc =
-    CATEGORY_DESCRIPTIONS[roundup.category] ??
-    `The best ${roundup.category.toLowerCase()} blogs, chosen by the community.`;
-  const totalUpvotes = roundup.publications.reduce((sum, p) => sum + p.upvote_count, 0);
-  const totalComments = roundup.publications.reduce((sum, p) => sum + p.comment_count, 0);
+  const underrated = roundup.underrated ?? [];
+
+  // The underrated page is a 404 when the roundup has no underrated entries.
+  if (isUnderrated && underrated.length === 0) {
+    return <NotFound title="Roundup not found" message="This roundup doesn't exist or has been removed." />;
+  }
+
+  const categoryDesc = isUnderrated
+    ? `Underrated ${roundup.category.toLowerCase()} blogs — quietly excellent reads that haven't found their audience yet.`
+    : CATEGORY_DESCRIPTIONS[roundup.category] ??
+      `The best ${roundup.category.toLowerCase()} blogs, chosen by the community.`;
+  const pubs = isUnderrated ? underrated : roundup.publications;
+  const totalCount = pubs.length;
+  const totalUpvotes = pubs.reduce((sum, p) => sum + p.upvote_count, 0);
+  const totalComments = pubs.reduce((sum, p) => sum + p.comment_count, 0);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -223,7 +252,9 @@ export default function RoundupPage({ slug }: { slug: string | undefined }) {
         <header className="mt-8 pb-10 border-b border-gray-200">
           <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-gray-500">
             <Badge category={roundup.category} />
-            <span className="text-red-600 font-semibold uppercase tracking-wide">Monthly roundup</span>
+            <span className="text-red-600 font-semibold uppercase tracking-wide">
+              {isUnderrated ? "Underrated picks" : "Monthly roundup"}
+            </span>
             <span aria-hidden className="text-gray-300">|</span>
             <span className="inline-flex items-center gap-1">
               <Calendar size={12} />
@@ -232,7 +263,9 @@ export default function RoundupPage({ slug }: { slug: string | undefined }) {
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 mt-4">
-            {roundup.title}
+            {isUnderrated
+              ? `Underrated ${roundup.category} Blogs — ${formatMonth(roundup.week_start)}`
+              : roundup.title}
           </h1>
 
           <p className="text-base sm:text-lg text-gray-500 mt-5 max-w-3xl leading-relaxed">
@@ -240,9 +273,18 @@ export default function RoundupPage({ slug }: { slug: string | undefined }) {
           </p>
 
           <p className="text-sm text-gray-400 mt-4 max-w-3xl leading-relaxed">
-            These are the {roundup.category.toLowerCase()} blogs {siteName} readers rated highest
-            in {formatMonth(roundup.week_start)} — ranked by a combination of upvotes and discussion activity.
-            Each publication earned its spot through genuine community engagement.
+            {isUnderrated ? (
+              <>
+                These are the lowest-scored {roundup.category.toLowerCase()} blogs on {siteName}{" "}
+                in {formatMonth(roundup.week_start)} — hidden gems that deserve more eyes.
+              </>
+            ) : (
+              <>
+                These are the {roundup.category.toLowerCase()} blogs {siteName} readers rated highest
+                in {formatMonth(roundup.week_start)} — ranked by a combination of upvotes and discussion activity.
+                Each publication earned its spot through genuine community engagement.
+              </>
+            )}
           </p>
 
           {/* Summary stats */}
@@ -250,7 +292,7 @@ export default function RoundupPage({ slug }: { slug: string | undefined }) {
             <div className="flex items-center gap-3 px-5 py-4 bg-white border border-gray-200 rounded-xl">
               <Award size={22} className="text-yellow-500 flex-shrink-0" />
               <div>
-                <p className="text-xl font-bold text-gray-900">{roundup.publications.length}</p>
+                <p className="text-xl font-bold text-gray-900">{totalCount}</p>
                 <p className="text-xs text-gray-400">Publications</p>
               </div>
             </div>
@@ -273,13 +315,33 @@ export default function RoundupPage({ slug }: { slug: string | undefined }) {
           </div>
         </header>
 
-        {/* Publication list */}
+        {/* Publication list (single column — top picks or underrated gems per variant) */}
         <section className="mt-10">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 mb-6">
-            Rankings
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400">
+              {isUnderrated ? "Underrated Blogs" : "Rankings"}
+            </h2>
+            {/* Cross-link to the other variant when it has entries. */}
+            {isUnderrated ? (
+              <Link
+                to={`/blogs/${roundup.slug}`}
+                className="inline-flex items-center gap-1 text-sm font-semibold text-red-600 hover:text-red-700 transition-colors"
+              >
+                See the top picks <ArrowRight size={14} />
+              </Link>
+            ) : (
+              underrated.length > 0 && (
+                <Link
+                  to={`/blogs/${roundup.slug}/underrated`}
+                  className="inline-flex items-center gap-1 text-sm font-semibold text-red-600 hover:text-red-700 transition-colors"
+                >
+                  See underrated gems <ArrowRight size={14} />
+                </Link>
+              )
+            )}
+          </div>
           <ol className="space-y-6">
-            {roundup.publications.map((pub, i) => (
+            {pubs.map((pub, i) => (
               <RoundupItem key={pub.id} pub={pub} position={i + 1} />
             ))}
           </ol>
@@ -289,9 +351,20 @@ export default function RoundupPage({ slug }: { slug: string | undefined }) {
         <section className="mt-10 bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 lg:p-10">
           <h2 className="text-base font-bold text-gray-900">How we rank</h2>
           <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-2xl">
-            Rankings are based on the combined score of reader upvotes and comment activity during{" "}
-            {formatMonth(roundup.week_start)}. Only publications submitted and categorized
-            under <strong>{roundup.category}</strong> are eligible.
+            {isUnderrated ? (
+              <>
+                These are the <strong>lowest-scored</strong> {roundup.category} blogs that month —
+                the combined score of reader upvotes and comment activity during{" "}
+                {formatMonth(roundup.week_start)}, ranked from the bottom up. They don&rsquo;t overlap
+                with the top picks.
+              </>
+            ) : (
+              <>
+                Rankings are based on the combined score of reader upvotes and comment activity during{" "}
+                {formatMonth(roundup.week_start)}. Only publications submitted and categorized
+                under <strong>{roundup.category}</strong> are eligible.
+              </>
+            )}
           </p>
         </section>
 

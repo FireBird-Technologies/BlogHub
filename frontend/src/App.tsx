@@ -13,6 +13,7 @@ import Profile from "./pages/Profile";
 import PublicationDetail from "./pages/PublicationDetail";
 import Blog from "./pages/Blog";
 import BlogPostPage from "./pages/BlogPostPage";
+import UnderratedRoundupPage from "./pages/UnderratedRoundupPage";
 import AdminApproveClaim from "./pages/AdminApproveClaim";
 import NotFound from "./pages/NotFound";
 import TermsOfService from "./pages/TermsOfService";
@@ -49,6 +50,7 @@ export default function App() {
               />
               <Route path="/publications/:id" element={<PublicationDetail />} />
               <Route path="/blogs" element={<Blog />} />
+              <Route path="/blogs/:slug/underrated" element={<UnderratedRoundupPage />} />
               <Route path="/blogs/:slug" element={<BlogPostPage />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />

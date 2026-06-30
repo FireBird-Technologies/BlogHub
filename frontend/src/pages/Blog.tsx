@@ -18,6 +18,47 @@ function blurb(roundup: RoundupSummary): string {
   return `The top ${roundup.category.toLowerCase()} blogs on ${siteName} this month, ranked by reader upvotes and discussion.`;
 }
 
+function underratedBlurb(roundup: RoundupSummary): string {
+  return `Underrated ${roundup.category.toLowerCase()} blogs on ${siteName} this month — hidden gems that deserve more eyes.`;
+}
+
+/** A single roundup card — used in both the Top and Underrated columns. */
+function RoundupCard({
+  roundup,
+  variant,
+}: {
+  roundup: RoundupSummary;
+  variant: "top" | "underrated";
+}) {
+  const isUnderrated = variant === "underrated";
+  const to = isUnderrated ? `/blogs/${roundup.slug}/underrated` : `/blogs/${roundup.slug}`;
+  return (
+    <Link
+      to={to}
+      className="group flex flex-col bg-white border border-gray-200 rounded-2xl p-5
+                 transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300
+                 hover:shadow-xl hover:shadow-black/5"
+    >
+      <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-gray-500">
+        <span className="font-semibold uppercase tracking-wide text-gray-700">{roundup.category} |</span>
+        <span>{formatMonth(roundup.week_start)}</span>
+      </div>
+      <h3 className="text-base font-bold text-gray-900 mt-3 group-hover:text-red-600 transition-colors">
+        {isUnderrated
+          ? `Underrated ${roundup.category} Blogs — ${formatMonth(roundup.week_start)}`
+          : roundup.title}
+      </h3>
+      <p className="text-sm text-gray-500 mt-2 flex-1">
+        {isUnderrated ? underratedBlurb(roundup) : blurb(roundup)}
+      </p>
+      <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 mt-4">
+        {isUnderrated ? "See underrated" : "Read roundup"}{" "}
+        <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+      </span>
+    </Link>
+  );
+}
+
 export default function Blog() {
   useDocumentMeta({
     title: `Blog — ${siteName}`,
@@ -33,8 +74,8 @@ export default function Blog() {
   const sorted = [...roundups].sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   );
-  const featured = sorted[0];
-  const rest = sorted.slice(1);
+  const topRoundups = sorted.filter((r) => r.count > 0);
+  const underratedRoundups = sorted.filter((r) => r.underrated_count > 0);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -82,56 +123,46 @@ export default function Blog() {
           </div>
         )}
 
-        {!isLoading && featured && (
-          <Link
-            to={`/blogs/${featured.slug}`}
-            className="group block bg-white border border-gray-200 rounded-2xl
-                       p-6 sm:p-10 transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300
-                       hover:shadow-xl hover:shadow-black/5 mb-10 sm:mb-14"
-          >
-            <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-gray-500">
-              <span className="font-semibold uppercase tracking-wide text-gray-700">{featured.category} |</span>
-              <span className="text-red-600 font-semibold uppercase tracking-wide">Latest roundup</span>
-              <span aria-hidden>·</span>
-              <span>{formatMonth(featured.week_start)}</span>
-            </div>
-            <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mt-4 group-hover:text-red-600 transition-colors">
-              {featured.title}
-            </h2>
-            <p className="text-sm sm:text-lg text-gray-500 mt-3 max-w-2xl">{blurb(featured)}</p>
-            <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 mt-5">
-              Read roundup <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
-            </span>
-          </Link>
-        )}
+        {!isLoading && roundups.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10">
+            {/* Left column — Top blogs */}
+            <section>
+              <h2 className="text-lg font-bold text-gray-900">Top blogs</h2>
+              <p className="text-sm text-gray-500 mt-1 mb-5">
+                The highest-rated blogs in each category this month.
+              </p>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                {topRoundups.map((roundup) => (
+                  <RoundupCard key={roundup.slug} roundup={roundup} variant="top" />
+                ))}
+              </div>
+            </section>
 
-        {!isLoading && rest.length > 0 && (
-          <>
-            <h2 className="text-lg font-bold text-gray-900 mb-5">More roundups</h2>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {rest.map((roundup) => (
-                <Link
-                  key={roundup.slug}
-                  to={`/blogs/${roundup.slug}`}
-                  className="group flex flex-col bg-white border border-gray-200 rounded-2xl p-5
-                             transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300
-                             hover:shadow-xl hover:shadow-black/5"
-                >
-                  <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-gray-500">
-                    <span className="font-semibold uppercase tracking-wide text-gray-700">{roundup.category} |</span>
-                    <span>{formatMonth(roundup.week_start)}</span>
-                  </div>
-                  <h3 className="text-base font-bold text-gray-900 mt-3 group-hover:text-red-600 transition-colors">
-                    {roundup.title}
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-2 flex-1">{blurb(roundup)}</p>
-                  <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 mt-4">
-                    Read roundup <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </>
+            {/* Right column — Top underrated */}
+            <section>
+              <h2 className="text-lg font-bold text-gray-900">Underrated</h2>
+              <p className="text-sm text-gray-500 mt-1 mb-5">
+                The under scored blogs in each category — hidden gems that deserve more eyes.
+              </p>
+              {underratedRoundups.length > 0 ? (
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                  {underratedRoundups.map((roundup) => (
+                    <RoundupCard
+                      key={`underrated-${roundup.slug}`}
+                      roundup={roundup}
+                      variant="underrated"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-gray-300 bg-white py-10 px-6 text-center">
+                  <p className="text-sm text-gray-500">
+                    No underrated picks yet — they appear once a category has blogs with least impressions.
+                  </p>
+                </div>
+              )}
+            </section>
+          </div>
         )}
       </main>
 
