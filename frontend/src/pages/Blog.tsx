@@ -157,8 +157,7 @@ export default function Blog() {
               ) : (
                 <div className="rounded-2xl border border-dashed border-gray-300 bg-white py-10 px-6 text-center">
                   <p className="text-sm text-gray-500">
-                    No underrated picks yet — they appear once a category has more blogs than fit in
-                    its top list.
+                    No underrated picks yet — they appear once a category has blogs with least impressions.
                   </p>
                 </div>
               )}
