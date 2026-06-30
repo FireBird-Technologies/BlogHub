@@ -50,12 +50,15 @@ export interface RoundupSummary {
   category: string;
   week_start: string;
   count: number;
+  underrated_count: number;
   created_at: string;
 }
 
-/** Single roundup with its publications hydrated. */
+/** Single roundup with its publications hydrated.
+ *  `publications` is the top picks; `underrated` is the parallel lowest-scored list. */
 export interface RoundupDetail extends RoundupSummary {
   publications: Publication[];
+  underrated: Publication[];
 }
 
 export interface Comment {

@@ -12,9 +12,10 @@ class FeaturedRoundup(Base):
     """A weekly 'Top N [category] blogs' roundup page.
 
     One row per (category, week_start). `publication_ids` is an ordered list of
-    publication UUID strings; the render endpoint hydrates them live so the page
-    reflects later edits/deletes. Generation is idempotent via the unique
-    constraint below.
+    publication UUID strings (the *top* picks); `underrated_ids` is the parallel
+    list of the lowest-scored picks shown alongside them. The render endpoint
+    hydrates both live so the page reflects later edits/deletes. Generation is
+    idempotent via the unique constraint below.
     """
 
     __tablename__ = "featured_roundups"
@@ -26,6 +27,7 @@ class FeaturedRoundup(Base):
     week_start: Mapped[date] = mapped_column(Date, nullable=False, index=True)
     title: Mapped[str] = mapped_column(String(512), nullable=False)
     publication_ids: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
+    underrated_ids: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True
     )

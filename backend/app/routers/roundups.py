@@ -44,6 +44,7 @@ async def list_roundups(db: AsyncSession = Depends(get_db)):
             category=r.category,
             week_start=r.week_start,
             count=len(r.publication_ids or []),
+            underrated_count=len(r.underrated_ids or []),
             created_at=r.created_at,
         )
         for r in roundups
@@ -62,32 +63,47 @@ async def get_roundup(
     if roundup is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Roundup not found")
 
-    ordered_ids: list[uuid.UUID] = []
-    for raw in roundup.publication_ids or []:
-        try:
-            ordered_ids.append(uuid.UUID(str(raw)))
-        except (ValueError, AttributeError):
-            continue
+    def _parse_ids(raw_ids) -> list[uuid.UUID]:
+        out: list[uuid.UUID] = []
+        for raw in raw_ids or []:
+            try:
+                out.append(uuid.UUID(str(raw)))
+            except (ValueError, AttributeError):
+                continue
+        return out
 
+    top_ids = _parse_ids(roundup.publication_ids)
+    underrated_ids = _parse_ids(roundup.underrated_ids)
+
+    # One fetch for both lists (a publication can in principle appear in either).
+    all_ids = list({*top_ids, *underrated_ids})
     pubs_by_id: dict[uuid.UUID, Publication] = {}
-    if ordered_ids:
+    if all_ids:
         pub_result = await db.execute(
             select(Publication)
             .options(selectinload(Publication.author))
-            .where(Publication.id.in_(ordered_ids))
+            .where(Publication.id.in_(all_ids))
         )
         pubs_by_id = {p.id: p for p in pub_result.scalars().all()}
 
     # Keep stored order; silently drop any publication deleted since generation.
-    pubs = [pubs_by_id[pid] for pid in ordered_ids if pid in pubs_by_id]
+    top_pubs = [pubs_by_id[pid] for pid in top_ids if pid in pubs_by_id]
+    underrated_pubs = [pubs_by_id[pid] for pid in underrated_ids if pid in pubs_by_id]
 
     user_id = current_user.id if current_user else None
-    upvoted_ids, comment_counts = await _batch_meta(db, pubs, user_id)
-    verified_map, my_status_map = await _batch_claims(db, pubs, user_id)
-    publications = [
-        _pub_to_out(p, upvoted_ids, comment_counts, verified_map=verified_map, my_status_map=my_status_map)
-        for p in pubs
-    ]
+    # Batch the metadata over the union so each row is queried once.
+    all_pubs = list(pubs_by_id.values())
+    upvoted_ids, comment_counts = await _batch_meta(db, all_pubs, user_id)
+    verified_map, my_status_map = await _batch_claims(db, all_pubs, user_id)
+
+    def _to_out(pubs):
+        return [
+            _pub_to_out(p, upvoted_ids, comment_counts, verified_map=verified_map, my_status_map=my_status_map)
+            for p in pubs
+        ]
+
+    publications = _to_out(top_pubs)
+    underrated = _to_out(underrated_pubs)
 
     return RoundupDetail(
         slug=roundup.slug,
@@ -97,4 +113,5 @@ async def get_roundup(
         count=len(publications),
         created_at=roundup.created_at,
         publications=publications,
+        underrated=underrated,
     )

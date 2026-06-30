@@ -68,15 +68,19 @@ async def sitemap(db: AsyncSession = Depends(get_db)):
         entries.append(_url_entry(loc, lastmod=lastmod, changefreq="monthly", priority="0.7"))
 
     # Monthly category roundup pages (auto-generated, DB-backed) under /blogs/<slug>.
+    # Each roundup with underrated entries also has a companion /blogs/<slug>/underrated page.
     roundups = await db.execute(
-        select(FeaturedRoundup.slug, FeaturedRoundup.created_at).order_by(
-            FeaturedRoundup.created_at.desc()
-        )
+        select(
+            FeaturedRoundup.slug, FeaturedRoundup.underrated_ids, FeaturedRoundup.created_at
+        ).order_by(FeaturedRoundup.created_at.desc())
     )
-    for slug, created_at in roundups.all():
-        loc = f"{FRONTEND_URL}/blogs/{slug}"
+    for slug, underrated_ids, created_at in roundups.all():
         lastmod = created_at.strftime("%Y-%m-%d")
+        loc = f"{FRONTEND_URL}/blogs/{slug}"
         entries.append(_url_entry(loc, lastmod=lastmod, changefreq="monthly", priority="0.7"))
+        if underrated_ids:
+            under_loc = f"{FRONTEND_URL}/blogs/{slug}/underrated"
+            entries.append(_url_entry(under_loc, lastmod=lastmod, changefreq="monthly", priority="0.6"))
 
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'

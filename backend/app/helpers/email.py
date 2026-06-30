@@ -189,8 +189,19 @@ async def send_claim_approved_notification(
         logger.warning("Resend claim-approved email error: %s", exc)
 
 
-async def send_weekly_digest(to_email: str, publications: list, unsubscribe_token: str, name: str | None = None) -> None:
-    """Best-effort weekly digest email listing the top publications.
+async def send_weekly_digest(
+    to_email: str,
+    publications: list,
+    unsubscribe_token: str,
+    name: str | None = None,
+    *,
+    subject: str = "Top 5 posts this week",
+    intro: str = "Here’s what was popular on BlogHub this week:",
+) -> None:
+    """Best-effort weekly digest email listing publications.
+
+    Used for both the "top" and "underrated" weekly digests — they share the same
+    layout and unsubscribe flow, differing only in `subject` and `intro`.
 
     Never raises: if Resend is not configured or the request fails, we log a
     warning and return.
@@ -231,7 +242,7 @@ async def send_weekly_digest(to_email: str, publications: list, unsubscribe_toke
         '<body style="margin:0;padding:0;background:#fff;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">'
         '<div style="max-width:520px;margin:48px auto;padding:0 24px;text-align:left;">'
         f'<p style="margin:0 0 4px;font-size:15px;color:#111827;line-height:1.6;">Hey {html.escape(name) if name and name.strip() else "there"},</p>'
-        '<p style="margin:8px 0 16px;font-size:15px;color:#111827;line-height:1.6;">Here&#8217;s what was popular on BlogHub this week:</p>'
+        f'<p style="margin:8px 0 16px;font-size:15px;color:#111827;line-height:1.6;">{html.escape(intro)}</p>'
         f'<table cellpadding="0" cellspacing="0" border="0" width="100%">{rows}</table>'
         '<p style="margin:32px 0 0;font-size:14px;color:#111827;line-height:1.6;">'
         'Reach a 4x wider audience by using <a href="https://blog2video.app" style="color:#111827;text-decoration:underline;">Blog2Video</a>'
@@ -245,7 +256,7 @@ async def send_weekly_digest(to_email: str, publications: list, unsubscribe_toke
     payload = {
         "from": settings.NEWSLETTER_FROM_EMAIL,
         "to": [to_email],
-        "subject": "Top 5 posts this week",
+        "subject": subject,
         "html": body,
     }
 

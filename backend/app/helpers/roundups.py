@@ -76,16 +76,23 @@ async def top_for_month_per_category(
     *,
     month_start: date,
     month_end: date,
+    ascending: bool = False,
 ) -> list[Publication]:
     """Up to MONTHLY_LIMIT publications in `category` created within the given month,
-    ranked by engagement (upvotes + comments), excluding anything already featured.
-    May be empty."""
+    ranked by engagement (upvotes + comments), excluding anything in `exclude_ids`.
+
+    `ascending=False` (default) returns the highest-scored "top" picks; `exclude_ids`
+    is the cross-month no-duplicates guard. `ascending=True` returns the lowest-scored
+    "underrated" picks; here `exclude_ids` must include this month's top picks so a
+    publication never appears in both columns of the same roundup. May be empty.
+    """
     cc_sub = (
         select(Comment.publication_id, func.count(Comment.id).label("cnt"))
         .group_by(Comment.publication_id)
         .subquery("cc")
     )
     score_expr = Publication.upvote_count + func.coalesce(cc_sub.c.cnt, 0)
+    score_order = score_expr.asc() if ascending else score_expr.desc()
 
     stmt = (
         select(Publication)
@@ -93,7 +100,7 @@ async def top_for_month_per_category(
         .where(Publication.category == category)
         .where(Publication.created_at >= month_start)
         .where(Publication.created_at < month_end)
-        .order_by(score_expr.desc(), Publication.created_at.desc(), Publication.id.desc())
+        .order_by(score_order, Publication.created_at.desc(), Publication.id.desc())
     )
     if exclude_ids:
         stmt = stmt.where(Publication.id.notin_(exclude_ids))
@@ -126,25 +133,41 @@ async def generate_roundups(db: AsyncSession) -> dict:
     for category in await _distinct_categories(db):
         if category in existing_categories:
             continue
-        pubs = await top_for_month_per_category(
+        top_pubs = await top_for_month_per_category(
             db, category, exclude_ids, month_start=month_start, month_end=month_end
         )
-        if not pubs:
+        top_ids = [p.id for p in top_pubs]
+        # Underrated must exclude both prior-month features (exclude_ids) and this
+        # month's top picks, so no publication lands in both columns of one roundup.
+        underrated_pubs = await top_for_month_per_category(
+            db, category, exclude_ids | set(top_ids),
+            month_start=month_start, month_end=month_end, ascending=True,
+        )
+        if not top_pubs and not underrated_pubs:
             continue
 
-        pub_ids = [p.id for p in pubs]
+        underrated_ids = [p.id for p in underrated_pubs]
         roundup = FeaturedRoundup(
             slug=roundup_slug(category, month_start),
             category=category,
             week_start=month_start,
             title=roundup_title(category, month_start),
-            publication_ids=[str(pid) for pid in pub_ids],
+            publication_ids=[str(pid) for pid in top_ids],
+            underrated_ids=[str(pid) for pid in underrated_ids],
         )
         db.add(roundup)
-        # Reserve these ids so a later category in the same run can't reuse them
+        # Reserve the *top* ids so a later category in the same run can't reuse them
         # (a publication only lives in one category, but this keeps the guard total).
-        exclude_ids.update(pub_ids)
-        created.append({"category": category, "slug": roundup.slug, "count": len(pub_ids)})
+        # Underrated picks are intentionally not reserved — they're pure lowest score.
+        exclude_ids.update(top_ids)
+        created.append(
+            {
+                "category": category,
+                "slug": roundup.slug,
+                "count": len(top_ids),
+                "underrated_count": len(underrated_ids),
+            }
+        )
 
     await db.commit()
     return {"created": len(created), "roundups": created, "month": month_start.strftime("%Y-%m")}
