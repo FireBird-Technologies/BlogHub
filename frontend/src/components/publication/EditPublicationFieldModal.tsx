@@ -19,13 +19,15 @@ export type EditableField =
   | "basics"
   | "description"
   | "url"
-  | "additional_links";
+  | "additional_links"
+  | "all";
 
 const FIELD_TITLE: Record<EditableField, string> = {
   basics: "Edit publication",
   description: "Edit description",
   url: "Edit article URL",
   additional_links: "Edit related links",
+  all: "Resubmit publication",
 };
 
 const MAX_EXTRA = 5;
@@ -189,6 +191,39 @@ export default function EditPublicationFieldModal({
         };
         break;
       }
+      case "all": {
+        const t = title.trim();
+        if (!t) {
+          setError("Title is required");
+          return;
+        }
+        if (category === "__custom__" && !customCategory.trim()) {
+          setError("Please enter a category name");
+          return;
+        }
+        const u = url.trim();
+        if (!u) {
+          setError("URL is required");
+          return;
+        }
+        payload = {
+          ...base,
+          title: t,
+          url: u,
+          description: description.trim() || undefined,
+          image_url: imageUrl.trim() || undefined,
+          category: normalizeCategoryForStorage(category === "__custom__" ? customCategory : category),
+          tags: tagsStr
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean),
+          additional_links: extraSlots.map((link) => link.trim()).filter(Boolean),
+          social_links: socials
+            .map((s) => ({ label: s.label.trim(), url: s.url.trim() }))
+            .filter((s) => s.url && s.label),
+        };
+        break;
+      }
     }
 
     mutate({ id: publication.id, payload });
@@ -199,7 +234,7 @@ export default function EditPublicationFieldModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={FIELD_TITLE[field]}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-h-[min(70vh,640px)] overflow-y-auto pr-3 sm:pr-4">
-        {field === "basics" && (
+        {(field === "basics" || field === "all") && (
           <>
             <div>
               <label className="block text-xs text-gray-500 mb-1.5 font-medium">Title *</label>
@@ -342,6 +377,19 @@ export default function EditPublicationFieldModal({
           />
         )}
 
+        {field === "all" && (
+          <div>
+            <label className="block text-xs text-gray-500 mb-1.5 font-medium">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={6}
+              placeholder="Brief description…"
+              className={`${inputCls} resize-none`}
+            />
+          </div>
+        )}
+
         {field === "url" && (
           <input
             type="url"
@@ -353,8 +401,24 @@ export default function EditPublicationFieldModal({
           />
         )}
 
-        {field === "additional_links" && (
+        {field === "all" && (
+          <div>
+            <label className="block text-xs text-gray-500 mb-1.5 font-medium">Article URL *</label>
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              maxLength={2048}
+              className={inputCls}
+            />
+          </div>
+        )}
+
+        {(field === "additional_links" || field === "all") && (
           <div className="flex flex-col gap-2">
+            {field === "all" && (
+              <label className="block text-xs text-gray-500 font-medium">Related links</label>
+            )}
             <p className="text-xs text-gray-500">Up to {MAX_EXTRA} URLs.</p>
             {extraSlots.map((val, i) => (
               <input

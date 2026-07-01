@@ -197,6 +197,7 @@ async def send_weekly_digest(
     *,
     subject: str = "Top 5 posts this week",
     intro: str = "Here’s what was popular on BlogHub this week:",
+    utm_content: str = "weekly_digest",
 ) -> None:
     """Best-effort weekly digest email listing publications.
 
@@ -245,7 +246,7 @@ async def send_weekly_digest(
         f'<p style="margin:8px 0 16px;font-size:15px;color:#111827;line-height:1.6;">{html.escape(intro)}</p>'
         f'<table cellpadding="0" cellspacing="0" border="0" width="100%">{rows}</table>'
         '<p style="margin:32px 0 0;font-size:14px;color:#111827;line-height:1.6;">'
-        'Reach a 4x wider audience by using <a href="https://blog2video.app" style="color:#111827;text-decoration:underline;">Blog2Video</a>'
+        f'Reach a 4x wider audience by using <a href="https://blog2video.app?utm_source=bloghub&amp;utm_medium=email&amp;utm_campaign=blog2video&amp;utm_content={html.escape(utm_content)}" style="color:#111827;text-decoration:underline;">Blog2Video</a>'
         '</p>'
         f'<p style="margin:24px 0 0;font-size:12px;color:#9ca3af;">'
         f'<a href="{unsubscribe_url}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a>'

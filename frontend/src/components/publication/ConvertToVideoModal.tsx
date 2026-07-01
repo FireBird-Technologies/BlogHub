@@ -1,6 +1,7 @@
 import { Video, ExternalLink } from "lucide-react";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
+import { blog2videoUrl } from "../../lib/blog2video";
 
 interface ConvertToVideoModalProps {
   isOpen: boolean;
@@ -18,7 +19,7 @@ export default function ConvertToVideoModal({ isOpen, onClose }: ConvertToVideoM
           Convert your posts into videos
         </p>
         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-          <a href="https://blog2video.app" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+          <a href={blog2videoUrl("popup")} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
             <Button className="w-full justify-center">
               Convert to video
               <ExternalLink size={14} className="opacity-80" />
