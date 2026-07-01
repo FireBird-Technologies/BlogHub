@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../lib/api";
-import { ArrowLeft, ExternalLink, Tag, ArrowBigUp, MessageCircle, Calendar, Video, Trophy, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Tag, ArrowBigUp, MessageCircle, Calendar, Video, Trophy, Pencil, Trash2, RefreshCw } from "lucide-react";
 import Navbar from "../components/layout/Navbar";
 import Spinner from "../components/ui/Spinner";
 import Avatar from "../components/ui/Avatar";
@@ -23,6 +23,7 @@ import { resolveSocialIcon } from "../lib/socialIcons";
 import { useLinkEmbeds } from "../hooks/useLinkEmbeds";
 import { useDocumentMeta } from "../hooks/useDocumentMeta";
 import { parseShortIdFromParam, publicationPath } from "../lib/publicationUrl";
+import { blog2videoUrl } from "../lib/blog2video";
 import type { PublicationId, PaginatedPublications } from "../types/models";
 
 function formatDate(iso: string | undefined): string {
@@ -508,8 +509,19 @@ export default function PublicationDetail() {
             <div className="ml-auto flex flex-col items-end gap-2 flex-shrink-0">
               <div className="flex items-center gap-2">
                 <ClaimButton publication={pub} />
+                {isOwner && (
+                  <button
+                    type="button"
+                    onClick={() => openEdit("all")}
+                    className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-white border border-gray-200 text-xs font-medium
+                               text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors shadow-sm flex-shrink-0"
+                  >
+                    <RefreshCw size={12} className="text-red-500" />
+                    Resubmit
+                  </button>
+                )}
                 <a
-                  href="https://blog2video.app"
+                  href={blog2videoUrl("detail_page")}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-white border border-gray-200 text-xs font-medium
