@@ -233,7 +233,7 @@ export default function EditPublicationFieldModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={FIELD_TITLE[field]}>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-h-[min(70vh,640px)] overflow-y-auto pr-3 sm:pr-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 min-w-0 max-h-[min(70vh,640px)] overflow-y-auto thin-scrollbar -mr-2 pr-2">
         {(field === "basics" || field === "all") && (
           <>
             <div>
@@ -329,7 +329,7 @@ export default function EditPublicationFieldModal({
                             return next;
                           })
                         }
-                        className="w-28 shrink-0"
+                        className="w-24 sm:w-28 shrink-0"
                       />
                       <input
                         type="url"

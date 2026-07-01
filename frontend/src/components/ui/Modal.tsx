@@ -21,16 +21,16 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = "ma
 
   return ReactDOM.createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
       onClick={(e) => e.stopPropagation()}
     >
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
       <div
-        className={`relative z-10 w-full ${maxWidth} bg-white border border-gray-200
-                    rounded-2xl shadow-2xl shadow-black/10 max-h-[90vh] overflow-y-auto`}
+        className={`relative z-10 w-full ${maxWidth} min-w-0 bg-white border border-gray-200
+                    rounded-2xl shadow-2xl shadow-black/10 max-h-[90vh] overflow-y-auto overflow-x-hidden thin-scrollbar`}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-gray-100">
+          <h2 className="text-lg font-semibold text-gray-900 min-w-0 truncate">{title}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -39,7 +39,7 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = "ma
             <X size={18} />
           </button>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="p-4 sm:p-6">{children}</div>
       </div>
     </div>,
     document.body

@@ -50,7 +50,7 @@ function RankStat({ rank, timezoneLabel }: { rank: number | null | undefined; ti
 
   return (
     <div
-      className={`flex flex-col items-center justify-center gap-1 px-5 py-3 rounded-xl border min-w-[5.75rem] ${styles.wrap}`}
+      className={`flex flex-col items-center justify-center gap-1 px-2 sm:px-5 py-3 rounded-xl border ${styles.wrap}`}
       title={
         hasRank
           ? `That day’s rank #${rank} among posts with the same calendar date as this one (${timezoneLabel}). Score = upvotes + comments.`
@@ -97,7 +97,7 @@ function UpvoteInteractiveStat({
       onClick={handleClick}
       disabled={isPending}
       title={user ? "Tap to upvote or remove upvote" : "Sign in to upvote"}
-      className={`flex flex-col items-center gap-1 px-5 py-3 rounded-xl border transition-colors disabled:opacity-60
+      className={`flex flex-col items-center justify-center gap-1 px-2 sm:px-5 py-3 rounded-xl border transition-colors disabled:opacity-60
                   ${highlight ? wrapCls : `${wrapCls} hover:border-red-200 hover:bg-red-50/40`}
                   cursor-pointer`}
     >
@@ -137,7 +137,7 @@ function CommentScrollStat({
       type="button"
       onClick={handleClick}
       title={user ? "View comments" : "Sign in to comment"}
-      className="flex flex-col items-center gap-1 px-5 py-3 rounded-xl border bg-gray-50 border-gray-200
+      className="flex flex-col items-center justify-center gap-1 px-2 sm:px-5 py-3 rounded-xl border bg-gray-50 border-gray-200
                  transition-colors hover:border-red-200 hover:bg-red-50/40 cursor-pointer"
     >
       <MessageCircle size={15} className="text-gray-400" />
@@ -353,62 +353,75 @@ export default function PublicationDetail() {
     mutationFn: (publicationId: string) =>
       api.delete(`/api/publications/${publicationId}`).then((r) => r.data),
     onSuccess: (_data, deletedId) => {
-      queryClient.setQueriesData<{ pages: PaginatedPublications[]; pageParams: unknown[] }>(
-        { queryKey: ["publications"] },
-        (data) =>
-          data
-            ? {
-                ...data,
-                pages: data.pages.map((page) => {
-                  const items = page.items.filter((p) => p.id !== deletedId);
-                  const removed = page.items.length - items.length;
-                  return { ...page, items, total: Math.max(0, (page.total ?? 0) - removed) };
-                }),
-              }
-            : data
-      );
-      queryClient.setQueriesData<PaginatedPublications>(
-        { queryKey: ["publications-preview"] },
-        (data) =>
-          data
-            ? {
-                ...data,
-                items: data.items.filter((p) => p.id !== deletedId),
-                total: Math.max(0, (data.total ?? 0) - 1),
-              }
-            : data
-      );
-      queryClient.setQueriesData<{ pages: PaginatedPublications[]; pageParams: unknown[] }>(
-        { queryKey: ["user-publications"] },
-        (data) =>
-          data
-            ? {
-                ...data,
-                pages: data.pages.map((page) => {
-                  const items = page.items.filter((p) => p.id !== deletedId);
-                  const removed = page.items.length - items.length;
-                  return { ...page, items, total: Math.max(0, (page.total ?? 0) - removed) };
-                }),
-              }
-            : data
-      );
-      queryClient.setQueriesData<PaginatedPublications>(
-        { queryKey: ["sidebar-publications"] },
-        (data) =>
-          data
-            ? {
-                ...data,
-                items: data.items.filter((p) => p.id !== deletedId),
-                total: Math.max(0, (data.total ?? 0) - 1),
-              }
-            : data
-      );
-      queryClient.removeQueries({ queryKey: ["publication", deletedId] });
-      queryClient.invalidateQueries({ queryKey: ["publications"] });
-      queryClient.invalidateQueries({ queryKey: ["publications-preview"] });
-      queryClient.invalidateQueries({ queryKey: ["user-publications"] });
-      queryClient.invalidateQueries({ queryKey: ["sidebar-publications"] });
-      navigate("/dashboard");
+      // The server delete already succeeded here. Route to the dashboard first,
+      // then do best-effort cache cleanup — a throw in the cleanup must NOT flip
+      // this mutation into its error state (React Query v5 routes onSuccess throws
+      // to onError, which would wrongly show a "failed to delete" alert).
+      navigate("/dashboard", { replace: true });
+      try {
+        queryClient.setQueriesData<{ pages: PaginatedPublications[]; pageParams: unknown[] }>(
+          { queryKey: ["publications"] },
+          (data) =>
+            data
+              ? {
+                  ...data,
+                  pages: data.pages.map((page) => {
+                    const items = page.items.filter((p) => p.id !== deletedId);
+                    const removed = page.items.length - items.length;
+                    return { ...page, items, total: Math.max(0, (page.total ?? 0) - removed) };
+                  }),
+                }
+              : data
+        );
+        queryClient.setQueriesData<PaginatedPublications>(
+          { queryKey: ["publications-preview"] },
+          (data) =>
+            data
+              ? {
+                  ...data,
+                  items: data.items.filter((p) => p.id !== deletedId),
+                  total: Math.max(0, (data.total ?? 0) - 1),
+                }
+              : data
+        );
+        queryClient.setQueriesData<{ pages: PaginatedPublications[]; pageParams: unknown[] }>(
+          { queryKey: ["user-publications"] },
+          (data) =>
+            data
+              ? {
+                  ...data,
+                  pages: data.pages.map((page) => {
+                    const items = page.items.filter((p) => p.id !== deletedId);
+                    const removed = page.items.length - items.length;
+                    return { ...page, items, total: Math.max(0, (page.total ?? 0) - removed) };
+                  }),
+                }
+              : data
+        );
+        queryClient.setQueriesData<PaginatedPublications>(
+          { queryKey: ["sidebar-publications"] },
+          (data) =>
+            data
+              ? {
+                  ...data,
+                  items: data.items.filter((p) => p.id !== deletedId),
+                  total: Math.max(0, (data.total ?? 0) - 1),
+                }
+              : data
+        );
+        queryClient.removeQueries({ queryKey: ["publication", deletedId] });
+        queryClient.removeQueries({ queryKey: ["publication", shortId] });
+        queryClient.invalidateQueries({ queryKey: ["publications"] });
+        queryClient.invalidateQueries({ queryKey: ["publications-preview"] });
+        queryClient.invalidateQueries({ queryKey: ["user-publications"] });
+        queryClient.invalidateQueries({ queryKey: ["sidebar-publications"] });
+      } catch {
+        // Cache already partially updated; the dashboard will refetch on mount.
+      }
+    },
+    onError: () => {
+      setConfirmingDelete(false);
+      window.alert("Couldn't delete this publication. Please try again.");
     },
   });
 
@@ -506,8 +519,8 @@ export default function PublicationDetail() {
                 {tag}
               </span>
             ))}
-            <div className="ml-auto flex flex-col items-end gap-2 flex-shrink-0">
-              <div className="flex items-center gap-2">
+            <div className="ml-auto flex flex-col items-start gap-2 min-w-0">
+              <div className="flex flex-wrap items-center justify-start gap-2">
                 <ClaimButton publication={pub} />
                 {isOwner && (
                   <button
@@ -619,7 +632,7 @@ export default function PublicationDetail() {
             {isOwner && <EditButton onClick={() => openEdit("url")} label="Edit article URL" />}
           </div>
 
-          <div className="flex flex-wrap gap-3 items-stretch">
+          <div className="flex gap-3 items-stretch [&>*]:flex-1 [&>*]:min-w-0">
             <RankStat rank={pub.rank ?? null} timezoneLabel={tzShort} />
             <CommentScrollStat
               commentCount={pub.comment_count ?? 0}
