@@ -4,6 +4,7 @@ import { Search, ArrowRight } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import Button from "../ui/Button";
 import Avatar from "../ui/Avatar";
+import { blog2videoUrl } from "../../lib/blog2video";
 
 export default function LandingNavbar() {
   const navigate = useNavigate();
@@ -46,7 +47,7 @@ export default function LandingNavbar() {
             </Link>
             <ArrowRight size={12} className="text-gray-300 flex-shrink-0" />
             <a
-              href="https://blog2video.app"
+              href={blog2videoUrl("navbar")}
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm font-semibold text-gray-400 hover:text-red-500 transition-colors"
@@ -145,7 +146,7 @@ export default function LandingNavbar() {
             </Link>
             <ArrowRight size={12} className="text-gray-300 flex-shrink-0" />
             <a
-              href="https://blog2video.app"
+              href={blog2videoUrl("navbar")}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs font-semibold text-gray-400 hover:text-red-500 transition-colors"

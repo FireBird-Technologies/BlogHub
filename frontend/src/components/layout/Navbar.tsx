@@ -3,6 +3,7 @@ import { ArrowRight, LogOut } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import Avatar from "../ui/Avatar";
 import Button from "../ui/Button";
+import { blog2videoUrl } from "../../lib/blog2video";
 
 export default function Navbar() {
   const { user, loading, logout, openLoginModal } = useAuth();
@@ -19,7 +20,7 @@ export default function Navbar() {
           </Link>
           <ArrowRight size={13} className="text-gray-300 flex-shrink-0" />
           <a
-            href="https://blog2video.app"
+            href={blog2videoUrl("navbar")}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm font-semibold text-gray-400 hover:text-red-500 transition-colors"

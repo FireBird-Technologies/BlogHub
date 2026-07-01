@@ -103,7 +103,7 @@ async def send_weekly_digest_endpoint(
 
     for user_id, email, name in subscribers:
         token = create_unsubscribe_token(user_id)
-        await send_weekly_digest(email, pubs, token, name)
+        await send_weekly_digest(email, pubs, token, name, utm_content="top_weekly")
 
     return {"sent": len(subscribers), "posts": len(pubs)}
 
@@ -153,6 +153,7 @@ async def send_underrated_digest_endpoint(
             name,
             subject="5 hidden gems this week",
             intro="Here are some great posts that deserve more eyes:",
+            utm_content="underrated_weekly",
         )
 
     return {"sent": len(subscribers), "posts": len(pubs)}
