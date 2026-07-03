@@ -1,13 +1,18 @@
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Inbox } from "lucide-react";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/landing/Footer";
+import Pagination from "../components/ui/Pagination";
 import { useDocumentMeta } from "../hooks/useDocumentMeta";
 import { useJsonLd } from "../hooks/useJsonLd";
 import { useRoundups } from "../hooks/useRoundups";
 import { siteName } from "../content/siteContent";
 import { blogIndexSchema } from "../seo/schema";
 import type { RoundupSummary } from "../types/models";
+
+/** Max roundup cards shown per section page (desktop and mobile). */
+const ROUNDUPS_PER_PAGE = 6;
 
 function formatMonth(iso: string): string {
   const d = new Date(`${iso}T00:00:00`);
@@ -35,7 +40,7 @@ function RoundupCard({
   return (
     <Link
       to={to}
-      className="group flex flex-col bg-white border border-gray-200 rounded-2xl p-5
+      className="group flex flex-col bg-white border border-gray-200 rounded-2xl p-4
                  transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300
                  hover:shadow-xl hover:shadow-black/5"
     >
@@ -43,19 +48,36 @@ function RoundupCard({
         <span className="font-semibold uppercase tracking-wide text-gray-700">{roundup.category} |</span>
         <span>{formatMonth(roundup.week_start)}</span>
       </div>
-      <h3 className="text-base font-bold text-gray-900 mt-3 group-hover:text-red-600 transition-colors">
+      <h3 className="text-base font-bold text-gray-900 mt-2 group-hover:text-red-600 transition-colors">
         {isUnderrated
           ? `Underrated ${roundup.category} Blogs — ${formatMonth(roundup.week_start)}`
           : roundup.title}
       </h3>
-      <p className="text-sm text-gray-500 mt-2 flex-1">
+      <p className="text-sm text-gray-500 mt-1.5 flex-1">
         {isUnderrated ? underratedBlurb(roundup) : blurb(roundup)}
       </p>
-      <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 mt-4">
+      <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 mt-3">
         {isUnderrated ? "See underrated" : "Read roundup"}{" "}
         <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
       </span>
     </Link>
+  );
+}
+
+/** Centered empty state for a column with no cards on the current page. */
+function EmptyColumn({ message }: { message: string }) {
+  return (
+    <div className="flex flex-1 items-center justify-center min-h-[12rem]">
+      <div
+        className="flex flex-col items-center justify-center text-center w-full max-w-xs
+                   rounded-2xl border border-dashed border-gray-300 bg-white px-5 py-8"
+      >
+        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 text-gray-400">
+          <Inbox size={18} />
+        </div>
+        <p className="text-sm text-gray-500 mt-3">{message}</p>
+      </div>
+    </div>
   );
 }
 
@@ -71,11 +93,35 @@ export default function Blog() {
 
   const { data: roundups = [], isLoading } = useRoundups();
 
-  const sorted = [...roundups].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  // Newest first so the latest roundups land on page 1 of each column.
+  const sorted = useMemo(
+    () =>
+      [...roundups].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      ),
+    [roundups]
   );
-  const topRoundups = sorted.filter((r) => r.count > 0);
-  const underratedRoundups = sorted.filter((r) => r.underrated_count > 0);
+  const topRoundups = useMemo(() => sorted.filter((r) => r.count > 0), [sorted]);
+  const underratedRoundups = useMemo(
+    () => sorted.filter((r) => r.underrated_count > 0),
+    [sorted]
+  );
+
+  // One shared pagination controls both columns together.
+  const [page, setPage] = useState(1);
+
+  const totalPages = Math.max(
+    Math.ceil(topRoundups.length / ROUNDUPS_PER_PAGE),
+    Math.ceil(underratedRoundups.length / ROUNDUPS_PER_PAGE)
+  );
+  const topPageItems = topRoundups.slice(
+    (page - 1) * ROUNDUPS_PER_PAGE,
+    page * ROUNDUPS_PER_PAGE
+  );
+  const underratedPageItems = underratedRoundups.slice(
+    (page - 1) * ROUNDUPS_PER_PAGE,
+    page * ROUNDUPS_PER_PAGE
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -124,29 +170,34 @@ export default function Blog() {
         )}
 
         {!isLoading && roundups.length > 0 && (
+          <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10">
             {/* Left column — Top blogs */}
-            <section>
+            <section className="flex flex-col">
               <h2 className="text-lg font-bold text-gray-900">Top blogs</h2>
               <p className="text-sm text-gray-500 mt-1 mb-5">
                 The highest-rated blogs in each category this month.
               </p>
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                {topRoundups.map((roundup) => (
-                  <RoundupCard key={roundup.slug} roundup={roundup} variant="top" />
-                ))}
-              </div>
+              {topPageItems.length > 0 ? (
+                <div className="grid gap-6 sm:grid-cols-2">
+                  {topPageItems.map((roundup) => (
+                    <RoundupCard key={roundup.slug} roundup={roundup} variant="top" />
+                  ))}
+                </div>
+              ) : (
+                <EmptyColumn message="No more top picks on this page." />
+              )}
             </section>
 
             {/* Right column — Top underrated */}
-            <section>
+            <section className="flex flex-col">
               <h2 className="text-lg font-bold text-gray-900">Underrated</h2>
               <p className="text-sm text-gray-500 mt-1 mb-5">
                 The under scored blogs in each category — hidden gems that deserve more eyes.
               </p>
-              {underratedRoundups.length > 0 ? (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                  {underratedRoundups.map((roundup) => (
+              {underratedPageItems.length > 0 ? (
+                <div className="grid gap-6 sm:grid-cols-2">
+                  {underratedPageItems.map((roundup) => (
                     <RoundupCard
                       key={`underrated-${roundup.slug}`}
                       roundup={roundup}
@@ -155,14 +206,19 @@ export default function Blog() {
                   ))}
                 </div>
               ) : (
-                <div className="rounded-2xl border border-dashed border-gray-300 bg-white py-10 px-6 text-center">
-                  <p className="text-sm text-gray-500">
-                    No underrated picks yet — they appear once a category has blogs with least impressions.
-                  </p>
-                </div>
+                <EmptyColumn
+                  message={
+                    underratedRoundups.length > 0
+                      ? "No more underrated picks on this page."
+                      : "No underrated picks yet — they appear once a category has blogs with least impressions."
+                  }
+                />
               )}
             </section>
           </div>
+          {/* One shared pagination advances both columns together. */}
+          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+          </>
         )}
       </main>
 

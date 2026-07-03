@@ -66,17 +66,27 @@ async def list_publications(
     tag: str | None = Query(default=None),
     date_from: date | None = Query(default=None),
     date_to: date | None = Query(default=None),
+    tz: str | None = Query(
+        default=None,
+        description="IANA timezone the date_from/date_to calendar dates are expressed in "
+        "(browser tz recommended). Defaults to UTC.",
+    ),
     seed: int | None = Query(default=None),
     sort: str | None = Query(default="ranked"),
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_optional_user),
 ):
     user_id = current_user.id if current_user else None
+    # Build the date window in the viewer's timezone so "today" (etc.) matches the
+    # calendar day the user sees, then let the DB compare against UTC-stored
+    # created_at. Without this, a bare date treated as UTC drops publications near
+    # the local-day boundary.
+    filter_tz = ZoneInfo(_normalize_rank_tz(tz)) if (date_from or date_to) else timezone.utc
     created_from = (
-        datetime.combine(date_from, time.min, tzinfo=timezone.utc) if date_from else None
+        datetime.combine(date_from, time.min, tzinfo=filter_tz) if date_from else None
     )
     created_to = (
-        datetime.combine(date_to, time.max, tzinfo=timezone.utc) if date_to else None
+        datetime.combine(date_to, time.max, tzinfo=filter_tz) if date_to else None
     )
     return await build_publications_query(
         db,
