@@ -30,8 +30,12 @@ export function usePublications({
   dateFrom,
   dateTo,
 }: UsePublicationsParams) {
+  // The date_from/date_to bounds are calendar dates in the viewer's timezone;
+  // send that tz so the backend builds the day window in local time (only
+  // relevant when a date filter is active).
+  const tz = dateFrom || dateTo ? getClientTimezone() : undefined;
   return useInfiniteQuery<PaginatedPublications, Error>({
-    queryKey: ["publications", { category, search, sort, limit, tag, dateFrom, dateTo }],
+    queryKey: ["publications", { category, search, sort, limit, tag, dateFrom, dateTo, tz }],
     queryFn: ({ pageParam }) =>
       api
         .get<PaginatedPublications>("/api/publications", {
@@ -42,6 +46,7 @@ export function usePublications({
             tag: tag || undefined,
             date_from: dateFrom || undefined,
             date_to: dateTo || undefined,
+            tz,
             sort,
             limit,
           },

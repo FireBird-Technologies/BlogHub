@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
@@ -15,13 +15,16 @@ const PAGE_SIZE = 10;
 
 export default function Dashboard() {
   const { user, openLoginModal } = useAuth();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [category, setCategory] = useState("");
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [datePreset, setDatePreset] = useState<DatePreset>("");
   const [modalOpen, setModalOpen] = useState(false);
   const [searchResetKey, setSearchResetKey] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const p = Number(searchParams.get("page"));
+    return Number.isInteger(p) && p >= 1 ? p : 1;
+  });
 
   function clearFilters() {
     setCategory("");
@@ -32,29 +35,57 @@ export default function Dashboard() {
 
   const { dateFrom, dateTo } = useMemo(() => datePresetToRange(datePreset), [datePreset]);
 
+  // When a date filter is active, rank purely by score across the whole range
+  // (ignoring publish date) and render as a single flat list rather than
+  // day-grouped sections.
+  const dateFilterActive = !!datePreset;
+  const sort = dateFilterActive ? "ranked_global" : "ranked";
+
+  // Persist the current page in the URL so it survives navigation (e.g. opening a
+  // publication's detail page and hitting the browser Back button).
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (page <= 1) next.delete("page");
+        else next.set("page", String(page));
+        return next;
+      },
+      { replace: true },
+    );
+  };
+
   // Guests can view page 1 but must sign in to page beyond it.
   const handlePageChange = (page: number) => {
     if (!user && page !== 1) {
       openLoginModal();
       return;
     }
-    setCurrentPage(page);
+    goToPage(page);
   };
 
-  // Reset to page 1 when filters change
+  // Reset to page 1 when a filter actually changes value (not on mount, and not
+  // on StrictMode's dev remount) so a page restored from the URL is preserved.
+  const prevFilters = useRef({ category, search, datePreset });
   useEffect(() => {
-    setCurrentPage(1);
+    const p = prevFilters.current;
+    if (p.category !== category || p.search !== search || p.datePreset !== datePreset) {
+      prevFilters.current = { category, search, datePreset };
+      goToPage(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, search, datePreset]);
 
   const queryKey = [
     "publications",
-    { category, search, sort: "ranked", limit: PAGE_SIZE, dateFrom, dateTo },
+    { category, search, sort, limit: PAGE_SIZE, dateFrom, dateTo },
   ] as const;
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = usePublications({
     category,
     search,
-    sort: "ranked",
+    sort,
     limit: PAGE_SIZE,
     dateFrom,
     dateTo,
@@ -121,6 +152,7 @@ export default function Dashboard() {
           queryKey={queryKey}
           onSubmit={() => (user ? setModalOpen(true) : openLoginModal())}
           isLoading={isLoading}
+          flatRankedList={dateFilterActive}
         />
 
         <Pagination
