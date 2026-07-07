@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 from app.database import get_db
 from app.deps import get_optional_user
 from app.helpers.auth import create_unsubscribe_token
-from app.helpers.email import send_weekly_digest
+from app.helpers.email import send_blog2video_promo, send_weekly_digest
 from app.helpers.publications import _batch_claims, _batch_meta, _pub_to_out
 from app.models.publication import Publication
 from app.models.user import User
@@ -157,5 +157,26 @@ async def send_underrated_digest_endpoint(
         )
 
     return {"sent": len(subscribers), "posts": len(pubs)}
+
+
+@router.post("/publications/blog2video-promo/send-digest")
+async def send_blog2video_promo_endpoint(
+    x_cron_secret: str | None = Header(default=None, alias="X-Cron-Secret"),
+    db: AsyncSession = Depends(get_db),
+):
+    """Email the Blog2Video promo to all subscribed users. Triggered by an external cron job."""
+    if not settings.CRON_SECRET or x_cron_secret != settings.CRON_SECRET:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or missing cron secret")
+
+    result = await db.execute(
+        select(User.id, User.email, User.name).where(User.subscribed_only.is_(True))
+    )
+    subscribers = result.all()
+
+    for user_id, email, name in subscribers:
+        token = create_unsubscribe_token(user_id)
+        await send_blog2video_promo(email, token, name)
+
+    return {"sent": len(subscribers)}
 
 
