@@ -130,11 +130,24 @@ export interface FeaturedEmail {
   end_date?: string | null;
   subject: string;
   body: string;
+  /** Label of the button that links to the publication, e.g. "Read the article". */
+  button_text?: string | null;
   author_approved: boolean;
   admin_approved: boolean;
-  status: "draft" | "scheduled" | "sent" | "cancelled";
+  status: "draft" | "scheduled" | "sending" | "sent" | "cancelled";
+  /** A UTC instant: every subscriber receives it at the same moment. */
   scheduled_at?: string | null;
+  /** The IANA zone the author picked that time in, so we show it back as they typed it. */
+  author_timezone?: string | null;
   sent_at?: string | null;
+}
+
+/** The drafted announcement, fetched during checkout before the author pays. */
+export interface ComposedEmail {
+  subject: string;
+  body: string;
+  button_text: string;
+  suggested_send_at: string;
 }
 
 /** One of the author's own featured bookings, so they can track where it stands. */

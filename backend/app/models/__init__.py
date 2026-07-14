@@ -6,6 +6,7 @@ from app.models.publication_claim import PublicationClaim
 from app.models.roundup import FeaturedRoundup
 from app.models.featured_slot import FeaturedSlot
 from app.models.featured_email import FeaturedEmail
+from app.models.featured_email_recipient import FeaturedEmailRecipient
 
 __all__ = [
     "User",
@@ -16,4 +17,5 @@ __all__ = [
     "FeaturedRoundup",
     "FeaturedSlot",
     "FeaturedEmail",
+    "FeaturedEmailRecipient",
 ]

@@ -24,10 +24,11 @@ class Settings(BaseSettings):
     # Paid featured publication (Stripe)
     STRIPE_SECRET_KEY: str | None = None
     STRIPE_WEBHOOK_SECRET: str | None = None
-    # One-time Price (price_...) for a 7-day featured run, created in the Stripe
-    # dashboard. The amount lives in Stripe, so it can be changed without a deploy.
-    # Add a STRIPE_FEATURED_PRICE_ID_<N>D field per new duration tier.
+    # One-time Prices (price_...) for featured runs, created in the Stripe dashboard.
+    # The amount lives in Stripe, so it can be changed without a deploy.
     STRIPE_FEATURED_PRICE_ID_7D: str | None = None
+    STRIPE_FEATURED_PRICE_ID_14D: str | None = None
+    STRIPE_FEATURED_PRICE_ID_30D: str | None = None
     FEATURE_NOTIFY_EMAIL: str = "arslan@firebird-technologies.com"
     FEATURE_FROM_EMAIL: str = "BlogHub <featured@bloghub.app>"
 

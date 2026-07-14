@@ -10,12 +10,13 @@ import PublicationGrid from "../components/publication/PublicationGrid";
 import EditPublicationModal from "../components/publication/EditPublicationModal";
 import FeaturePublicationModal from "../components/featured/FeaturePublicationModal";
 import MarketingEmailModal from "../components/featured/MarketingEmailModal";
+import FeaturedAnalyticsModal from "../components/publication/FeaturedAnalyticsModal";
 import {
   useMyBookings,
   useMyFeaturedEmails,
   WEBHOOK_POLL_TIMEOUT_MS,
 } from "../hooks/useFeaturedEmail";
-import type { FeaturedEmail } from "../types/models";
+import type { FeaturedEmail, MyBooking } from "../types/models";
 import { ProfileModal } from "../components/auth/ProfileModal";
 import { useAuth } from "../context/AuthContext";
 import { useUserPublications } from "../hooks/useUserPublications";
@@ -79,6 +80,14 @@ export default function Profile() {
   const emailToView: FeaturedEmail | null =
     emails?.find((e) => e.id === openEmailId) ?? null;
 
+  // The publication + specific run the analytics modal is showing. Kept as a pair
+  // (not just an id) since the modal needs the publication's upvote/comment totals,
+  // which don't live on the booking itself.
+  const [analyticsTarget, setAnalyticsTarget] = useState<{
+    publication: Publication;
+    booking: MyBooking;
+  } | null>(null);
+
   // A publication can hold several runs, each with its own announcement — so collect
   // *all* of them, not just the first. The card turns them into a dropdown.
   const featuredInfo = (p: Publication) => ({
@@ -87,6 +96,7 @@ export default function Profile() {
     ),
     emails: (emails ?? []).filter((e) => e.publication_id === p.id),
     onOpenEmail: setOpenEmailId,
+    onOpenAnalytics: (booking: MyBooking) => setAnalyticsTarget({ publication: p, booking }),
   });
 
   if (!user) return null;
@@ -152,7 +162,7 @@ export default function Profile() {
                     Payment received — confirming your booking…
                   </span>
                 ) : (
-                  "Payment received — your dates are booked. Next: open the envelope button on your publication below to review and finalise its announcement email. Our team then approves the booking and it goes live on your start date."
+                  "Payment received — your dates are booked. Our team will review and approve it, then it goes live on your start date. Your announcement email will be set to scheduled once approved."
                 )
               ) : (
                 "Checkout cancelled. Your dates were not booked."
@@ -199,6 +209,14 @@ export default function Profile() {
         isOpen={Boolean(emailToView)}
         onClose={() => setOpenEmailId(null)}
       />
+      {analyticsTarget && (
+        <FeaturedAnalyticsModal
+          isOpen={Boolean(analyticsTarget)}
+          onClose={() => setAnalyticsTarget(null)}
+          publication={analyticsTarget.publication}
+          booking={analyticsTarget.booking}
+        />
+      )}
     </div>
   );
 }

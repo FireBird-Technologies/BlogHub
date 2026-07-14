@@ -7,11 +7,12 @@ two ranges overlap iff `a.start <= b.end AND a.end >= b.start`.
 
 import logging
 import uuid
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import stripe
 from fastapi import HTTPException, status
-from sqlalchemy import and_, or_, select, text, update
+from sqlalchemy import and_, delete, or_, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from starlette.concurrency import run_in_threadpool
@@ -37,16 +38,20 @@ logger = logging.getLogger(__name__)
 # duration_days -> price in cents. This is the *display* price (shown in the UI and
 # stored on the booking). The amount actually charged comes from the Stripe Price
 # below — see _stripe_price_id(). Keep the two in sync.
-FEATURE_PRICES_CENTS: dict[int, int] = {7: 3000}
+FEATURE_PRICES_CENTS: dict[int, int] = {7: 3000, 14: 6000, 30: 8000}
 
 
 def _stripe_price_id(duration_days: int) -> str | None:
     """The pre-created one-time Stripe Price (`price_...`) for a run of this length.
 
     Prices live in the Stripe dashboard rather than being sent per-session, so the
-    amount can be changed there without a deploy. Add a settings field per new tier.
+    amount can be changed there without a deploy.
     """
-    return {7: settings.STRIPE_FEATURED_PRICE_ID_7D}.get(duration_days)
+    return {
+        7: settings.STRIPE_FEATURED_PRICE_ID_7D,
+        14: settings.STRIPE_FEATURED_PRICE_ID_14D,
+        30: settings.STRIPE_FEATURED_PRICE_ID_30D,
+    }.get(duration_days)
 
 # How long a pending (unpaid) booking reserves its dates. Stripe's minimum
 # checkout-session lifetime is also 30 minutes, so we set both to the same value:
@@ -192,6 +197,50 @@ async def _find_own_hold(
     return result.scalar_one_or_none()
 
 
+def validate_send_time(
+    send_at: datetime, tz_name: str, start: date, end: date
+) -> tuple[datetime, str]:
+    """Check the author's chosen send time, and return it normalised to UTC.
+
+    The run is a span of *calendar days in the author's own timezone*, so the bounds
+    have to be built in that zone. Their last day ends at 23:59 Karachi time, which is
+    18:59 UTC — validating against UTC midnight would silently reject the final five
+    hours of their run.
+
+    Returns (utc_instant, iana_zone). Raises 400 on anything the browser got wrong.
+    """
+    try:
+        zone = ZoneInfo(tz_name)
+    except (ZoneInfoNotFoundError, ValueError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unknown timezone: {tz_name}",
+        ) from exc
+
+    # The browser sends a UTC instant. Anything naive we treat as UTC rather than guess.
+    if send_at.tzinfo is None:
+        send_at = send_at.replace(tzinfo=timezone.utc)
+    send_at = send_at.astimezone(timezone.utc)
+
+    if send_at <= datetime.now(timezone.utc):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The send time must be in the future.",
+        )
+
+    # The run's bounds, as instants, in the author's zone.
+    run_opens = datetime.combine(start, time.min, tzinfo=zone).astimezone(timezone.utc)
+    run_closes = datetime.combine(end, time.max, tzinfo=zone).astimezone(timezone.utc)
+
+    if not (run_opens <= send_at <= run_closes):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The send time must fall inside your featured run.",
+        )
+
+    return send_at, tz_name
+
+
 async def create_checkout(
     db: AsyncSession,
     *,
@@ -199,8 +248,17 @@ async def create_checkout(
     publication_id: uuid.UUID,
     start_date: date,
     duration_days: int,
+    email_subject: str,
+    email_body: str,
+    email_button_text: str,
+    email_scheduled_at: datetime,
+    email_timezone: str,
 ) -> FeatureCheckoutOut:
     """Reserve the range with a 30-minute hold and open a Stripe Checkout session.
+
+    The announcement email is composed and finalised by the author *before* they pay,
+    so it is saved here alongside the hold rather than being drafted by the webhook.
+    If they abandon checkout the hold lapses and the draft goes with it.
 
     Payment is confirmed by the Stripe webhook, never by the browser returning to
     the success URL.
@@ -249,6 +307,11 @@ async def create_checkout(
 
     end_date = slot_end_date(start_date, duration_days)
     amount_cents = FEATURE_PRICES_CENTS[duration_days]
+
+    # Validate before writing anything, so a bad send time can't leave a phantom hold.
+    send_at, tz_name = validate_send_time(
+        email_scheduled_at, email_timezone, start_date, end_date
+    )
 
     # Serialize the overlap check against concurrent buyers: a plain check-then-insert
     # would let two people booking the same week both pass.
@@ -309,6 +372,31 @@ async def create_checkout(
         db.add(slot)
 
     await db.flush()  # assign slot.id for the Stripe metadata
+
+    # Save the announcement the author just composed, against this hold. It is already
+    # finalised from their side (`author_approved`) — they wrote it and signed off on it
+    # before paying — but it stays a `draft` until the *admin* approves the booking.
+    # `maybe_schedule` needs both keys before it will ever schedule a send.
+    #
+    # Upsert, not insert: the hold is reused when a buyer re-does an abandoned checkout,
+    # and `slot_id` is unique on featured_emails.
+    from app.models.featured_email import FeaturedEmail
+
+    existing = await db.execute(
+        select(FeaturedEmail).where(FeaturedEmail.slot_id == slot.id)
+    )
+    email = existing.scalar_one_or_none()
+    if email is None:
+        email = FeaturedEmail(slot_id=slot.id, publication_id=pub.id)
+        db.add(email)
+    email.publication_id = pub.id  # they may have switched publication on a retry
+    email.subject = email_subject
+    email.body = email_body
+    email.button_text = email_button_text
+    email.scheduled_at = send_at
+    email.author_timezone = tz_name
+    email.author_approved = True
+    email.status = "draft"
 
     try:
         session = await run_in_threadpool(
@@ -452,6 +540,12 @@ async def handle_checkout_completed(db: AsyncSession, session_obj) -> None:
     # Two separate emails on purpose. The owner's carries the approve/reject buttons,
     # so the buyer must not be CC'd on it; the buyer gets their own receipt telling
     # them the booking is paid and under review.
+    from app.models.featured_email import FeaturedEmail
+
+    email_result = await db.execute(
+        select(FeaturedEmail).where(FeaturedEmail.slot_id == slot.id)
+    )
+    announcement_email = email_result.scalar_one_or_none()
     await send_feature_purchase_notification(
         slot=slot,
         publication=slot.publication,
@@ -463,18 +557,13 @@ async def handle_checkout_completed(db: AsyncSession, session_obj) -> None:
         buyer_name=slot.user.name if slot.user else None,
         publication=slot.publication,
         slot=slot,
+        announcement_email=announcement_email,
     )
 
-    # Draft the announcement now, so the author can review and approve it immediately
-    # rather than waiting on the admin. Best-effort: a drafting failure must not undo
-    # a payment we have already recorded, and the admin approval path will draft it
-    # if it is somehow missing.
-    try:
-        from app.helpers.featured_email import create_draft_for_slot
-
-        await create_draft_for_slot(db, slot)
-    except Exception:  # noqa: BLE001
-        logger.exception("Could not draft the announcement for slot %s", slot.id)
+    # The announcement is NOT drafted here. The author composed and finalised it during
+    # checkout, before paying, so it is already saved against this slot. A booking made
+    # some other way (inserted by hand) has no draft; `approve_draft_as_admin` falls
+    # back to drafting one when the admin approves.
 
     # Decide the booking's initial state now rather than making the buyer wait for the
     # next scheduler tick:
@@ -497,17 +586,23 @@ async def reconcile_slots(db: AsyncSession) -> ReconcileOut:
     now = datetime.now(timezone.utc)
     today = date.today()
 
-    # 1. Release holds that were never paid.
+    # 1. Delete holds that were never paid.
+    #
+    # Deleted outright, not just marked expired: an abandoned checkout has no history
+    # worth keeping, and the composed announcement hanging off it (`featured_emails`,
+    # FK ON DELETE CASCADE) goes with it. Leaving them as `expired` rows would pile up
+    # drafts for emails that will never be sent.
+    #
+    # Only ever touches `pending` rows whose 30-minute hold has lapsed. A paid booking
+    # is never deleted this way, so nobody can lose a booking they actually bought.
     released = await db.execute(
-        update(FeaturedSlot)
-        .where(
+        delete(FeaturedSlot).where(
             and_(
                 FeaturedSlot.status == "pending",
                 FeaturedSlot.hold_expires_at.is_not(None),
                 FeaturedSlot.hold_expires_at < now,
             )
         )
-        .values(status="expired", is_active=False)
     )
 
     # 2. Retire bookings whose run has ended.
@@ -667,6 +762,7 @@ async def approve_slot(db: AsyncSession, slot_id: uuid.UUID, *, approve: bool) -
                 publication=slot.publication,
                 slot=slot,
                 announcement_pending=bool(email and not email.author_approved),
+                announcement_email=email,
             )
         except Exception:  # noqa: BLE001
             logger.exception("Could not approve the announcement for slot %s", slot.id)

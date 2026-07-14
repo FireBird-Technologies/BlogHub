@@ -64,9 +64,15 @@ export function useMyFeaturedEmails(enabled = true, awaitingWebhook = false) {
 
 export function useUpdateFeaturedEmail() {
   const qc = useQueryClient();
-  return useMutation<FeaturedEmail, Error, { id: string; subject: string; body: string }>({
-    mutationFn: ({ id, subject, body }) =>
-      api.patch<FeaturedEmail>(`/api/featured/emails/${id}`, { subject, body }).then((r) => r.data),
+  return useMutation<
+    FeaturedEmail,
+    Error,
+    { id: string; subject: string; body: string; button_text: string }
+  >({
+    mutationFn: ({ id, subject, body, button_text }) =>
+      api
+        .patch<FeaturedEmail>(`/api/featured/emails/${id}`, { subject, body, button_text })
+        .then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
 }

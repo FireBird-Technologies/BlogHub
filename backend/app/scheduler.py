@@ -19,7 +19,11 @@ from app.helpers.featured_email import send_due_emails
 
 logger = logging.getLogger(__name__)
 
-RECONCILE_INTERVAL_SECONDS = 5 * 60 * 60  # every 5 hours
+# Every hour. Authors pick the exact hour their announcement goes out, so the tick has
+# to be at least that fine or the picker would be lying to them. The work is idempotent
+# and cheap (a couple of indexed queries when there's nothing to do), so running it more
+# often costs essentially nothing.
+RECONCILE_INTERVAL_SECONDS = 60 * 60
 
 # Wait before the first run so startup (and the Alembic migration in the entrypoint)
 # has settled before we touch the database.

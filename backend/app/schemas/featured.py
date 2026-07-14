@@ -24,10 +24,38 @@ class FeaturedAvailabilityOut(BaseModel):
     max_start_date: date
 
 
+class ComposeEmailIn(BaseModel):
+    """Ask for the drafted announcement, before paying."""
+
+    publication_id: uuid.UUID
+    start_date: date
+    duration_days: int = 7
+
+
+class ComposeEmailOut(BaseModel):
+    subject: str
+    body: str
+    #: Suggested default label for the publication-link button, e.g. "Read the
+    #: publication". The author can change it in the announcement step.
+    button_text: str
+    #: Suggested default: day 2 of the run at 09:00, as a UTC instant. The client shows
+    #: it in the author's own timezone.
+    suggested_send_at: datetime
+
+
 class FeatureCheckoutIn(BaseModel):
     publication_id: uuid.UUID
     start_date: date
     duration_days: int = 7
+    # The announcement, composed and finalised by the author *before* paying.
+    email_subject: str = Field(min_length=1, max_length=200)
+    email_body: str = Field(min_length=1, max_length=8000)
+    #: Label of the button that links to the publication.
+    email_button_text: str = Field(min_length=1, max_length=60)
+    #: A true UTC instant — the browser converts from the author's local date + hour.
+    email_scheduled_at: datetime
+    #: The IANA zone that instant was chosen in, e.g. "Asia/Karachi".
+    email_timezone: str = Field(min_length=1, max_length=64)
 
 
 class FeatureCheckoutOut(BaseModel):
@@ -100,6 +128,7 @@ class SlotReviewOut(BaseModel):
     # The announcement email the author has drafted for this booking.
     email_subject: str | None = None
     email_body: str | None = None
+    email_button_text: str | None = None
     email_finalised: bool = False  # the author has signed off on the wording
     email_status: str | None = None
 
@@ -116,10 +145,14 @@ class FeaturedEmailOut(BaseModel):
     end_date: date | None = None
     subject: str
     body: str
+    button_text: str | None = None
     author_approved: bool
     admin_approved: bool
     status: str
     scheduled_at: datetime | None = None
+    #: The IANA zone the author picked the send time in, so the UI can show it back
+    #: exactly as they entered it.
+    author_timezone: str | None = None
     sent_at: datetime | None = None
 
 
@@ -139,6 +172,7 @@ class MyBookingOut(BaseModel):
 class FeaturedEmailUpdateIn(BaseModel):
     subject: str = Field(min_length=1, max_length=200)
     body: str = Field(min_length=1, max_length=8000)
+    button_text: str = Field(min_length=1, max_length=60)
 
 
 class ReconcileOut(BaseModel):

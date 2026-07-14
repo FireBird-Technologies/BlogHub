@@ -14,19 +14,25 @@ from app.helpers.featured import (
     get_slot_for_review,
     record_click,
     reconcile_slots,
+    slot_end_date,
 )
 from app.helpers.featured_email import (
     approve_draft_as_author,
+    build_draft,
     get_author_drafts,
     get_email_for_slot,
+    suggested_send_at,
     update_draft,
 )
+from app.models.publication import Publication
 from app.helpers.email import send_support_request
 from app.schemas.featured import (
     ActiveFeatureOut,
     AdminPasswordIn,
     ApproveSlotOut,
     ApproveSlotRequest,
+    ComposeEmailIn,
+    ComposeEmailOut,
     SlotReviewOut,
     FeatureCheckoutIn,
     FeatureCheckoutOut,
@@ -64,19 +70,57 @@ async def featured_availability(
     return await get_availability(db, current_user.id if current_user else None)
 
 
+@router.post("/featured/compose", response_model=ComposeEmailOut)
+async def compose_featured_email(
+    payload: ComposeEmailIn,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Draft the announcement so the author can read and edit it *before* they pay.
+
+    Read-only: nothing is written until checkout. The author owns the copy from the
+    moment they see it, which is the point of moving this ahead of payment.
+    """
+    pub = await db.get(Publication, payload.publication_id)
+    if pub is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
+    if pub.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only feature your own publication.",
+        )
+
+    subject, body, button_text = build_draft(pub)
+    end = slot_end_date(payload.start_date, payload.duration_days)
+    return ComposeEmailOut(
+        subject=subject,
+        body=body,
+        button_text=button_text,
+        suggested_send_at=suggested_send_at(payload.start_date, end),
+    )
+
+
 @router.post("/featured/checkout", response_model=FeatureCheckoutOut)
 async def featured_checkout(
     payload: FeatureCheckoutIn,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    """Hold the dates for 30 minutes and return a Stripe Checkout URL to redirect to."""
+    """Hold the dates for 30 minutes and return a Stripe Checkout URL to redirect to.
+
+    Carries the announcement the author composed and signed off on in the wizard.
+    """
     return await create_checkout(
         db,
         user=current_user,
         publication_id=payload.publication_id,
         start_date=payload.start_date,
         duration_days=payload.duration_days,
+        email_subject=payload.email_subject.strip(),
+        email_body=payload.email_body.strip(),
+        email_button_text=payload.email_button_text.strip(),
+        email_scheduled_at=payload.email_scheduled_at,
+        email_timezone=payload.email_timezone.strip(),
     )
 
 
@@ -145,6 +189,7 @@ async def review_featured_slot(
         approval_status=slot.approval_status,
         email_subject=email.subject if email else None,
         email_body=email.body if email else None,
+        email_button_text=email.button_text if email else None,
         email_finalised=bool(email and email.author_approved),
         email_status=email.status if email else None,
     )
@@ -181,10 +226,12 @@ def _email_out(email) -> FeaturedEmailOut:
         end_date=slot.end_date if slot else None,
         subject=email.subject,
         body=email.body,
+        button_text=email.button_text,
         author_approved=email.author_approved,
         admin_approved=email.admin_approved,
         status=email.status,
         scheduled_at=email.scheduled_at,
+        author_timezone=email.author_timezone,
         sent_at=email.sent_at,
     )
 
@@ -233,7 +280,12 @@ async def edit_featured_email(
 ):
     """The author edits the announcement copy, while it is still a draft."""
     email = await update_draft(
-        db, email_id, current_user.id, subject=data.subject.strip(), body=data.body.strip()
+        db,
+        email_id,
+        current_user.id,
+        subject=data.subject.strip(),
+        body=data.body.strip(),
+        button_text=data.button_text.strip(),
     )
     return _email_out(email)
 

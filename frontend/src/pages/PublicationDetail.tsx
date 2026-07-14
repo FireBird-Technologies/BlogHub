@@ -24,7 +24,7 @@ import { useLinkEmbeds } from "../hooks/useLinkEmbeds";
 import { useDocumentMeta } from "../hooks/useDocumentMeta";
 import { parseShortIdFromParam, publicationPath } from "../lib/publicationUrl";
 import { blog2videoUrl } from "../lib/blog2video";
-import { outboundUrl } from "../lib/featuredUtm";
+import { outboundUrl, trackFeaturedClick } from "../lib/featuredUtm";
 import { useActiveFeature } from "../hooks/useFeatured";
 import type { PublicationId, PaginatedPublications } from "../types/models";
 
@@ -643,6 +643,7 @@ export default function PublicationDetail() {
               href={outboundUrl(pub.url, "main_link", isFeatured)}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackFeaturedClick(pub.id, isFeatured)}
               className="relative z-10 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700
                          text-white text-sm font-medium transition-colors shadow-sm shadow-red-600/20 cursor-pointer"
             >

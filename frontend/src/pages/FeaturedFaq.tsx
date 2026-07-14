@@ -21,8 +21,8 @@ export default function FeaturedFaq() {
 
       <LegalSection title="What does it cost?">
         <p>
-          $30 for 7 days. One payment, no subscription, nothing renews. When your week is up the
-          slot opens again.
+          $30 for 7 days, $60 for 14 days, or $80 for 30 days. One payment, no subscription,
+          nothing renews. When your run is up the slot opens again.
         </p>
       </LegalSection>
 

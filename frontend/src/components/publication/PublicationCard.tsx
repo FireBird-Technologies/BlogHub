@@ -36,6 +36,8 @@ interface PublicationCardProps {
   featuredEmails?: FeaturedEmail[];
   /** Opens one announcement by id. */
   onOpenEmail?: (emailId: string) => void;
+  /** Opens the analytics modal for a given featured run. */
+  onOpenAnalytics?: (booking: MyBooking) => void;
 }
 
 export default function PublicationCard({
@@ -47,6 +49,7 @@ export default function PublicationCard({
   featuredBookings,
   featuredEmails,
   onOpenEmail,
+  onOpenAnalytics,
 }: PublicationCardProps) {
   const navigate = useNavigate();
   const { user, openLoginModal } = useAuth();
@@ -82,12 +85,13 @@ export default function PublicationCard({
     >
       <div className="relative aspect-video bg-gray-100 overflow-hidden flex-shrink-0">
         {rank != null && rank > 0 && <RankBadge rank={rank} />}
-        {featuredBookings && featuredBookings.length > 0 && onOpenEmail && (
+        {featuredBookings && featuredBookings.length > 0 && onOpenEmail && onOpenAnalytics && (
           <div className="absolute top-2 right-2 z-10">
             <FeaturedSlotsMenu
               bookings={featuredBookings}
               emails={featuredEmails ?? []}
               onOpenEmail={onOpenEmail}
+              onOpenAnalytics={onOpenAnalytics}
             />
           </div>
         )}

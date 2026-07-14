@@ -23,6 +23,7 @@ interface PublicationGridProps {
     bookings: MyBooking[];
     emails: FeaturedEmail[];
     onOpenEmail: (emailId: string) => void;
+    onOpenAnalytics: (booking: MyBooking) => void;
   };
   isLoading?: boolean;
   ranked?: boolean;
@@ -110,6 +111,7 @@ export default function PublicationGrid({
             featuredBookings={info?.bookings}
             featuredEmails={info?.emails}
             onOpenEmail={info?.onOpenEmail}
+            onOpenAnalytics={info?.onOpenAnalytics}
           />
           );
         })}

@@ -5,10 +5,13 @@ import Button from "../ui/Button";
 import Spinner from "../ui/Spinner";
 import { useApproveFeaturedEmail, useUpdateFeaturedEmail } from "../../hooks/useFeaturedEmail";
 import { formatApiErrorDetail } from "../../lib/api";
+import { formatInZone } from "../../lib/dates";
 import type { FeaturedEmail } from "../../types/models";
 
-function formatWhen(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+/** Show the send time in the zone the author chose it in, so they see back the exact
+ *  time they typed even if they've since travelled. */
+function formatWhen(iso: string, zone?: string | null): string {
+  return `${formatInZone(iso, zone)}${zone ? ` (${zone})` : ""}`;
 }
 
 /** The announcement email for a featured publication.
@@ -29,6 +32,7 @@ export default function MarketingEmailModal({
 }) {
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
+  const [buttonText, setButtonText] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const update = useUpdateFeaturedEmail();
@@ -42,6 +46,7 @@ export default function MarketingEmailModal({
     if (isOpen && email) {
       setSubject(email.subject);
       setBody(email.body);
+      setButtonText(email.button_text ?? "Read the publication");
       setError(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -51,7 +56,10 @@ export default function MarketingEmailModal({
 
   // Finalised by the author, or already scheduled/sent — read-only from here.
   const locked = email.author_approved || email.status !== "draft";
-  const dirty = subject !== email.subject || body !== email.body;
+  const dirty =
+    subject !== email.subject ||
+    body !== email.body ||
+    buttonText !== (email.button_text ?? "Read the publication");
   const busy = update.isPending || approve.isPending;
 
   const field =
@@ -62,7 +70,7 @@ export default function MarketingEmailModal({
     setError(null);
     try {
       // Save any pending edits first, so they finalise exactly what they can see.
-      if (dirty) await update.mutateAsync({ id: email.id, subject, body });
+      if (dirty) await update.mutateAsync({ id: email.id, subject, body, button_text: buttonText });
       await approve.mutateAsync(email.id);
     } catch (err) {
       setError(formatApiErrorDetail(err, "Could not finalise the announcement."));
@@ -72,7 +80,7 @@ export default function MarketingEmailModal({
   const handleSave = async () => {
     setError(null);
     try {
-      await update.mutateAsync({ id: email.id, subject, body });
+      await update.mutateAsync({ id: email.id, subject, body, button_text: buttonText });
     } catch (err) {
       setError(formatApiErrorDetail(err, "Could not save your changes."));
     }
@@ -99,11 +107,17 @@ export default function MarketingEmailModal({
               {email.admin_approved ? (
                 email.status === "sent" ? (
                   <>This announcement has been sent to BlogHub subscribers.</>
+                ) : email.status === "sending" ? (
+                  <>This announcement is going out to BlogHub subscribers right now.</>
                 ) : (
                   <>
                     Approved by our team
                     {email.scheduled_at ? (
-                      <> — it goes out to subscribers on {formatWhen(email.scheduled_at)}.</>
+                      <>
+                        {" "}
+                        — it goes out to subscribers on{" "}
+                        {formatWhen(email.scheduled_at, email.author_timezone)}.
+                      </>
                     ) : (
                       <> and scheduled.</>
                     )}
@@ -111,8 +125,14 @@ export default function MarketingEmailModal({
                 )
               ) : (
                 <>
-                  You&apos;ve finalised this. Our team will approve it shortly, and it goes out to
-                  subscribers a day after your publication is featured.
+                  You&apos;ve signed this off. Once our team approves your booking it goes out to
+                  subscribers
+                  {email.scheduled_at ? (
+                    <> on {formatWhen(email.scheduled_at, email.author_timezone)}</>
+                  ) : (
+                    <> shortly afterwards</>
+                  )}
+                  .
                 </>
               )}
             </p>
@@ -153,10 +173,22 @@ export default function MarketingEmailModal({
           />
           {!locked && (
             <span className="text-[11px] text-gray-400">
-              <code>{"{name}"}</code> is replaced with each subscriber&apos;s name. A link to your
-              publication and an unsubscribe link are added automatically.
+              <code>{"{name}"}</code> is replaced with each subscriber&apos;s name. A button to
+              your publication and an unsubscribe link are added automatically.
             </span>
           )}
+        </label>
+
+        <label className="flex flex-col gap-1.5">
+          <span className="text-xs font-medium text-gray-600">Button text</span>
+          <input
+            className={`${field} ${locked ? "bg-gray-50 text-gray-600" : ""}`}
+            value={buttonText}
+            onChange={(e) => setButtonText(e.target.value)}
+            maxLength={60}
+            readOnly={locked}
+            placeholder="Read the publication"
+          />
         </label>
 
         {error && (
@@ -185,7 +217,12 @@ export default function MarketingEmailModal({
                 <Button variant="ghost" size="sm" onClick={handleSave} disabled={!dirty || busy}>
                   {update.isPending && !approve.isPending ? <Spinner size={14} /> : "Save"}
                 </Button>
-                <Button variant="primary" size="sm" onClick={handleFinalise} disabled={busy}>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleFinalise}
+                  disabled={busy || !subject.trim() || !body.trim() || !buttonText.trim()}
+                >
                   {approve.isPending ? (
                     <>
                       <Spinner size={14} /> Finalising…

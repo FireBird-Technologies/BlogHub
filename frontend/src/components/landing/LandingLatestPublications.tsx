@@ -161,7 +161,7 @@ export default function LandingLatestPublications() {
           </p>
         </div>
 
-        <FeaturedPublicationBanner className="mb-8 sm:mb-10" />
+        <FeaturedPublicationBanner className="mb-8 sm:mb-10" surface="landing" />
 
         {isLoading && (
           <div className="flex justify-center py-16">

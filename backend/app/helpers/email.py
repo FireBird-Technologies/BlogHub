@@ -1,6 +1,8 @@
 import html
 import logging
 import re
+from datetime import timezone
+from zoneinfo import ZoneInfo
 
 import httpx
 
@@ -18,6 +20,26 @@ def _publication_detail_url(pub) -> str:
     short_id = str(pub.id).replace("-", "")[:8].lower()
     path = f"/publications/{slug}-{short_id}" if slug else f"/publications/{short_id}"
     return f"{settings.FRONTEND_URL}{path}"
+
+
+def _format_feature_announcement_time(email) -> str | None:
+    """Author-facing scheduled send time, in the timezone they chose."""
+    send_at = getattr(email, "scheduled_at", None)
+    if send_at is None:
+        return None
+
+    tz_name = (getattr(email, "author_timezone", None) or "UTC").strip() or "UTC"
+    try:
+        zone = ZoneInfo(tz_name)
+    except Exception:  # noqa: BLE001
+        tz_name = "UTC"
+        zone = timezone.utc
+
+    if send_at.tzinfo is None:
+        send_at = send_at.replace(tzinfo=timezone.utc)
+    local = send_at.astimezone(zone)
+    label = f"{local.strftime('%b %d, %Y, %I:%M %p').replace(' 0', ' ')} ({tz_name})"
+    return html.escape(label)
 
 
 def _row(label: str, value: str) -> str:
@@ -274,6 +296,7 @@ async def send_feature_pending_review_notification(
     buyer_name: str | None,
     publication,
     slot,
+    announcement_email=None,
 ) -> None:
     """Receipt to the buyer: we have their money, and their booking is under review.
 
@@ -286,6 +309,16 @@ async def send_feature_pending_review_notification(
     pub_title = html.escape(publication.title or "your publication")
     dates = html.escape(f"{slot.start_date.isoformat()} → {slot.end_date.isoformat()}")
     greeting = f"Hi {html.escape(buyer_name)}," if buyer_name and buyer_name.strip() else "Hi,"
+    send_time = _format_feature_announcement_time(announcement_email)
+    send_time_html = (
+        f"""
+      <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
+        Your announcement email is set to send at <strong>{send_time}</strong>, after our team
+        approves the booking.
+      </p>"""
+        if send_time
+        else ""
+    )
 
     profile_url = html.escape(f"{settings.FRONTEND_URL}/profile")
 
@@ -297,10 +330,10 @@ async def send_feature_pending_review_notification(
         for <strong>{dates}</strong>.
       </p>
       <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
-        <strong>One thing to do.</strong> We&#39;ve drafted an announcement email about your
-        publication to send to BlogHub subscribers. Open your profile, read it through, change any
-        of the wording, then <strong>finalise</strong> it. Nothing is sent until you do.
+        We&#39;ve saved the announcement email you wrote for BlogHub subscribers. Nothing is sent
+        until our team approves the booking.
       </p>
+      {send_time_html}
       <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
         Our team then approves the booking, and your publication goes live at the top of the home
         page and dashboard on your start date. We&#39;ll email you when it&#39;s approved.
@@ -309,11 +342,12 @@ async def send_feature_pending_review_notification(
         <a href="{profile_url}"
            style="display:inline-block;background:#dc2626;color:#ffffff;font-size:14px;
                   font-weight:600;text-decoration:none;padding:12px 28px;border-radius:8px;">
-          Finalise your announcement
+          View your booking
         </a>
       </div>
       <p style="color:#9ca3af;font-size:12px;line-height:1.6;margin:20px 0 0;">
-        If anything looks wrong, just reply to this email.
+        If anything looks wrong, contact us at
+        <a href="mailto:{html.escape(settings.FEATURE_NOTIFY_EMAIL)}" style="color:#9ca3af;">{html.escape(settings.FEATURE_NOTIFY_EMAIL)}</a>.
       </p>
     </div>
     """
@@ -322,7 +356,7 @@ async def send_feature_pending_review_notification(
         "from": settings.FEATURE_FROM_EMAIL,
         "to": [to_email],
         "reply_to": settings.FEATURE_NOTIFY_EMAIL,
-        "subject": "Your BlogHub feature is booked — approve your announcement",
+        "subject": "Your BlogHub feature is booked",
         "html": body,
     }
 
@@ -346,6 +380,7 @@ async def send_feature_approved_notification(
     publication,
     slot,
     announcement_pending: bool,
+    announcement_email=None,
 ) -> None:
     """Tell the author their booking has been approved by our team."""
     if not settings.RESEND_API_KEY or not to_email:
@@ -355,6 +390,7 @@ async def send_feature_approved_notification(
     profile_url = html.escape(f"{settings.FRONTEND_URL}/profile")
     greeting = f"Hi {html.escape(author_name)}," if author_name and author_name.strip() else "Hi,"
     start = html.escape(slot.start_date.isoformat())
+    send_time = _format_feature_announcement_time(announcement_email)
 
     # Only nag them about the announcement if they still have to approve it.
     announcement_html = (
@@ -373,8 +409,14 @@ async def send_feature_approved_notification(
         if announcement_pending
         else f"""
       <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
+        Your announcement email is approved and scheduled — it goes out to BlogHub subscribers at
+        <strong>{send_time}</strong>. Nothing more for you to do.
+      </p>"""
+        if send_time
+        else f"""
+      <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
         Your announcement email is approved and scheduled — it goes out to BlogHub subscribers
-        a day after your publication goes live. Nothing more for you to do.
+        at the scheduled time. Nothing more for you to do.
       </p>"""
     )
 
@@ -415,20 +457,19 @@ async def send_featured_marketing_email(
     to_email: str,
     subject: str,
     body: str,
-    link_title: str,
+    button_text: str,
     link_url: str,
-    category: str | None = None,
-    author_name: str | None = None,
-    image_url: str | None = None,
     unsubscribe_token: str,
 ) -> None:
     """The announcement itself, to one subscriber.
 
     The author writes and approves plain text; we wrap it in minimal HTML here so the
-    publication's *title* can be the clickable link rather than a bare URL. The body
-    is escaped, so nothing an author types can inject markup, and the link and the
-    unsubscribe footer are rendered here rather than stored — an author editing the
-    draft cannot break or delete either.
+    publication link is a single button, labelled with whatever text the author chose
+    for it. Deliberately no cover image, title card, or category/author line — the
+    message is the author's own words plus one button, nothing else competing for
+    attention. The body is escaped, so nothing an author types can inject markup, and
+    the button and the unsubscribe footer are rendered here rather than stored — an
+    author editing the draft cannot break or delete either.
 
     Sent from the newsletter address, which is the sender subscribers already
     recognise. Never raises: one bad address must not stop the rest of the blast.
@@ -443,31 +484,10 @@ async def send_featured_marketing_email(
 
     # The author's plain text, escaped and with newlines preserved.
     body_html = html.escape(body).replace("\n", "<br>")
+    # link_url already carries the marketing-email UTM tag (added by the caller via
+    # _with_marketing_email_utm) — the button is the only outbound link here.
     safe_link_url = html.escape(link_url)
-    safe_link_title = html.escape(link_title)
-
-    # A small card for the publication: cover image, title, then its details. Every
-    # part is optional — a publication with no image or no category simply omits that
-    # row rather than rendering an empty one.
-    image_html = (
-        f'<a href="{safe_link_url}">'
-        f'<img src="{html.escape(image_url)}" alt="" width="100%"'
-        ' style="display:block;width:100%;max-width:472px;height:auto;border-radius:8px;'
-        'border:1px solid #e5e7eb;margin:0 0 14px;"></a>'
-        if image_url
-        else ""
-    )
-
-    meta_bits = []
-    if category:
-        meta_bits.append(html.escape(category))
-    if author_name:
-        meta_bits.append(f"by {html.escape(author_name)}")
-    meta_html = (
-        f'<p style="margin:0 0 10px;font-size:13px;color:#6b7280;">{" &middot; ".join(meta_bits)}</p>'
-        if meta_bits
-        else ""
-    )
+    safe_button_text = html.escape(button_text)
 
     html_body = (
         '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"></head>'
@@ -475,16 +495,9 @@ async def send_featured_marketing_email(
         "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;\">"
         '<div style="max-width:520px;margin:48px auto;padding:0 24px;text-align:left;">'
         f'<p style="margin:0 0 28px;font-size:15px;color:#111827;line-height:1.7;">{body_html}</p>'
-        '<div style="border:1px solid #e5e7eb;border-radius:12px;padding:16px;">'
-        f"{image_html}"
-        f"{meta_html}"
-        f'<p style="margin:0 0 14px;font-size:17px;font-weight:700;line-height:1.4;">'
-        f'<a href="{safe_link_url}" style="color:#111827;text-decoration:none;">{safe_link_title}</a>'
-        "</p>"
         f'<a href="{safe_link_url}" style="display:inline-block;background:#dc2626;color:#ffffff;'
         "font-size:14px;font-weight:600;text-decoration:none;padding:10px 22px;border-radius:8px;\">"
-        "Click to read the full publication</a>"
-        "</div>"
+        f"{safe_button_text}</a>"
         '<p style="margin:32px 0 0;font-size:12px;color:#9ca3af;">'
         f'<a href="{html.escape(unsubscribe_url)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a>'
         "</p>"

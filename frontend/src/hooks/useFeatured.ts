@@ -1,6 +1,11 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import api from "../lib/api";
-import type { ActiveFeature, FeatureCheckout, FeaturedAvailability } from "../types/models";
+import type {
+  ActiveFeature,
+  ComposedEmail,
+  FeatureCheckout,
+  FeaturedAvailability,
+} from "../types/models";
 
 /** The publication currently in the paid featured slot, or `null` if none is booked.
  *
@@ -29,10 +34,28 @@ export function useFeatureAvailability(enabled: boolean) {
   });
 }
 
+/** Draft the announcement so the author can read and edit it before paying. */
+export function useComposeEmail() {
+  return useMutation<
+    ComposedEmail,
+    Error,
+    { publication_id: string; start_date: string; duration_days: number }
+  >({
+    mutationFn: (vars) =>
+      api.post<ComposedEmail>("/api/featured/compose", vars).then((r) => r.data),
+  });
+}
+
 interface CheckoutVars {
   publication_id: string;
   start_date: string;
   duration_days: number;
+  email_subject: string;
+  email_body: string;
+  email_button_text: string;
+  /** A UTC instant (ISO). The browser converts from the author's local date + hour. */
+  email_scheduled_at: string;
+  email_timezone: string;
 }
 
 /** Holds the dates and hands back a Stripe Checkout URL; the caller redirects to it. */

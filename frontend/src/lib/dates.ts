@@ -87,3 +87,65 @@ export function buildBookedSet(booked: BookedRange[]): Set<string> {
   }
   return set;
 }
+
+/* ------------------------------------------------------------------------- *
+ * Send times are INSTANTS, not calendar days.
+ *
+ * Everything above deals in calendar days and deliberately never touches
+ * `toISOString()`, because converting a day to UTC shifts it for anyone west of
+ * Greenwich. The announcement send time is the opposite kind of value: it is one
+ * moment in time, the same moment for every subscriber. For that, `toISOString()`
+ * is exactly the right conversion. Don't cross the two.
+ * ------------------------------------------------------------------------- */
+
+/** The viewer's IANA timezone, e.g. "Asia/Karachi". */
+export function localZone(): string {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+}
+
+/** A local calendar day + hour -> the UTC instant it refers to.
+ *
+ * Building a Date from local parts and serialising it with `toISOString()` *is* the
+ * local→UTC conversion, and it gets DST right for free, because the browser applies
+ * its own zone rules. 9 PM in Karachi becomes 16:00Z.
+ */
+export function localDateHourToUtcISO(day: string, hour: number): string {
+  const [y, m, d] = day.split("-").map(Number);
+  return new Date(y, m - 1, d, hour, 0, 0, 0).toISOString();
+}
+
+/** Render a stored UTC instant in the zone the author chose it in.
+ *
+ * Falls back to the viewer's own zone when we have no stored zone (bookings made
+ * before the send-time picker existed).
+ */
+export function formatInZone(utcISO: string, zone?: string | null): string {
+  return new Date(utcISO).toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: zone || undefined,
+  });
+}
+
+/** The hour-of-day of a UTC instant, as seen in the given zone (0–23). */
+export function hourInZone(utcISO: string, zone?: string | null): number {
+  const s = new Date(utcISO).toLocaleString("en-GB", {
+    hour: "2-digit",
+    hour12: false,
+    timeZone: zone || undefined,
+  });
+  return Number(s.slice(0, 2));
+}
+
+/** The calendar day (YYYY-MM-DD) of a UTC instant, as seen in the given zone. */
+export function dayInZone(utcISO: string, zone?: string | null): string {
+  // en-CA formats as YYYY-MM-DD, which is exactly the shape we want.
+  return new Date(utcISO).toLocaleDateString("en-CA", { timeZone: zone || undefined });
+}
+
+/** "9:00 PM" for an hour 0–23. */
+export function formatHour(hour: number): string {
+  const suffix = hour < 12 ? "AM" : "PM";
+  const h12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${h12}:00 ${suffix}`;
+}

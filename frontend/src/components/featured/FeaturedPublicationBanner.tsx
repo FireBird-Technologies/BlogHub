@@ -1,15 +1,16 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
-import { ArrowBigUp, Eye, MessageCircle } from "lucide-react";
+import { useState, type MouseEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, MessageCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useActiveFeature } from "../../hooks/useFeatured";
 import FeaturePublicationModal from "./FeaturePublicationModal";
 import ContactSupportModal from "./ContactSupportModal";
+import CommentsModal from "../publication/CommentsModal";
+import UpvoteButton from "../publication/UpvoteButton";
 import Avatar from "../ui/Avatar";
-import { publicationPath } from "../../lib/publicationUrl";
-import { trackFeaturedClick } from "../../lib/featuredUtm";
+import { outboundUrl, trackFeaturedClick } from "../../lib/featuredUtm";
 import { formatCategoryDisplay } from "../../constants/categories";
+import { publicationPath } from "../../lib/publicationUrl";
 
 /** The card body — identical whether it holds a paid feature or the worked example,
  *  so an author sees exactly the listing they would be buying. */
@@ -18,6 +19,7 @@ interface CardContent {
   description?: string | null;
   category: string;
   image_url?: string | null;
+  image_wide?: boolean;
   author_name?: string;
   author_tag?: string;
   author_avatar?: string | null;
@@ -25,16 +27,14 @@ interface CardContent {
   comment_count?: number;
 }
 
-function CardBody({
-  pub,
-  clickCount,
-}: {
-  pub: CardContent;
-  clickCount?: number;
-}) {
+function CardBody({ pub }: { pub: CardContent }) {
   return (
     <div className="flex gap-3 mt-2">
-      <div className="flex-shrink-0 w-14 h-14 sm:w-20 sm:h-20 rounded-lg bg-white overflow-hidden border border-amber-200">
+      <div
+        className={`flex-shrink-0 h-14 sm:h-20 rounded-lg bg-white overflow-hidden border border-amber-200 ${
+          pub.image_wide ? "w-28 sm:w-40" : "w-14 sm:w-20"
+        }`}
+      >
         {pub.image_url ? (
           <img
             src={pub.image_url}
@@ -77,26 +77,6 @@ function CardBody({
               {pub.author_tag ? `@${pub.author_tag}` : pub.author_name}
             </span>
           </span>
-          <span className="flex items-center gap-1 text-xs font-semibold text-gray-500">
-            <ArrowBigUp width={18} height={13} />
-            {pub.upvote_count}
-          </span>
-          <span className="flex items-center gap-1 text-xs font-semibold text-gray-500">
-            <MessageCircle size={12} />
-            {pub.comment_count ?? 0}
-          </span>
-          {/* Shown from the first moment of the run, including at zero — a run with no
-              visits yet is information, not a reason to hide the counter. */}
-          {clickCount != null && (
-            <span
-              className="flex items-center gap-1 rounded-full border border-amber-200 bg-white/70
-                         px-2 py-0.5 text-xs font-semibold text-amber-700"
-              title="Visits BlogHub has sent to this publication during its featured run"
-            >
-              <Eye size={12} />
-              {clickCount.toLocaleString()} visit{clickCount === 1 ? "" : "s"}
-            </span>
-          )}
         </div>
       </div>
     </div>
@@ -114,13 +94,12 @@ const EXAMPLE_PUBLICATION = {
   description:
     "Paste a URL and get a narrated, captioned video ready for YouTube, Shorts and LinkedIn. Reach a 4x wider audience from writing you have already published.",
   category: "Tech",
-  // No cover image: CardBody falls back to the placeholder thumbnail.
-  image_url: null as string | null,
+  image_url: "/assets/Banner.PNG",
+  image_wide: true,
   author_name: "Blog2Video",
   author_tag: "admin.blog2video",
   upvote_count: 2228,
   comment_count: 994,
-  click_count: 3460,
 };
 
 /** FAQ / support links, sat above the card and right-aligned. */
@@ -146,18 +125,30 @@ const CARD_CLASSES = `group relative w-full text-left rounded-2xl border
 const PILL_CLASSES = `inline-flex items-center rounded-full bg-gradient-to-r from-amber-500
   to-yellow-500 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm`;
 
+interface FeaturedPublicationBannerProps {
+  className?: string;
+  /** Which page this card is rendered on — kept distinct in the outbound UTM tag
+   *  (`utm_content=landing_card` vs `dashboard_card`) so the buyer's own analytics
+   *  can tell which surface actually sent the click, not just that BlogHub did. */
+  surface: "landing" | "dashboard";
+}
+
 /** The paid featured publication, or — when the slot is open — the same card showing
  *  Blog2Video's real listing as a worked example of what the slot looks like.
  *
  * While the slot is still loading we render nothing rather than flashing the CTA at
  * someone who is about to see a real feature.
  */
-export default function FeaturedPublicationBanner({ className = "" }: { className?: string }) {
+export default function FeaturedPublicationBanner({
+  className = "",
+  surface,
+}: FeaturedPublicationBannerProps) {
   const { user, openLoginModal } = useAuth();
   const navigate = useNavigate();
   const { data, isLoading, isError } = useActiveFeature();
   const [featuring, setFeaturing] = useState(false);
   const [contacting, setContacting] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const slotIsOpen = !isLoading && !isError && !data;
 
   // An errored lookup is not the same as an empty slot: inviting someone to buy a
@@ -189,12 +180,12 @@ export default function FeaturedPublicationBanner({ className = "" }: { classNam
                 className="flex-shrink-0 rounded-full border border-amber-400 bg-amber-500 px-3 py-1
                            text-xs font-semibold text-white transition-colors group-hover:bg-amber-600"
               >
-                Get featured — $30
+                Get featured — from $30
               </span>
             </span>
           </div>
 
-          <CardBody pub={EXAMPLE_PUBLICATION} clickCount={EXAMPLE_PUBLICATION.click_count} />
+          <CardBody pub={EXAMPLE_PUBLICATION} />
         </button>
 
         <FeaturePublicationModal isOpen={featuring} onClose={() => setFeaturing(false)} />
@@ -204,16 +195,33 @@ export default function FeaturedPublicationBanner({ className = "" }: { classNam
   }
 
   const pub = data!.publication;
+  // Distinct per page, so the buyer's analytics can tell landing traffic from
+  // dashboard traffic rather than lumping every card click into one bucket.
+  const utmContent = surface === "landing" ? "landing_card" : "dashboard_card";
 
   const activate = () => {
-    if (!user) {
-      openLoginModal();
-      return; // a login prompt is not a visit — don't count it
-    }
     // This is the traffic the buyer paid for: someone clicking the featured card.
     // Fire-and-forget, so it can never delay or block the navigation.
     trackFeaturedClick(pub.id, true);
+    window.location.href = outboundUrl(pub.url, utmContent, true);
+  };
+
+  const openDetails = (e: MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      openLoginModal();
+      return;
+    }
     navigate(publicationPath(pub));
+  };
+
+  const openComments = (e: MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      openLoginModal();
+      return;
+    }
+    setCommentsOpen(true);
   };
 
   return (
@@ -230,6 +238,7 @@ export default function FeaturedPublicationBanner({ className = "" }: { classNam
             activate();
           }
         }}
+        title={`Visit ${pub.title} (opens the publication's own site)`}
         className={`${CARD_CLASSES} border-amber-300 cursor-pointer`}
       >
         <div className="flex items-center justify-between gap-3">
@@ -263,11 +272,48 @@ export default function FeaturedPublicationBanner({ className = "" }: { classNam
             upvote_count: pub.upvote_count,
             comment_count: pub.comment_count,
           }}
-          clickCount={data!.click_count}
         />
+
+        {/* Distinct from the card click above: these act on the publication inside
+            BlogHub (its detail page, its comments, its upvote), so each one stops
+            the click reaching the card and sending the visitor off-site instead.
+            Left-padded to line up under the title/description text rather than the
+            thumbnail (image width + the gap-3 from the row above). */}
+        <div
+          className="flex items-center gap-2 mt-2.5 pt-2.5 border-t border-amber-100/80
+                      pl-[68px] sm:pl-[92px]"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            onClick={openComments}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold
+                       bg-white/80 text-gray-600 border border-amber-200 transition-colors
+                       hover:border-amber-400 hover:bg-white hover:text-amber-700"
+          >
+            <MessageCircle size={13} />
+            {pub.comment_count ?? 0}
+          </button>
+          <UpvoteButton
+            publicationId={pub.id}
+            count={pub.upvote_count}
+            isUpvoted={pub.is_upvoted}
+            queryKey={["featured", "active"]}
+          />
+          <button
+            type="button"
+            onClick={openDetails}
+            className="ml-auto flex items-center gap-1 text-xs font-semibold text-amber-700
+                       underline underline-offset-2 transition-colors hover:text-amber-800"
+          >
+            Details
+            <ArrowRight size={13} />
+          </button>
+        </div>
       </article>
 
       <FeaturePublicationModal isOpen={featuring} onClose={() => setFeaturing(false)} />
+      <CommentsModal isOpen={commentsOpen} onClose={() => setCommentsOpen(false)} publication={pub} />
       <ContactSupportModal isOpen={contacting} onClose={() => setContacting(false)} />
     </div>
   );

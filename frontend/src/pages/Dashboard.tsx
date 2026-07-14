@@ -147,7 +147,7 @@ export default function Dashboard() {
           </Button>
         </div>
 
-        <FeaturedPublicationBanner className="mb-6 sm:mb-8" />
+        <FeaturedPublicationBanner className="mb-6 sm:mb-8" surface="dashboard" />
 
         <DashboardPublicationList
           currentPageData={currentPageData}

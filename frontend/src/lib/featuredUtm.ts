@@ -1,14 +1,18 @@
-// UTM tagging for outbound clicks on a *featured* publication's detail page.
+// UTM tagging for outbound clicks tied to a *featured* publication.
 //
 // A featured publication is bought and paid for, so the buyer wants to know what
 // the slot actually earned them. Tagging every outbound link they own lets their
 // own analytics (GA -> Acquisition -> Traffic acquisition) attribute the visit to
-// the BlogHub featured slot rather than to generic referral traffic.
-//
-// Break down by utm_content to see which link on the page was clicked:
-//   "main_link"       — the "Visit publication" button
-//   "additional_link" — one of the extra link embeds
-//   "social_link"     — one of the author's social profiles
+// the BlogHub featured slot rather than to generic referral traffic. `utm_source`
+// is always "bloghub" — every tagged link originates from us — while `utm_content`
+// distinguishes exactly which surface sent the click:
+//   "main_link"       — the "Visit publication" button on the detail page
+//   "additional_link" — one of the extra link embeds on the detail page
+//   "social_link"     — one of the author's social profiles on the detail page
+//   "landing_card"    — the featured card on the home page
+//   "dashboard_card"  — the featured card on the dashboard
+//   (the marketing email uses its own tagging — see backend app/helpers/email.py,
+//   utm_content="marketing_email" — since it isn't a click made in the browser here)
 
 const UTM = {
   utm_source: "bloghub",

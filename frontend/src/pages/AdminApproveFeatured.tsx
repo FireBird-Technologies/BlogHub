@@ -21,6 +21,7 @@ interface SlotReview {
   approval_status: string;
   email_subject: string | null;
   email_body: string | null;
+  email_button_text: string | null;
   email_finalised: boolean;
   email_status: string | null;
 }
@@ -251,6 +252,12 @@ export default function AdminApproveFeatured() {
                 <p className="mt-2 text-[13px] text-gray-600 whitespace-pre-wrap leading-relaxed">
                   {review.email_body}
                 </p>
+                <span
+                  className="mt-3 inline-block bg-red-600 text-white text-xs font-semibold
+                             px-3 py-1.5 rounded-lg"
+                >
+                  {review.email_button_text || "Read the publication"}
+                </span>
               </div>
             </>
           ) : (
