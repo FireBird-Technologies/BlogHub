@@ -114,12 +114,13 @@ const EXAMPLE_PUBLICATION = {
   description:
     "Paste a URL and get a narrated, captioned video ready for YouTube, Shorts and LinkedIn. Reach a 4x wider audience from writing you have already published.",
   category: "Tech",
-  image_url: "/assets/landing/image.png" as string | null,
+  // No cover image: CardBody falls back to the placeholder thumbnail.
+  image_url: null as string | null,
   author_name: "Blog2Video",
-  author_tag: "blog2video",
-  upvote_count: 128,
-  comment_count: 24,
-  click_count: 1460,
+  author_tag: "admin.blog2video",
+  upvote_count: 2228,
+  comment_count: 994,
+  click_count: 3460,
 };
 
 /** FAQ / support links, sat above the card and right-aligned. */
