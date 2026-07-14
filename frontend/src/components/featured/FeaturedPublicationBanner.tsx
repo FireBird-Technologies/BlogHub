@@ -300,15 +300,17 @@ export default function FeaturedPublicationBanner({
             isUpvoted={pub.is_upvoted}
             queryKey={["featured", "active"]}
           />
-          <button
-            type="button"
-            onClick={openDetails}
-            className="ml-auto flex items-center gap-1 text-xs font-semibold text-amber-700
-                       underline underline-offset-2 transition-colors hover:text-amber-800"
-          >
-            Details
-            <ArrowRight size={13} />
-          </button>
+          {!pub.is_unlisted && (
+            <button
+              type="button"
+              onClick={openDetails}
+              className="ml-auto flex items-center gap-1 text-xs font-semibold text-amber-700
+                         underline underline-offset-2 transition-colors hover:text-amber-800"
+            >
+              Details
+              <ArrowRight size={13} />
+            </button>
+          )}
         </div>
       </article>
 

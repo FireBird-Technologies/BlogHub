@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, ArrowLeft, Check } from "lucide-react";
+import { AlertCircle, ArrowLeft, Check, Link2 } from "lucide-react";
 import { isAxiosError } from "axios";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import Spinner from "../ui/Spinner";
 import CustomDropdown from "../ui/CustomDropdown";
 import FeatureCalendar from "./FeatureCalendar";
+import { useScrape } from "../../hooks/useScrape";
 import { useAuth } from "../../context/AuthContext";
 import { useUserPublications } from "../../hooks/useUserPublications";
 import {
   useComposeEmail,
   useCreateFeatureCheckout,
+  useCreatePublicationFromLink,
   useFeatureAvailability,
 } from "../../hooks/useFeatured";
 import AnnouncementStep, {
@@ -27,12 +29,35 @@ import {
   parseISODate,
   toISODate,
 } from "../../lib/dates";
-import { formatCategoryDisplay } from "../../constants/categories";
+import { CATEGORIES, formatCategoryDisplay, normalizeCategoryForStorage } from "../../constants/categories";
+import { normalizeLinkUrl } from "../../lib/urlNormalize";
 import type { Publication } from "../../types/models";
 
 const DEFAULT_DURATION = 7;
 
 type Step = "dates" | "publication" | "announcement";
+
+/** Everything the "Use a link" sub-flow needs to create the publication on Next —
+ *  filled in from the scrape, editable before saving. */
+interface LinkFields {
+  url: string;
+  title: string;
+  description: string;
+  image_url: string;
+  category: string;
+  customCategory: string;
+  tags: string;
+}
+
+const EMPTY_LINK_FIELDS: LinkFields = {
+  url: "",
+  title: "",
+  description: "",
+  image_url: "",
+  category: "",
+  customCategory: "",
+  tags: "",
+};
 
 function formatPrice(cents?: number): string {
   if (cents == null) return "—";
@@ -59,10 +84,22 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
   const [draft, setDraft] = useState<AnnouncementDraft | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Step 2 has two ways to pick what's being featured: one of the buyer's own
+  // publications, or an arbitrary link that isn't (yet) a publication at all — typed
+  // in, fetched, edited inline, and saved the moment "Next" is pressed (no separate
+  // confirm step of its own).
+  const [pubSource, setPubSource] = useState<"mine" | "link">("mine");
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkFields, setLinkFields] = useState<LinkFields>(EMPTY_LINK_FIELDS);
+  const [linkFetched, setLinkFetched] = useState(false);
+  const [linkUrlError, setLinkUrlError] = useState<string | null>(null);
+
   const availability = useFeatureAvailability(isOpen);
   const userPubs = useUserPublications(isOpen ? user?.id : undefined);
   const compose = useComposeEmail();
   const checkout = useCreateFeatureCheckout();
+  const createFromLink = useCreatePublicationFromLink();
+  const scrape = useScrape();
 
   // Reset to a clean slate each time the modal is opened.
   useEffect(() => {
@@ -73,8 +110,47 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
       setPublicationId(null);
       setDraft(null);
       setError(null);
+      setPubSource("mine");
+      setLinkUrl("");
+      setLinkFields(EMPTY_LINK_FIELDS);
+      setLinkFetched(false);
+      setLinkUrlError(null);
     }
   }, [isOpen]);
+
+  const handleFetchLink = () => {
+    setLinkUrlError(null);
+    const withScheme = linkUrl.includes("://") ? linkUrl : `https://${linkUrl}`;
+    const canonicalUrl = normalizeLinkUrl(withScheme);
+    if (!canonicalUrl) {
+      setLinkUrlError("Please enter a valid URL.");
+      return;
+    }
+    scrape.mutate(withScheme, {
+      onSuccess: (data) => {
+        setLinkFields({
+          url: canonicalUrl,
+          title: data.title ?? "",
+          description: data.description ?? "",
+          image_url: data.image_url ?? "",
+          category: "",
+          customCategory: "",
+          tags: "",
+        });
+        setLinkFetched(true);
+      },
+      onError: () => {
+        // Still let them fill the form in by hand even if scraping fails.
+        setLinkFields((f) => ({ ...f, url: canonicalUrl }));
+        setLinkFetched(true);
+      },
+    });
+  };
+
+  /** Resolved category name, honouring "Other / Custom…". */
+  const linkCategory =
+    linkFields.category === "__custom__" ? linkFields.customCategory : linkFields.category;
+  const linkFormValid = Boolean(linkFields.title.trim() && linkCategory.trim());
 
   const bookedDays = useMemo(
     () => buildBookedSet(availability.data?.booked ?? []),
@@ -95,16 +171,18 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
   );
   const priceLabel = formatPrice(availability.data?.prices[String(duration)]);
 
-  const publications: Publication[] = userPubs.data?.pages.flatMap((p) => p.items) ?? [];
+  // Publications created via "Use a link" are unlisted (not real submissions) — leave
+  // them out of this picker, they're only ever booked through that tab itself.
+  const publications: Publication[] =
+    userPubs.data?.pages.flatMap((p) => p.items).filter((pub) => !pub.is_unlisted) ?? [];
   const endDate = selectedStart ? addDays(selectedStart, duration - 1) : null;
 
-  /** Publication chosen — fetch the drafted announcement and move to the last step. */
-  const handleComposeNext = () => {
-    if (!selectedStart || !publicationId) return;
-    setError(null);
+  /** Fetch the drafted announcement for a chosen publication and move to the last step. */
+  const runCompose = (pubId: string) => {
+    if (!selectedStart) return;
     compose.mutate(
       {
-        publication_id: publicationId,
+        publication_id: pubId,
         start_date: toISODate(selectedStart),
         duration_days: duration,
       },
@@ -117,6 +195,41 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
         },
         onError: (err) =>
           setError(formatApiErrorDetail(err, "Could not draft your announcement.")),
+      },
+    );
+  };
+
+  /** "Next" from step 2: an existing publication goes straight to compose; a link
+   *  is saved to the DB first (creating the unlisted publication behind it), then
+   *  compose runs immediately after — one click, no separate confirm step. */
+  const handleComposeNext = () => {
+    if (!selectedStart) return;
+    setError(null);
+
+    if (pubSource === "mine") {
+      if (!publicationId) return;
+      runCompose(publicationId);
+      return;
+    }
+
+    if (!linkFormValid) return;
+    createFromLink.mutate(
+      {
+        url: linkFields.url,
+        title: linkFields.title.trim(),
+        description: linkFields.description.trim() || undefined,
+        image_url: linkFields.image_url.trim() || undefined,
+        category: normalizeCategoryForStorage(
+          linkFields.category === "__custom__" ? linkFields.customCategory : linkFields.category,
+        ),
+        tags: linkFields.tags.split(",").map((t) => t.trim()).filter(Boolean),
+      },
+      {
+        onSuccess: (pub) => {
+          setPublicationId(pub.id);
+          runCompose(pub.id);
+        },
+        onError: (err) => setError(formatApiErrorDetail(err, "Could not save that link.")),
       },
     );
   };
@@ -247,55 +360,197 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
               Which publication should run in the featured slot?
             </p>
 
-            {userPubs.isLoading ? (
-              <div className="flex justify-center py-10">
-                <Spinner size={24} />
-              </div>
-            ) : publications.length === 0 ? (
-              <p className="text-sm text-gray-500 py-8 text-center">
-                You have no publications yet — submit one first.
-              </p>
-            ) : (
-              <ul className="flex flex-col gap-2 max-h-64 overflow-y-auto thin-scrollbar list-none p-0 m-0">
-                {publications.map((pub) => {
-                  const selected = pub.id === publicationId;
-                  return (
-                    <li key={pub.id}>
-                      <button
-                        type="button"
-                        onClick={() => setPublicationId(pub.id)}
-                        className={`w-full flex items-center gap-3 text-left rounded-xl border p-2.5 transition-colors ${
-                          selected
-                            ? "border-red-300 bg-red-50/50"
-                            : "border-gray-200 hover:border-gray-300"
-                        }`}
-                      >
-                        <div className="flex-shrink-0 w-11 h-11 rounded-lg bg-gray-100 overflow-hidden">
-                          {pub.image_url && (
-                            <img
-                              src={pub.image_url}
-                              alt=""
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.currentTarget.style.display = "none";
-                              }}
-                            />
+            <div className="flex gap-1 rounded-lg bg-gray-100 p-1 text-sm font-medium">
+              <button
+                type="button"
+                onClick={() => setPubSource("mine")}
+                className={`flex-1 rounded-md py-1.5 transition-colors ${
+                  pubSource === "mine" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
+                }`}
+              >
+                Your publications
+              </button>
+              <button
+                type="button"
+                onClick={() => setPubSource("link")}
+                className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 transition-colors ${
+                  pubSource === "link" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
+                }`}
+              >
+                <Link2 size={13} /> Use a link
+              </button>
+            </div>
+
+            {pubSource === "mine" ? (
+              userPubs.isLoading ? (
+                <div className="flex justify-center py-10">
+                  <Spinner size={24} />
+                </div>
+              ) : publications.length === 0 ? (
+                <p className="text-sm text-gray-500 py-8 text-center">
+                  You have no publications yet — submit one first, or use the "Use a link" tab.
+                </p>
+              ) : (
+                <ul className="flex flex-col gap-2 max-h-64 overflow-y-auto thin-scrollbar list-none p-0 m-0">
+                  {publications.map((pub) => {
+                    const selected = pub.id === publicationId;
+                    return (
+                      <li key={pub.id}>
+                        <button
+                          type="button"
+                          onClick={() => setPublicationId(pub.id)}
+                          className={`w-full flex items-center gap-3 text-left rounded-xl border p-2.5 transition-colors ${
+                            selected
+                              ? "border-red-300 bg-red-50/50"
+                              : "border-gray-200 hover:border-gray-300"
+                          }`}
+                        >
+                          <div className="flex-shrink-0 w-11 h-11 rounded-lg bg-gray-100 overflow-hidden">
+                            {pub.image_url && (
+                              <img
+                                src={pub.image_url}
+                                alt=""
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = "none";
+                                }}
+                              />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 truncate">{pub.title}</p>
+                            <p className="text-xs text-gray-400">
+                              {formatCategoryDisplay(pub.category)}
+                            </p>
+                          </div>
+                          {selected && (
+                            <Check size={16} className="text-red-600 flex-shrink-0" />
                           )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-gray-900 truncate">{pub.title}</p>
-                          <p className="text-xs text-gray-400">
-                            {formatCategoryDisplay(pub.category)}
-                          </p>
-                        </div>
-                        {selected && (
-                          <Check size={16} className="text-red-600 flex-shrink-0" />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )
+            ) : (
+              <div className="flex flex-col gap-3">
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={linkUrl}
+                    onChange={(e) => {
+                      setLinkUrl(e.target.value);
+                      setLinkFetched(false);
+                    }}
+                    onKeyDown={(e) => e.key === "Enter" && handleFetchLink()}
+                    placeholder="https://example.com/your-page"
+                    className="flex-1 bg-white border border-gray-200 text-gray-800 text-sm rounded-lg
+                               px-3 py-2.5 placeholder:text-gray-400 focus:outline-none
+                               focus:border-red-400 focus:ring-1 focus:ring-red-400/20"
+                  />
+                  <Button type="button" onClick={handleFetchLink} disabled={!linkUrl || scrape.isPending}>
+                    {scrape.isPending ? <Spinner size={16} /> : "Fetch"}
+                  </Button>
+                </div>
+                {linkUrlError && <p className="text-red-600 text-sm">{linkUrlError}</p>}
+
+                {linkFetched && (
+                  <div className="flex flex-col gap-3 pt-1 border-t border-gray-100">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-28 h-28 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden">
+                        {linkFields.image_url && (
+                          <img
+                            src={linkFields.image_url}
+                            alt=""
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                            }}
+                          />
                         )}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+                      </div>
+                      <div className="flex-1 min-w-0 flex flex-col gap-2">
+                        <label className="flex flex-col gap-1.5">
+                          <span className="text-xs font-medium text-gray-600">Image URL</span>
+                          <input
+                            type="url"
+                            value={linkFields.image_url}
+                            onChange={(e) => setLinkFields((f) => ({ ...f, image_url: e.target.value }))}
+                            placeholder="https://example.com/image.png"
+                            className="w-full bg-white border border-gray-200 text-gray-800 text-xs rounded-lg
+                                       px-3 py-2 placeholder:text-gray-400 focus:outline-none
+                                       focus:border-red-400 focus:ring-1 focus:ring-red-400/20"
+                          />
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <label className="flex flex-col gap-1.5">
+                            <span className="text-xs font-medium text-gray-600">Category *</span>
+                            <CustomDropdown
+                              value={linkFields.category}
+                              options={[
+                                ...CATEGORIES.map((c) => ({ value: c, label: c })),
+                                { value: "__custom__", label: "Other / Custom…" },
+                              ]}
+                              onChange={(v) => setLinkFields((f) => ({ ...f, category: v }))}
+                              placeholder="Select…"
+                              buttonClassName="text-gray-900 text-xs py-2 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100"
+                            />
+                            {linkFields.category === "__custom__" && (
+                              <input
+                                type="text"
+                                value={linkFields.customCategory}
+                                onChange={(e) =>
+                                  setLinkFields((f) => ({ ...f, customCategory: e.target.value }))
+                                }
+                                placeholder="e.g. Gaming"
+                                maxLength={64}
+                                className="w-full bg-white border border-gray-200 text-gray-800 text-xs rounded-lg
+                                           px-3 py-2 mt-1 placeholder:text-gray-400 focus:outline-none
+                                           focus:border-red-400 focus:ring-1 focus:ring-red-400/20"
+                              />
+                            )}
+                          </label>
+                          <label className="flex flex-col gap-1.5">
+                            <span className="text-xs font-medium text-gray-600">Tags</span>
+                            <input
+                              type="text"
+                              value={linkFields.tags}
+                              onChange={(e) => setLinkFields((f) => ({ ...f, tags: e.target.value }))}
+                              placeholder="ai, ux"
+                              className="w-full bg-white border border-gray-200 text-gray-800 text-xs rounded-lg
+                                         px-3 py-2 placeholder:text-gray-400 focus:outline-none
+                                         focus:border-red-400 focus:ring-1 focus:ring-red-400/20"
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                    <label className="flex flex-col gap-1.5">
+                      <span className="text-xs font-medium text-gray-600">Title *</span>
+                      <input
+                        type="text"
+                        value={linkFields.title}
+                        onChange={(e) => setLinkFields((f) => ({ ...f, title: e.target.value }))}
+                        maxLength={512}
+                        className="w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-lg
+                                   px-3 py-2 placeholder:text-gray-400 focus:outline-none
+                                   focus:border-red-400 focus:ring-1 focus:ring-red-400/20"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1.5">
+                      <span className="text-xs font-medium text-gray-600">Description</span>
+                      <textarea
+                        value={linkFields.description}
+                        onChange={(e) => setLinkFields((f) => ({ ...f, description: e.target.value }))}
+                        rows={5}
+                        className="w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-lg
+                                   px-3 py-2 placeholder:text-gray-400 focus:outline-none resize-none
+                                   focus:border-red-400 focus:ring-1 focus:ring-red-400/20"
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
             )}
 
             <div className="rounded-xl bg-gray-50 border border-gray-100 p-3 flex flex-col gap-1.5 text-sm">
@@ -325,10 +580,18 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
               <Button
                 variant="primary"
                 size="sm"
-                disabled={!publicationId || compose.isPending}
+                disabled={
+                  pubSource === "mine"
+                    ? !publicationId || compose.isPending
+                    : !linkFormValid || createFromLink.isPending || compose.isPending
+                }
                 onClick={handleComposeNext}
               >
-                {compose.isPending ? (
+                {createFromLink.isPending ? (
+                  <>
+                    <Spinner size={14} /> Processing…
+                  </>
+                ) : compose.isPending ? (
                   <>
                     <Spinner size={14} /> Drafting…
                   </>

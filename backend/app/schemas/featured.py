@@ -131,6 +131,10 @@ class SlotReviewOut(BaseModel):
     email_button_text: str | None = None
     email_finalised: bool = False  # the author has signed off on the wording
     email_status: str | None = None
+    # A UTC instant: when the announcement is due to send. The author picked this in
+    # their own timezone, stored here alongside for display.
+    email_scheduled_at: datetime | None = None
+    email_timezone: str | None = None
 
 
 class FeaturedEmailOut(BaseModel):

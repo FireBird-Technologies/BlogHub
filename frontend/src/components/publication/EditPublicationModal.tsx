@@ -11,6 +11,7 @@ import {
   initLinkSocialRows,
   emptySocialRow,
 } from "../submit/PublicationLinksStep";
+import { useScrape } from "../../hooks/useScrape";
 import api, { formatApiErrorDetail } from "../../lib/api";
 import { publicationShortId } from "../../lib/publicationUrl";
 import type { Publication, SocialLinkInput } from "../../types/models";
@@ -54,6 +55,7 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
   const [fieldError, setFieldError] = useState("");
   const [extraSlots, setExtraSlots] = useState(() => initLinkExtraSlots([]));
   const [socials, setSocials] = useState<SocialLinkInput[]>(() => [emptySocialRow()]);
+  const scrape = useScrape();
 
   useEffect(() => {
     if (!publication || !isOpen) return;
@@ -70,6 +72,28 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
     setExtraSlots(initLinkExtraSlots(publication.additional_links ?? []));
     setSocials(initLinkSocialRows(publication.social_links ?? []));
   }, [publication, isOpen]);
+
+  // For an unlisted (link-only) publication, re-fetch its image/title/description
+  // live as the URL is edited — there's no separate "Use a link" review step here,
+  // so this is the only chance to refresh them. Debounced so it doesn't fire on
+  // every keystroke, and skipped on the very first render (the seeded URL is
+  // already correct, no need to re-scrape what we just loaded).
+  useEffect(() => {
+    if (!isOpen || !publication?.is_unlisted) return;
+    if (!url.trim() || url === publication.url) return;
+    const timer = setTimeout(() => {
+      const withScheme = url.includes("://") ? url : `https://${url}`;
+      scrape.mutate(withScheme, {
+        onSuccess: (data) => {
+          if (data.title) setTitle(data.title);
+          if (data.description) setDescription(data.description);
+          if (data.image_url) setImageUrl(data.image_url);
+        },
+      });
+    }, 600);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url, isOpen, publication?.is_unlisted, publication?.url]);
 
   const publicationId = publication?.id;
 
@@ -178,14 +202,35 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
         </div>
 
         <div>
-          <label className="block text-xs text-gray-500 mb-1.5 font-medium">Image URL</label>
-          <input
-            type="url"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            placeholder="https://…"
-            className={inputCls}
-          />
+          <label className="block text-xs text-gray-500 mb-1.5 font-medium">
+            Image URL
+            {publication.is_unlisted && scrape.isPending && (
+              <span className="ml-1.5 inline-flex items-center gap-1 text-gray-400 font-normal normal-case">
+                <Spinner size={10} /> fetching…
+              </span>
+            )}
+          </label>
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-16 h-16 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden">
+              {imageUrl && (
+                <img
+                  src={imageUrl}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              )}
+            </div>
+            <input
+              type="url"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="https://…"
+              className={`${inputCls} flex-1 min-w-0`}
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -226,13 +271,15 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
           </div>
         </div>
 
-        <PublicationLinksFields
-          extraSlots={extraSlots}
-          setExtraSlots={setExtraSlots}
-          socials={socials}
-          setSocials={setSocials}
-          inputCls={inputCls}
-        />
+        {!publication.is_unlisted && (
+          <PublicationLinksFields
+            extraSlots={extraSlots}
+            setExtraSlots={setExtraSlots}
+            socials={socials}
+            setSocials={setSocials}
+            inputCls={inputCls}
+          />
+        )}
 
         {(fieldError || saveError) && (
           <p className="text-red-600 text-sm">{fieldError || saveError}</p>

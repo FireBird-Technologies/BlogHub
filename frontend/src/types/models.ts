@@ -31,6 +31,9 @@ export interface Publication {
   rank?: number | null;
   is_upvoted: boolean;
   is_verified: boolean;
+  /** Created from an arbitrary link for a featured slot — has no reachable public
+   *  detail page, so "View details" should not be offered for it. */
+  is_unlisted?: boolean;
   verified_at: string | null;
   my_claim_status: "none" | "pending" | "rejected";
   created_at: string;
@@ -92,6 +95,17 @@ export interface PublicationDraft {
 export interface SocialLinkInput {
   label: string;
   url: string;
+}
+
+/** Create (or reuse) an unlisted publication to back a featured slot, from an
+ *  arbitrary URL — see `POST /api/publications/from-link`. */
+export interface PublicationFromLinkPayload {
+  url: string;
+  title: string;
+  description?: string;
+  image_url?: string;
+  category: string;
+  tags?: string[];
 }
 
 /** Paid featured slot: a booked date range. Dates are inclusive `YYYY-MM-DD` strings. */

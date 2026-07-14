@@ -414,19 +414,18 @@ async def get_email_for_slot(db: AsyncSession, slot_id: uuid.UUID) -> FeaturedEm
 
 
 async def get_author_drafts(db: AsyncSession, user_id: uuid.UUID) -> list[FeaturedEmail]:
-    """Marketing emails for this author's bookings that they can still act on."""
+    """Marketing emails for this author's bookings — every status, not just the ones
+    still awaiting action. The card's mail icon uses this list to decide whether to
+    show at all, so a sent/sending announcement must stay in it (just read-only) or
+    it disappears from the card the moment it goes out.
+    """
     result = await db.execute(
         select(FeaturedEmail)
         # `slot` is eager-loaded too: the API exposes each announcement's date range, so
         # an author with several runs on one publication can tell them apart.
         .options(selectinload(FeaturedEmail.publication), selectinload(FeaturedEmail.slot))
         .join(FeaturedSlot, FeaturedSlot.id == FeaturedEmail.slot_id)
-        .where(
-            and_(
-                FeaturedSlot.user_id == user_id,
-                FeaturedEmail.status.in_(("draft", "scheduled")),
-            )
-        )
+        .where(FeaturedSlot.user_id == user_id)
         .order_by(FeaturedEmail.created_at.desc())
     )
     return list(result.scalars().all())

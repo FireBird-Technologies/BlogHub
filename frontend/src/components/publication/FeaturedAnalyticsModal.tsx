@@ -1,4 +1,4 @@
-import { Eye, MessageCircle, ArrowBigUp } from "lucide-react";
+import { MessageCircle, ArrowBigUp, Eye } from "lucide-react";
 import Modal from "../ui/Modal";
 import type { MyBooking, Publication } from "../../types/models";
 
@@ -62,10 +62,10 @@ export default function FeaturedAnalyticsModal({
   publication,
   booking,
 }: FeaturedAnalyticsModalProps) {
-  const views = booking?.click_count ?? 0;
+  const clicks = booking?.click_count ?? 0;
   const upvotes = publication.upvote_count;
   const comments = publication.comment_count;
-  const max = Math.max(views, upvotes, comments, 1);
+  const max = Math.max(clicks, upvotes, comments, 1);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Analytics" maxWidth="max-w-md">
@@ -82,8 +82,8 @@ export default function FeaturedAnalyticsModal({
         <div className="grid grid-cols-3 gap-3">
           <StatCard
             icon={<Eye size={13} />}
-            label="Views"
-            value={views}
+            label="Clicks"
+            value={clicks}
             accent="text-amber-600"
           />
           <StatCard
@@ -101,13 +101,13 @@ export default function FeaturedAnalyticsModal({
         </div>
 
         <div className="flex flex-col gap-2.5 pt-1">
-          <StatBar label="Views" value={views} max={max} color="bg-amber-500" />
+          <StatBar label="Clicks" value={clicks} max={max} color="bg-amber-500" />
           <StatBar label="Upvotes" value={upvotes} max={max} color="bg-red-500" />
           <StatBar label="Comments" value={comments} max={max} color="bg-blue-500" />
         </div>
 
         <p className="text-[11px] text-gray-400 pt-1 border-t border-gray-100">
-          Views count clicks on the featured card only, while your publication is live in the
+          Clicks count clicks on the featured card only, while your publication is live in the
           slot. Upvotes and comments are totals for the publication overall, not just this run.
         </p>
       </div>

@@ -100,6 +100,7 @@ async def top_for_month_per_category(
         .where(Publication.category == category)
         .where(Publication.created_at >= month_start)
         .where(Publication.created_at < month_end)
+        .where(Publication.is_unlisted.is_(False))
         .order_by(score_order, Publication.created_at.desc(), Publication.id.desc())
     )
     if exclude_ids:

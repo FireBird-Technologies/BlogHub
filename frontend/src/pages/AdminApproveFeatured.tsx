@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { CheckCircle2, Clock, ExternalLink, ShieldCheck, ShieldX } from "lucide-react";
 import api, { formatApiErrorDetail } from "../lib/api";
 import Spinner from "../components/ui/Spinner";
+import { formatInZone } from "../lib/dates";
 
 type Decision = "approved" | "rejected";
 
@@ -24,6 +25,8 @@ interface SlotReview {
   email_button_text: string | null;
   email_finalised: boolean;
   email_status: string | null;
+  email_scheduled_at: string | null;
+  email_timezone: string | null;
 }
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
@@ -245,6 +248,15 @@ export default function AdminApproveFeatured() {
                   The author hasn&apos;t finalised this yet, so the wording may still change. You
                   can still approve the booking — the announcement will only send once they
                   finalise it.
+                </p>
+              )}
+              {review.email_scheduled_at && (
+                <p className="text-xs text-gray-500 mb-3">
+                  Scheduled to send{" "}
+                  <span className="font-medium text-gray-700">
+                    {formatInZone(review.email_scheduled_at, review.email_timezone)}
+                    {review.email_timezone ? ` (${review.email_timezone})` : ""}
+                  </span>
                 </p>
               )}
               <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">

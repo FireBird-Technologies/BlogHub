@@ -5,6 +5,8 @@ import type {
   ComposedEmail,
   FeatureCheckout,
   FeaturedAvailability,
+  Publication,
+  PublicationFromLinkPayload,
 } from "../types/models";
 
 /** The publication currently in the paid featured slot, or `null` if none is booked.
@@ -66,5 +68,15 @@ export function useCreateFeatureCheckout() {
     onSuccess: (data) => {
       window.location.href = data.checkout_url;
     },
+  });
+}
+
+/** Create (or reuse) an unlisted publication from an arbitrary URL, to feature
+ *  something that was never submitted to BlogHub. Reusing the same URL under the
+ *  same account is idempotent — it just returns the existing row. */
+export function useCreatePublicationFromLink() {
+  return useMutation<Publication, Error, PublicationFromLinkPayload>({
+    mutationFn: (payload) =>
+      api.post<Publication>("/api/publications/from-link", payload).then((r) => r.data),
   });
 }

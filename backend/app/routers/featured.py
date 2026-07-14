@@ -192,6 +192,8 @@ async def review_featured_slot(
         email_button_text=email.button_text if email else None,
         email_finalised=bool(email and email.author_approved),
         email_status=email.status if email else None,
+        email_scheduled_at=email.scheduled_at if email else None,
+        email_timezone=email.author_timezone if email else None,
     )
 
 
@@ -263,7 +265,8 @@ async def my_featured_emails(
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    """Announcement drafts for this author's bookings, awaiting their approval."""
+    """Announcements for this author's bookings, at every status — draft, scheduled,
+    sending, sent, cancelled — so the card can keep showing one even after it sends."""
     drafts = await get_author_drafts(db, current_user.id)
     return [
         _email_out(d)

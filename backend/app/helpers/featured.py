@@ -61,6 +61,10 @@ HOLD_MINUTES = 30
 # How far ahead a slot may be booked.
 BOOKING_HORIZON_DAYS = 180
 
+# Minimum lead time before a booking's start date — gives our team a full day to
+# review and approve it before the run is meant to begin.
+MIN_LEAD_DAYS = 2
+
 CURRENCY = "usd"
 
 # Statuses that reserve their dates. `expired`/`cancelled` rows never block.
@@ -120,7 +124,7 @@ async def get_availability(
             for s in slots
         ],
         prices=dict(FEATURE_PRICES_CENTS),
-        min_start_date=today,
+        min_start_date=today + timedelta(days=MIN_LEAD_DAYS),
         max_start_date=today + timedelta(days=BOOKING_HORIZON_DAYS),
     )
 
@@ -286,9 +290,11 @@ async def create_checkout(
         )
 
     today = date.today()
-    if start_date < today:
+    min_start = today + timedelta(days=MIN_LEAD_DAYS)
+    if start_date < min_start:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Start date must be today or later."
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Start date must be at least {MIN_LEAD_DAYS} days from today.",
         )
     if start_date > today + timedelta(days=BOOKING_HORIZON_DAYS):
         raise HTTPException(

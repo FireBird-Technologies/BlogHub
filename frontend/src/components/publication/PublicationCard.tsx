@@ -75,10 +75,20 @@ export default function PublicationCard({
     }
   };
 
+  // Created from an arbitrary link for a featured slot — it has no reachable public
+  // detail page, so the card should go straight to the external URL instead.
+  const handleCardClick = () => {
+    if (publication.is_unlisted) {
+      window.open(publication.url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    navigate(publicationPath(publication));
+  };
+
   return (
     <article
       role="presentation"
-      onClick={() => navigate(publicationPath(publication))}
+      onClick={handleCardClick}
       className="group bg-white border border-gray-200 rounded-xl overflow-hidden cursor-pointer
                  transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300
                  hover:shadow-lg hover:shadow-black/5 flex flex-col"

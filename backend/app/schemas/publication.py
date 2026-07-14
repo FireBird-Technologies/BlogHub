@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pydantic import AnyHttpUrl, BaseModel, ConfigDict, field_validator
 
-from app.helpers.url_normalize import normalize_publication_url
+from app.helpers.url_normalize import normalize_link_url, normalize_publication_url
 from app.schemas.user import UserOut
 from app.models.publication import normalize_category
 
@@ -72,6 +72,34 @@ class PublicationUpdate(_PublicationWritableFields):
     """Owner-only full replace of editable fields (same body as create)."""
 
 
+class PublicationFromLinkCreate(BaseModel):
+    """Create (or reuse) an unlisted publication to back a featured slot, from an
+    arbitrary URL the buyer wants to advertise — not a normal public submission, so
+    no additional_links/social_links (kept minimal for a quick review step)."""
+
+    url: str
+    title: str
+    description: str | None = None
+    image_url: str | None = None
+    category: str
+    tags: list[str] = []
+
+    @field_validator("url")
+    @classmethod
+    def normalize_url(cls, v: str) -> str:
+        # Unlike a publication submission, keep the full path — this may be a
+        # specific product/article/landing page, not a site's homepage.
+        canonical = normalize_link_url(v)
+        if not canonical:
+            raise ValueError("url must be a valid URL")
+        return canonical
+
+    @field_validator("category")
+    @classmethod
+    def validate_category(cls, v: str) -> str:
+        return normalize_category(v)
+
+
 class SocialLinkOut(BaseModel):
     label: str
     url: str
@@ -94,6 +122,10 @@ class PublicationOut(BaseModel):
     rank: int | None = None
     is_upvoted: bool = False
     is_verified: bool = False
+    # Created from an arbitrary link for a featured slot rather than a normal
+    # submission — has no reachable public detail page, so the frontend should not
+    # offer a "View details" link for it.
+    is_unlisted: bool = False
     verified_at: datetime | None = None
     my_claim_status: str = "none"  # none | pending | rejected
     created_at: datetime

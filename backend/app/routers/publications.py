@@ -23,6 +23,7 @@ from app.schemas.claim import ApproveClaimRequest, ClaimCreate, ClaimOut, Resubm
 from app.schemas.publication import (
     PaginatedPublications,
     PublicationCreate,
+    PublicationFromLinkCreate,
     PublicationOut,
     PublicationUpdate,
     ResubmitRequiredResponse,
@@ -213,6 +214,49 @@ async def create_publication(
     await db.commit()
     response.status_code = status.HTTP_201_CREATED
     pub_id = pub.id
+
+    created = await get_publication_by_id(db, pub_id, current_user.id)
+    if not created:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to load publication")
+    return created
+
+
+@router.post("/publications/from-link", response_model=PublicationOut, status_code=status.HTTP_201_CREATED)
+async def create_publication_from_link(
+    data: PublicationFromLinkCreate,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Create (or reuse) an unlisted publication to back a featured slot, from any
+    URL the buyer wants to advertise — not a normal submission, so no claim/verified
+    conflict handling: an unlisted row was never publicly listed for anyone to claim.
+    """
+    result = await db.execute(select(Publication).where(Publication.url == data.url))
+    existing = result.scalar_one_or_none()
+
+    if existing:
+        if existing.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="This link is already on BlogHub under another account.",
+            )
+        response.status_code = status.HTTP_200_OK
+        pub_id = existing.id
+    else:
+        pub = Publication(
+            user_id=current_user.id,
+            url=data.url,
+            title=data.title.strip(),
+            description=data.description,
+            image_url=data.image_url,
+            category=data.category,
+            tags=[t.strip().lower() for t in data.tags if t.strip()],
+            is_unlisted=True,
+        )
+        db.add(pub)
+        await db.commit()
+        pub_id = pub.id
 
     created = await get_publication_by_id(db, pub_id, current_user.id)
     if not created:
