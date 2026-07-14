@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     # Weekly digest (cron-triggered)
     CRON_SECRET: str | None = None
     NEWSLETTER_FROM_EMAIL: str = "BlogHub <topposts@bloghub.app>"
+    NO_REPLY_FROM_EMAIL: str = "BlogHub <noreply@bloghub.app>"
     # Paid featured publication (Stripe)
     STRIPE_SECRET_KEY: str | None = None
     STRIPE_WEBHOOK_SECRET: str | None = None

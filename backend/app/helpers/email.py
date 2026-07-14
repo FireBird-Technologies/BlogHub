@@ -656,3 +656,64 @@ async def send_weekly_digest(
             logger.warning("Resend weekly digest email failed (%s): %s", resp.status_code, resp.text)
     except Exception as exc:  # noqa: BLE001
         logger.warning("Resend weekly digest email error: %s", exc)
+
+
+async def send_blog2video_promo(
+    to_email: str,
+    unsubscribe_token: str,
+    name: str | None = None,
+) -> None:
+    """Best-effort Blog2Video promo email.
+
+    Shares the same minimal, no-frills layout and unsubscribe flow as the weekly
+    digest. Never raises: if Resend is not configured or the request fails, we log
+    a warning and return.
+    """
+    if not settings.RESEND_API_KEY:
+        logger.warning("Blog2Video promo email skipped: RESEND_API_KEY not configured.")
+        return
+
+    unsubscribe_url = html.escape(
+        f"{settings.BACKEND_URL}/api/users/unsubscribe-digest?token={unsubscribe_token}"
+    )
+    greeting = html.escape(name) if name and name.strip() else "there"
+
+    body = (
+        '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"></head>'
+        '<body style="margin:0;padding:0;background:#fff;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">'
+        '<div style="max-width:520px;margin:48px auto;padding:0 24px;text-align:left;">'
+        f'<p style="margin:0 0 16px;font-size:15px;color:#111827;line-height:1.6;">Hey {greeting},</p>'
+        '<p style="margin:0 0 16px;font-size:15px;color:#111827;line-height:1.6;">'
+        '<a href="https://blog2video.app?utm_source=bloghub&amp;utm_medium=email&amp;utm_campaign=blog2video&amp;utm_content=blog2video_promo" style="color:#111827;text-decoration:underline;">Blog2video.app</a> '
+        'turns your blog posts into branded videos and helps you grow your external traffic by 4x.</p>'
+        '<p style="margin:0 0 16px;font-size:15px;color:#111827;line-height:1.6;">'
+        'Users report a 70% increase in new subscribers in the first week of sharing video content.</p>'
+        '<p style="margin:0 0 16px;font-size:15px;color:#111827;line-height:1.6;">'
+        'You get a custom video in your own branding, with your own voice, made from a post you already wrote.</p>'
+        '<p style="margin:0 0 16px;font-size:15px;color:#111827;line-height:1.6;">'
+        'Give it a try at <a href="https://blog2video.app?utm_source=bloghub&amp;utm_medium=email&amp;utm_campaign=blog2video&amp;utm_content=blog2video_promo" style="color:#111827;text-decoration:underline;">blog2video.app</a></p>'
+        '<p style="margin:24px 0 0;font-size:15px;color:#111827;line-height:1.6;">Arslan, bloghub.app</p>'
+        f'<p style="margin:24px 0 0;font-size:12px;color:#9ca3af;">'
+        f'<a href="{unsubscribe_url}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a>'
+        '</p>'
+        '</div></body></html>'
+    )
+
+    payload = {
+        "from": settings.NO_REPLY_FROM_EMAIL,
+        "to": [to_email],
+        "subject": "Get 4x wider reach for your blog",
+        "html": body,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                RESEND_ENDPOINT,
+                headers={"Authorization": f"Bearer {settings.RESEND_API_KEY}"},
+                json=payload,
+            )
+        if resp.status_code >= 400:
+            logger.warning("Resend Blog2Video promo email failed (%s): %s", resp.status_code, resp.text)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Resend Blog2Video promo email error: %s", exc)
