@@ -5,16 +5,19 @@ import Navbar from "../components/layout/Navbar";
 import FilterBar from "../components/filters/FilterBar";
 import { datePresetToRange, type DatePreset } from "../components/filters/DateFilter";
 import DashboardPublicationList from "../components/publication/DashboardPublicationList";
+import FeaturedPublicationBanner from "../components/featured/FeaturedPublicationBanner";
 import SubmitModal from "../components/submit/SubmitModal";
 import Pagination from "../components/ui/Pagination";
 import Button from "../components/ui/Button";
 import { usePublications } from "../hooks/usePublications";
+import { useActiveFeature } from "../hooks/useFeatured";
 import { useAuth } from "../context/AuthContext";
 
 const PAGE_SIZE = 10;
 
 export default function Dashboard() {
   const { user, openLoginModal } = useAuth();
+  const { data: featured } = useActiveFeature();
   const [searchParams, setSearchParams] = useSearchParams();
   const [category, setCategory] = useState("");
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
@@ -144,6 +147,8 @@ export default function Dashboard() {
           </Button>
         </div>
 
+        <FeaturedPublicationBanner className="mb-6 sm:mb-8" />
+
         <DashboardPublicationList
           currentPageData={currentPageData}
           isPageLoading={isPageLoading}
@@ -153,6 +158,7 @@ export default function Dashboard() {
           onSubmit={() => (user ? setModalOpen(true) : openLoginModal())}
           isLoading={isLoading}
           flatRankedList={dateFilterActive}
+          excludeId={featured?.publication.id}
         />
 
         <Pagination

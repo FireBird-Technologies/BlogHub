@@ -20,6 +20,15 @@ class Settings(BaseSettings):
     # Weekly digest (cron-triggered)
     CRON_SECRET: str | None = None
     NEWSLETTER_FROM_EMAIL: str = "BlogHub <topposts@bloghub.app>"
+    # Paid featured publication (Stripe)
+    STRIPE_SECRET_KEY: str | None = None
+    STRIPE_WEBHOOK_SECRET: str | None = None
+    # One-time Price (price_...) for a 7-day featured run, created in the Stripe
+    # dashboard. The amount lives in Stripe, so it can be changed without a deploy.
+    # Add a STRIPE_FEATURED_PRICE_ID_<N>D field per new duration tier.
+    STRIPE_FEATURED_PRICE_ID_7D: str | None = None
+    FEATURE_NOTIFY_EMAIL: str = "arslan@firebird-technologies.com"
+    FEATURE_FROM_EMAIL: str = "BlogHub <featured@bloghub.app>"
 
     class Config:
         env_file = ".env"

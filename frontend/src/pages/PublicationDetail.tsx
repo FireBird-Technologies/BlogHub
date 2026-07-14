@@ -24,6 +24,8 @@ import { useLinkEmbeds } from "../hooks/useLinkEmbeds";
 import { useDocumentMeta } from "../hooks/useDocumentMeta";
 import { parseShortIdFromParam, publicationPath } from "../lib/publicationUrl";
 import { blog2videoUrl } from "../lib/blog2video";
+import { outboundUrl } from "../lib/featuredUtm";
+import { useActiveFeature } from "../hooks/useFeatured";
 import type { PublicationId, PaginatedPublications } from "../types/models";
 
 function formatDate(iso: string | undefined): string {
@@ -172,9 +174,11 @@ function hostnameOf(href: string): string {
 }
 
 function LinkEmbedsPanel({
+  isFeatured = false,
   additionalLinks,
   onEdit,
 }: {
+  isFeatured?: boolean;
   additionalLinks: string[];
   onEdit?: () => void;
 }) {
@@ -196,7 +200,7 @@ function LinkEmbedsPanel({
           return (
             <a
               key={`${href}-${i}`}
-              href={href}
+              href={outboundUrl(href, "additional_link", isFeatured)}
               target="_blank"
               rel="noopener noreferrer"
               title={title}
@@ -251,8 +255,10 @@ function LinkEmbedsPanel({
 
 function SocialPanel({
   socialLinks,
+  isFeatured = false,
 }: {
   socialLinks: Array<{ label: string; url: string }>;
+  isFeatured?: boolean;
 }) {
   if (!socialLinks?.length) return null;
   return (
@@ -269,7 +275,8 @@ function SocialPanel({
           return (
             <a
               key={`${entry.url}-${i}`}
-              href={entry.url}
+              // mailto: links pass through untagged — outboundUrl only touches http(s).
+              href={outboundUrl(entry.url, "social_link", isFeatured)}
               {...(isMail ? {} : { target: "_blank", rel: "noopener noreferrer" })}
               title={`${entry.label} — ${entry.url}`}
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gray-200
@@ -292,6 +299,7 @@ export default function PublicationDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const { data: pub, isLoading, isError, queryKey, tz } = usePublication(shortId);
+  const { data: activeFeature } = useActiveFeature();
   const { user } = useAuth();
   const tzShort = tz || getClientTimezone();
   const [thumbError, setThumbError] = useState(false);
@@ -490,6 +498,9 @@ export default function PublicationDetail() {
   const extras = (pub.additional_links?.length ?? 0) > 0;
   const socials = (pub.social_links?.length ?? 0) > 0;
   const isOwner = !!user && pub.author?.id === user.id;
+  // Paid featured slot: badge the page and tag every outbound link this publication
+  // owns, so the buyer's own analytics can attribute the traffic to the slot.
+  const isFeatured = activeFeature?.publication.id === pub.id;
   const openEdit = (f: EditableField) => setEditField(f);
 
   return (
@@ -507,6 +518,14 @@ export default function PublicationDetail() {
           </button>
 
           <div className="flex flex-wrap items-center gap-2">
+            {isFeatured && (
+              <span
+                className="inline-flex items-center rounded-full bg-gradient-to-r from-amber-500 to-yellow-500
+                           px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm"
+              >
+                Featured
+              </span>
+            )}
             <Badge category={pub.category} />
             {!pub.is_verified && <VerificationBadge isVerified={false} verifiedAt={pub.verified_at} />}
             {pub.tags?.map((tag) => (
@@ -602,7 +621,7 @@ export default function PublicationDetail() {
                   (pub.social_links?.length ?? 0) >= 5 ? "lg:w-44" : "lg:w-24"
                 }`}
               >
-                <SocialPanel socialLinks={pub.social_links} />
+                <SocialPanel socialLinks={pub.social_links} isFeatured={isFeatured} />
               </div>
             )}
           </div>
@@ -621,7 +640,7 @@ export default function PublicationDetail() {
 
           <div className="flex flex-wrap items-center gap-3">
             <a
-              href={pub.url}
+              href={outboundUrl(pub.url, "main_link", isFeatured)}
               target="_blank"
               rel="noopener noreferrer"
               className="relative z-10 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700
@@ -649,6 +668,7 @@ export default function PublicationDetail() {
           {(extras || isOwner) && (
             <LinkEmbedsPanel
               additionalLinks={pub.additional_links}
+              isFeatured={isFeatured}
               onEdit={isOwner ? () => openEdit("additional_links") : undefined}
             />
           )}

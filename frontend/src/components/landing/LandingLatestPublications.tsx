@@ -2,6 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { ArrowBigUp, MessageCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { usePublicationsPreviewInfinite } from "../../hooks/usePublications";
+import { useActiveFeature } from "../../hooks/useFeatured";
+import FeaturedPublicationBanner from "../featured/FeaturedPublicationBanner";
 import Avatar from "../ui/Avatar";
 import VerifiedTick from "../ui/VerifiedTick";
 import VerificationBadge from "../ui/VerificationBadge";
@@ -126,8 +128,14 @@ export default function LandingLatestPublications() {
   const navigate = useNavigate();
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
     usePublicationsPreviewInfinite(PREVIEW_LIMIT, "latest");
+  const { data: featured } = useActiveFeature();
 
-  const items = data?.pages.flatMap((p) => p.items) ?? [];
+  // The featured publication gets its own pinned row above, so keep it out of the
+  // day-grouped list rather than showing it twice.
+  const allItems = data?.pages.flatMap((p) => p.items) ?? [];
+  const items = featured
+    ? allItems.filter((p) => p.id !== featured.publication.id)
+    : allItems;
   const sections = groupPublicationsByLocalDay(items);
   const todayK = todayKey();
   const yesterdayK = yesterdayKey();
@@ -152,6 +160,8 @@ export default function LandingLatestPublications() {
             Sign in to open a story, comment, or add your own.
           </p>
         </div>
+
+        <FeaturedPublicationBanner className="mb-8 sm:mb-10" />
 
         {isLoading && (
           <div className="flex justify-center py-16">

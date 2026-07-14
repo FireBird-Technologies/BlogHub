@@ -1,6 +1,7 @@
 import { useState, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { MessageCircle, Pencil, Trash2 } from "lucide-react";
+import FeaturedSlotsMenu from "./FeaturedSlotsMenu";
 import type { QueryKey } from "@tanstack/react-query";
 import Badge from "../ui/Badge";
 import VerifiedTick from "../ui/VerifiedTick";
@@ -8,7 +9,7 @@ import Avatar from "../ui/Avatar";
 import Spinner from "../ui/Spinner";
 import UpvoteButton from "./UpvoteButton";
 import CommentsModal from "./CommentsModal";
-import type { Publication } from "../../types/models";
+import type { FeaturedEmail, MyBooking, Publication } from "../../types/models";
 import { useAuth } from "../../context/AuthContext";
 import { publicationPath } from "../../lib/publicationUrl";
 
@@ -28,9 +29,25 @@ interface PublicationCardProps {
   onDelete?: (id: string) => void | Promise<void>;
   onEdit?: (p: Publication) => void;
   rank?: number;
+  /** This publication's featured runs. A publication may hold several, so with more
+   *  than one the pill becomes a dropdown. Empty/undefined renders nothing. */
+  featuredBookings?: MyBooking[];
+  /** The announcements for those runs, paired by `slot_id`. */
+  featuredEmails?: FeaturedEmail[];
+  /** Opens one announcement by id. */
+  onOpenEmail?: (emailId: string) => void;
 }
 
-export default function PublicationCard({ publication, queryKey, onDelete, onEdit, rank }: PublicationCardProps) {
+export default function PublicationCard({
+  publication,
+  queryKey,
+  onDelete,
+  onEdit,
+  rank,
+  featuredBookings,
+  featuredEmails,
+  onOpenEmail,
+}: PublicationCardProps) {
   const navigate = useNavigate();
   const { user, openLoginModal } = useAuth();
   const { id, title, description, image_url, category, upvote_count, comment_count, is_upvoted, author } =
@@ -65,6 +82,15 @@ export default function PublicationCard({ publication, queryKey, onDelete, onEdi
     >
       <div className="relative aspect-video bg-gray-100 overflow-hidden flex-shrink-0">
         {rank != null && rank > 0 && <RankBadge rank={rank} />}
+        {featuredBookings && featuredBookings.length > 0 && onOpenEmail && (
+          <div className="absolute top-2 right-2 z-10">
+            <FeaturedSlotsMenu
+              bookings={featuredBookings}
+              emails={featuredEmails ?? []}
+              onOpenEmail={onOpenEmail}
+            />
+          </div>
+        )}
         {image_url ? (
           <img
             src={image_url}

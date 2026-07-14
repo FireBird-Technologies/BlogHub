@@ -93,3 +93,66 @@ export interface SocialLinkInput {
   label: string;
   url: string;
 }
+
+/** Paid featured slot: a booked date range. Dates are inclusive `YYYY-MM-DD` strings. */
+export interface BookedRange {
+  start_date: string;
+  end_date: string;
+  status: "pending" | "paid";
+}
+
+export interface FeaturedAvailability {
+  booked: BookedRange[];
+  /** duration_days -> price in cents, keyed as a string over the wire (e.g. `{ "7": 3000 }`). */
+  prices: Record<string, number>;
+  min_start_date: string;
+  max_start_date: string;
+}
+
+export interface ActiveFeature {
+  publication: Publication;
+  start_date: string;
+  end_date: string;
+  /** Outbound clicks BlogHub has sent to this publication during its featured run. */
+  click_count: number;
+}
+
+/** The announcement email drafted for a featured publication. Needs the author's
+ *  approval and the admin's before it is scheduled. */
+export interface FeaturedEmail {
+  id: string;
+  /** The booking this announcement belongs to — a publication may have several. */
+  slot_id: string;
+  publication_id: string;
+  publication_title?: string | null;
+  /** The run this announcement is for, used to label it when there is more than one. */
+  start_date?: string | null;
+  end_date?: string | null;
+  subject: string;
+  body: string;
+  author_approved: boolean;
+  admin_approved: boolean;
+  status: "draft" | "scheduled" | "sent" | "cancelled";
+  scheduled_at?: string | null;
+  sent_at?: string | null;
+}
+
+/** One of the author's own featured bookings, so they can track where it stands. */
+export interface MyBooking {
+  id: string;
+  publication_id: string;
+  publication_title?: string | null;
+  start_date: string;
+  end_date: string;
+  approval_status: "pending" | "approved" | "rejected";
+  is_active: boolean;
+  click_count: number;
+}
+
+export interface FeatureCheckout {
+  checkout_url: string;
+  slot_id: string;
+  amount_cents: number;
+  start_date: string;
+  end_date: string;
+}

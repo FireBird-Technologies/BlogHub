@@ -1,10 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Edit2, Globe } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { Edit2, Globe, Star, X } from "lucide-react";
 import Navbar from "../components/layout/Navbar";
 import Avatar from "../components/ui/Avatar";
+import Button from "../components/ui/Button";
+import Spinner from "../components/ui/Spinner";
 import PublicationGrid from "../components/publication/PublicationGrid";
 import EditPublicationModal from "../components/publication/EditPublicationModal";
+import FeaturePublicationModal from "../components/featured/FeaturePublicationModal";
+import MarketingEmailModal from "../components/featured/MarketingEmailModal";
+import {
+  useMyBookings,
+  useMyFeaturedEmails,
+  WEBHOOK_POLL_TIMEOUT_MS,
+} from "../hooks/useFeaturedEmail";
+import type { FeaturedEmail } from "../types/models";
 import { ProfileModal } from "../components/auth/ProfileModal";
 import { useAuth } from "../context/AuthContext";
 import { useUserPublications } from "../hooks/useUserPublications";
@@ -15,16 +26,68 @@ export default function Profile() {
   const { user } = useAuth();
   const [editing, setEditing] = useState(false);
   const [pubToEdit, setPubToEdit] = useState<Publication | null>(null);
+  const [featuring, setFeaturing] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const queryKey = ["user-publications", user?.id] as const;
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useUserPublications(user?.id);
 
   const queryClient = useQueryClient();
 
+  // Stripe sends the buyer back here after checkout. This is display only — the
+  // webhook is what actually records the payment.
+  const checkoutResult = searchParams.get("featured");
+  const dismissCheckoutBanner = () => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("featured");
+        return next;
+      },
+      { replace: true },
+    );
+  };
+
+  // Stripe returns the buyer here immediately, but the booking and its announcement
+  // draft are written by the *webhook*, which lands a few seconds later. A single
+  // fetch on arrival therefore sees nothing and caches an empty result — so poll
+  // until the rows appear, then stop.
+  const [awaitingWebhook, setAwaitingWebhook] = useState(checkoutResult === "success");
+
+  useEffect(() => {
+    if (checkoutResult !== "success") return;
+    queryClient.invalidateQueries({ queryKey: ["featured"] });
+    setAwaitingWebhook(true);
+    // Give up eventually: a webhook that never arrives must not poll forever.
+    const stop = setTimeout(() => setAwaitingWebhook(false), WEBHOOK_POLL_TIMEOUT_MS);
+    return () => clearTimeout(stop);
+  }, [checkoutResult, queryClient]);
+
   const handleDelete = async (publicationId: string) => {
     await api.delete(`/api/publications/${publicationId}`);
     queryClient.invalidateQueries({ queryKey });
   };
+
+  // Featured status + announcement email, keyed by publication, so each card can
+  // show its own pill and email button. Expired runs simply aren't returned by the
+  // API, so those cards get no pill at all.
+  const { data: bookings } = useMyBookings(true, awaitingWebhook);
+  const { data: emails } = useMyFeaturedEmails(true, awaitingWebhook);
+  // Track the open email by id, not by value: after finalising, the modal must show
+  // the *refetched* row (now locked), not the stale snapshot it was opened with.
+  const [openEmailId, setOpenEmailId] = useState<string | null>(null);
+  const emailToView: FeaturedEmail | null =
+    emails?.find((e) => e.id === openEmailId) ?? null;
+
+  // A publication can hold several runs, each with its own announcement — so collect
+  // *all* of them, not just the first. The card turns them into a dropdown.
+  const featuredInfo = (p: Publication) => ({
+    bookings: (bookings ?? []).filter(
+      (b) => b.publication_id === p.id && b.approval_status !== "rejected",
+    ),
+    emails: (emails ?? []).filter((e) => e.publication_id === p.id),
+    onOpenEmail: setOpenEmailId,
+  });
 
   if (!user) return null;
 
@@ -73,8 +136,47 @@ export default function Profile() {
           </div>
         </div>
 
+        {checkoutResult && (
+          <div
+            className={`flex items-start gap-3 rounded-xl border p-3.5 mb-6 text-sm ${
+              checkoutResult === "success"
+                ? "border-green-200 bg-green-50 text-green-800"
+                : "border-gray-200 bg-gray-50 text-gray-600"
+            }`}
+          >
+            <p className="flex-1">
+              {checkoutResult === "success" ? (
+                awaitingWebhook && !bookings?.length ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Spinner size={14} />
+                    Payment received — confirming your booking…
+                  </span>
+                ) : (
+                  "Payment received — your dates are booked. Next: open the envelope button on your publication below to review and finalise its announcement email. Our team then approves the booking and it goes live on your start date."
+                )
+              ) : (
+                "Checkout cancelled. Your dates were not booked."
+              )}
+            </p>
+            <button
+              type="button"
+              onClick={dismissCheckoutBanner}
+              aria-label="Dismiss"
+              className="flex-shrink-0 opacity-60 transition-opacity hover:opacity-100"
+            >
+              <X size={15} />
+            </button>
+          </div>
+        )}
+
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-6">My Publications</h2>
+          <div className="flex items-center justify-between gap-3 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900">My Publications</h2>
+            <Button variant="primary" size="sm" onClick={() => setFeaturing(true)}>
+              <Star size={14} fill="currentColor" />
+              <span>Feature a publication</span>
+            </Button>
+          </div>
           <PublicationGrid
             pages={data?.pages}
             isFetchingNextPage={isFetchingNextPage}
@@ -83,6 +185,7 @@ export default function Profile() {
             queryKey={queryKey}
             onDelete={handleDelete}
             onEdit={(p) => setPubToEdit(p)}
+            featuredInfo={featuredInfo}
             isLoading={isLoading}
           />
         </div>
@@ -90,6 +193,12 @@ export default function Profile() {
 
       <ProfileModal mode="edit" isOpen={editing} onClose={() => setEditing(false)} />
       <EditPublicationModal publication={pubToEdit} isOpen={Boolean(pubToEdit)} onClose={() => setPubToEdit(null)} />
+      <FeaturePublicationModal isOpen={featuring} onClose={() => setFeaturing(false)} />
+      <MarketingEmailModal
+        email={emailToView}
+        isOpen={Boolean(emailToView)}
+        onClose={() => setOpenEmailId(null)}
+      />
     </div>
   );
 }

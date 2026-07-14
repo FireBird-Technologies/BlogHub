@@ -10,6 +10,9 @@ as `CRON_SECRET` (the scripts read it from there so it's never hard-coded in cro
 | `send_weekly_digest.sh` | `POST /api/publications/top-weekly/send-digest` | weekly |
 | `send_underrated_digest.sh` | `POST /api/publications/underrated-weekly/send-digest` | weekly |
 
+> Featured-slot reconciliation is **not** in this table — it runs inside the backend
+> process itself, not from cron. See "Featured slot reconciliation" below.
+
 ## Monthly category roundups
 
 `generate_roundups.sh` calls `POST /api/roundups/generate`, which builds last month's
@@ -79,4 +82,50 @@ user — a counterpart to the existing top-5 weekly digest. Same `X-Cron-Secret`
 
 ```bash
 /root/BlogHub/backend/scripts/send_underrated_digest.sh
+```
+
+## Featured slot reconciliation
+
+Unlike the jobs above, this one has **no cron entry and no script** — it runs on a
+timer inside the FastAPI process (`app/scheduler.py`, started by the lifespan in
+`app/main.py`) every **5 hours**. There is nothing to install on the droplet; it
+starts and stops with the backend.
+
+It keeps the paid "featured publication" slot honest. Three things, in order:
+
+1. **Releases lapsed holds** — a booking sits in `pending` for 30 minutes while the
+   buyer is on Stripe's checkout page, reserving those dates. If they never pay, it
+   is marked `expired` and the dates free up.
+2. **Retires finished bookings** — anything whose `end_date` has passed becomes
+   `expired` and inactive.
+3. **Activates today's booking** — the paid booking covering today becomes the single
+   active feature (shown on the landing page and dashboard).
+
+Bookings never overlap, so at most one can be active; a partial unique index on
+`is_active` enforces that at the DB level. The endpoint is idempotent, so running it
+more often than every 5 hours is harmless.
+
+Payment itself is confirmed by the Stripe webhook (`POST /stripe/webhook`), not by
+this job — the job only does the durable bookkeeping. A same-day purchase is activated
+immediately by the webhook, so a buyer never waits up to 5 hours to appear.
+
+Bookings never overlap, so at most one can be active; a partial unique index on
+`is_active` enforces that at the DB level. Reconciliation is idempotent and takes a
+Postgres advisory lock, so extra runs are harmless.
+
+### Caveats of running it in-process
+
+- It runs **once per backend instance**. That is safe (idempotent + advisory-locked),
+  but if the backend is ever scaled past one container, each one runs its own timer.
+- The timer **restarts on deploy**. Redeploying more often than every 5 hours would
+  keep resetting it before it fires.
+
+If either becomes a problem, move it back to cron: `POST /api/featured/reconcile` is
+still there, guarded by `X-Cron-Secret` like the jobs above.
+
+### Run it manually any time
+
+```bash
+curl -X POST http://localhost:8081/api/featured/reconcile \
+  -H "X-Cron-Secret: $(grep -E '^CRON_SECRET=' backend/.env | cut -d= -f2-)"
 ```
