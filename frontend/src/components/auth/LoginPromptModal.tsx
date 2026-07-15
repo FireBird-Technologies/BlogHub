@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import GoogleSignInButton from "../ui/GoogleSignInButton";
+import { POST_LOGIN_PATH_KEY } from "../../lib/featuredCheckout";
 
 export default function LoginPromptModal() {
   const navigate = useNavigate();
@@ -9,7 +10,17 @@ export default function LoginPromptModal() {
 
   const handleSignedIn = () => {
     closeLoginModal();
-    navigate("/dashboard");
+    let path = "/dashboard";
+    try {
+      const stored = sessionStorage.getItem(POST_LOGIN_PATH_KEY);
+      if (stored) {
+        path = stored;
+        sessionStorage.removeItem(POST_LOGIN_PATH_KEY);
+      }
+    } catch {
+      /* ignore unavailable storage */
+    }
+    navigate(path);
   };
 
   if (!loginModalOpen) return null;

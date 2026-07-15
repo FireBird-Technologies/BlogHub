@@ -113,7 +113,7 @@ export default function CommentsSection({ publicationId, focusSignal = 0 }: Comm
 
       {user ? (
         <form onSubmit={handleSubmit} className="flex gap-3 mb-6">
-          <Avatar src={user.avatar_url} name={user.name} size={32} />
+          <Avatar src={user.avatar_url} name={user.name} position={user.avatar_position} scale={user.avatar_scale} size={32} />
           <div className="flex-1 flex gap-2">
             <input
               ref={inputRef}

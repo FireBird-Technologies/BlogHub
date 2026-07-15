@@ -74,3 +74,32 @@ def normalize_publication_url(url: str) -> str:
 
 # Backwards-compatible alias
 normalize_publication_url_key = normalize_publication_url
+
+
+def normalize_link_url(url: str) -> str:
+    """Normalize an arbitrary link, keeping its full path — unlike
+    `normalize_publication_url`, which deliberately collapses to the bare site
+    because it identifies a *publication*. A featured "link" can be a specific
+    product page, article, or landing page, so shortening it would advertise the
+    wrong destination.
+    """
+    raw = (url or "").strip()
+    if not raw:
+        return ""
+    if "://" not in raw:
+        raw = f"https://{raw}"
+    try:
+        parsed = urlparse(raw)
+        host = (parsed.hostname or "").lower()
+        if not host:
+            return ""
+        scheme = (parsed.scheme or "https").lower()
+        if scheme not in ("http", "https"):
+            scheme = "https"
+        path = parsed.path or ""
+        full = f"{scheme}://{host}{path}"
+        if parsed.query:
+            full = f"{full}?{parsed.query}"
+        return full
+    except Exception:
+        return ""

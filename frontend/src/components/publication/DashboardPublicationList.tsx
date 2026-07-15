@@ -21,6 +21,8 @@ interface DashboardPublicationListProps {
   /** Flat list sorted by global rank (no date grouping). Used on category ranking pages. */
   flatRankedList?: boolean;
   pageSize?: number;
+  /** Publication to omit — the featured one, which is already shown in its own card above. */
+  excludeId?: string;
 }
 
 export default function DashboardPublicationList({
@@ -32,8 +34,15 @@ export default function DashboardPublicationList({
   isLoading,
   flatRankedList = false,
   pageSize = 10,
+  excludeId,
 }: DashboardPublicationListProps) {
-  const publications = currentPageData?.items ?? [];
+  const allItems = currentPageData?.items ?? [];
+  // Ranks come from the server (`pub.rank`), so dropping a row here doesn't renumber
+  // the rest — the featured publication simply isn't listed twice.
+  const publications = useMemo(
+    () => (excludeId ? allItems.filter((p) => p.id !== excludeId) : allItems),
+    [allItems, excludeId],
+  );
 
   const sections = useMemo(() => groupPublicationsByLocalDay(publications), [publications]);
   const todayK = todayKey();
@@ -67,12 +76,17 @@ export default function DashboardPublicationList({
     return (
       <div className="flex flex-col gap-3 pb-4">
         <ul className="flex flex-col gap-3 list-none p-0 m-0">
-          {publications.map((pub, idx) => (
+          {publications.map((pub) => (
             <li key={pub.id}>
               <PublicationRow
                 publication={pub}
                 queryKey={queryKey}
-                listRank={pub.rank ?? (currentPage - 1) * pageSize + idx + 1}
+                // Position within the *unfiltered* page, so removing the featured row
+                // doesn't shift everyone else's number up by one.
+                listRank={
+                  pub.rank ??
+                  (currentPage - 1) * pageSize + allItems.indexOf(pub) + 1
+                }
               />
             </li>
           ))}

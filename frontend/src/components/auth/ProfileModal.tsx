@@ -4,6 +4,7 @@ import { isAxiosError } from "axios";
 import { Info } from "lucide-react";
 import Modal from "../ui/Modal";
 import AvatarPicker from "../ui/AvatarPicker";
+import AdjustImageModal from "../ui/AdjustImageModal";
 import Button from "../ui/Button";
 import Spinner from "../ui/Spinner";
 import { useAuth } from "../../context/AuthContext";
@@ -17,6 +18,8 @@ interface ProfilePatch {
   tag?: string;
   website?: string;
   avatar_url?: string;
+  avatar_position?: string | null;
+  avatar_scale?: number | null;
   onboarded?: boolean;
 }
 
@@ -30,6 +33,9 @@ function ProfileModalForm({ mode, user, onClose }: { mode: Mode; user: User; onC
   const [tag, setTag] = useState(user.tag);
   const [website, setWebsite] = useState(user.website ?? "");
   const [avatar, setAvatar] = useState<string | null>(user.avatar_url);
+  const [avatarPosition, setAvatarPosition] = useState<string | null>(user.avatar_position ?? null);
+  const [avatarScale, setAvatarScale] = useState<number | null>(user.avatar_scale ?? null);
+  const [adjustingAvatar, setAdjustingAvatar] = useState(false);
 
   const onboarding = mode === "onboarding";
 
@@ -60,7 +66,15 @@ function ProfileModalForm({ mode, user, onClose }: { mode: Mode; user: User; onC
       tag: tag.trim(),
       website: website.trim(),
     };
-    if (avatar && avatar !== user.avatar_url) body.avatar_url = avatar;
+    const avatarChanged = avatar && avatar !== user.avatar_url;
+    if (avatarChanged) body.avatar_url = avatar;
+    // Persist the crop when the avatar changed or the user repositioned/zoomed an existing one.
+    const cropChanged =
+      avatarPosition !== (user.avatar_position ?? null) || avatarScale !== (user.avatar_scale ?? null);
+    if (avatar && (avatarChanged || cropChanged)) {
+      body.avatar_position = avatarPosition;
+      body.avatar_scale = avatarScale;
+    }
     if (onboarding) body.onboarded = true;
     mutate(body);
   };
@@ -87,7 +101,42 @@ function ProfileModalForm({ mode, user, onClose }: { mode: Mode; user: User; onC
           </p>
         )}
 
-        <AvatarPicker src={avatar} name={name} size={96} onChange={setAvatar} />
+        <AvatarPicker
+          src={avatar}
+          name={name}
+          size={96}
+          position={avatarPosition}
+          scale={avatarScale}
+          onChange={(dataUrl) => {
+            setAvatar(dataUrl);
+            setAvatarPosition(null); // new photo → reset crop to center
+            setAvatarScale(null);
+          }}
+        />
+        {avatar && (
+          <button
+            type="button"
+            onClick={() => setAdjustingAvatar(true)}
+            className="text-xs font-medium text-gray-500 hover:text-red-600 underline -mt-2"
+          >
+            Adjust photo crop &amp; zoom
+          </button>
+        )}
+        {avatar && (
+          <AdjustImageModal
+            src={avatar}
+            isOpen={adjustingAvatar}
+            position={avatarPosition}
+            scale={avatarScale}
+            aspect={1}
+            rounded
+            onClose={() => setAdjustingAvatar(false)}
+            onSave={(pos, sc) => {
+              setAvatarPosition(pos);
+              setAvatarScale(sc);
+            }}
+          />
+        )}
 
         <div className="w-full flex flex-col gap-3">
           <div>

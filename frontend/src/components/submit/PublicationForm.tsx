@@ -2,6 +2,8 @@ import { useState, type ChangeEvent, type FormEvent } from "react";
 import { CATEGORIES, isCategory, normalizeCategoryForStorage, type Category } from "../../constants/categories";
 import type { PublicationDraft } from "../../types/models";
 import Button from "../ui/Button";
+import ImageUploadButton from "../ui/ImageUploadButton";
+import AdjustImageModal, { ImageThumbWithAdjust } from "../ui/AdjustImageModal";
 
 function tagsToString(tags: string[] | undefined): string {
   if (!tags) return "";
@@ -13,6 +15,8 @@ export interface PublicationFormContinuePayload {
   title: string;
   description?: string;
   image_url?: string;
+  image_position?: string | null;
+  image_scale?: number | null;
   category: string;
   tags: string[];
 }
@@ -32,6 +36,9 @@ export default function PublicationForm({ draft, onContinue }: PublicationFormPr
     tags: tagsToString(draft?.tags),
   }));
   const [customCategory, setCustomCategory] = useState(isPredefinedCategory ? "" : (draft?.category ?? ""));
+  const [imagePosition, setImagePosition] = useState<string | null>(draft?.image_position ?? null);
+  const [imageScale, setImageScale] = useState<number | null>(draft?.image_scale ?? null);
+  const [adjustingImage, setAdjustingImage] = useState(false);
   const [error, setError] = useState("");
 
   const set =
@@ -61,6 +68,8 @@ export default function PublicationForm({ draft, onContinue }: PublicationFormPr
       title: form.title.trim(),
       description: form.description.trim() || undefined,
       image_url: form.image_url.trim() || undefined,
+      image_position: form.image_url.trim() ? imagePosition : null,
+      image_scale: form.image_url.trim() ? imageScale : null,
       category: normalizeCategoryForStorage(
         form.category === "__custom__" ? customCategory : form.category
       ),
@@ -99,6 +108,61 @@ export default function PublicationForm({ draft, onContinue }: PublicationFormPr
           placeholder="Brief description of the publication…"
           className={`${inputCls} resize-none`}
         />
+      </div>
+
+      <div>
+        <label className="block text-xs text-gray-500 mb-1.5 font-medium">Image</label>
+        <div className="flex items-start gap-3">
+          {form.image_url ? (
+            <ImageThumbWithAdjust
+              src={form.image_url}
+              position={imagePosition}
+              scale={imageScale}
+              className="w-24 h-24"
+              onClick={() => setAdjustingImage(true)}
+            />
+          ) : (
+            <div className="flex-shrink-0 w-24 h-24 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden" />
+          )}
+          <div className="flex-1 min-w-0 flex flex-col gap-2">
+            <input
+              type="url"
+              value={form.image_url}
+              onChange={(e) => {
+                setForm((f) => ({ ...f, image_url: e.target.value }));
+                setImagePosition(null); // different image → reset crop
+                setImageScale(null);
+              }}
+              placeholder="Paste an image URL…"
+              className={`${inputCls} w-full`}
+            />
+            <ImageUploadButton
+              onUpload={(dataUrl) => {
+                setForm((f) => ({ ...f, image_url: dataUrl }));
+                setImagePosition(null);
+                setImageScale(null);
+              }}
+              className="self-start"
+            />
+            {form.image_url && (
+              <p className="text-[11px] text-gray-400">Click the image to adjust its thumbnail crop.</p>
+            )}
+          </div>
+        </div>
+        {form.image_url && (
+          <AdjustImageModal
+            src={form.image_url}
+            isOpen={adjustingImage}
+            position={imagePosition}
+            scale={imageScale}
+            aspect={1}
+            onClose={() => setAdjustingImage(false)}
+            onSave={(pos, sc) => {
+              setImagePosition(pos);
+              setImageScale(sc);
+            }}
+          />
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-4">

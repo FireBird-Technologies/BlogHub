@@ -6,6 +6,7 @@ from pydantic import AnyHttpUrl, BaseModel, ConfigDict, field_validator, model_v
 
 from app.helpers.url_normalize import normalize_publication_url
 from app.models.publication import normalize_category
+from app.schemas.publication import check_image_position, check_image_scale
 
 MAX_CLAIM_SOCIAL_LINKS = 8
 
@@ -97,6 +98,8 @@ class ResubmitAndClaimCreate(BaseModel):
     title: str
     description: str | None = None
     image_url: str | None = None
+    image_position: str | None = None
+    image_scale: float | None = None
     category: str
     tags: list[str] = []
     additional_links: list[AnyHttpUrl] = []
@@ -120,6 +123,16 @@ class ResubmitAndClaimCreate(BaseModel):
     @classmethod
     def validate_category(cls, v: str) -> str:
         return normalize_category(v)
+
+    @field_validator("image_position")
+    @classmethod
+    def check_position(cls, v: str | None) -> str | None:
+        return check_image_position(v)
+
+    @field_validator("image_scale")
+    @classmethod
+    def check_scale(cls, v: float | None) -> float | None:
+        return check_image_scale(v)
 
     @field_validator("name")
     @classmethod

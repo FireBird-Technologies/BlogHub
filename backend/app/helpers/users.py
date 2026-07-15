@@ -87,8 +87,13 @@ async def update_user_fields(db: AsyncSession, user, data: UserUpdate):
             user.tag = new_tag
     if data.website is not None:
         user.website = data.website
-    if data.avatar_url is not None:
+    fields_set = data.model_fields_set
+    if "avatar_url" in fields_set:
         user.avatar_url = data.avatar_url
+    if "avatar_position" in fields_set:
+        user.avatar_position = data.avatar_position
+    if "avatar_scale" in fields_set:
+        user.avatar_scale = data.avatar_scale
     if data.onboarded is not None:
         user.onboarded = data.onboarded
     try:

@@ -62,3 +62,28 @@ export function normalizePublicationUrl(url: string): string {
     return "";
   }
 }
+
+/**
+ * Normalize an arbitrary link, keeping its full path — unlike
+ * `normalizePublicationUrl`, which deliberately collapses to the bare site because
+ * it identifies a *publication*. A featured "link" can be a specific product page,
+ * article, or landing page, so shortening it would advertise the wrong destination.
+ * Keep in sync with `normalize_link_url` in backend/app/helpers/url_normalize.py.
+ */
+export function normalizeLinkUrl(url: string): string {
+  const raw = (url || "").trim();
+  if (!raw) return "";
+  const withScheme = raw.includes("://") ? raw : `https://${raw}`;
+  try {
+    const parsed = new URL(withScheme);
+    const host = parsed.hostname.toLowerCase();
+    if (!host) return "";
+    const scheme = parsed.protocol === "http:" ? "http" : "https";
+    const query = parsed.search.replace(/^\?/, "");
+    let full = `${scheme}://${host}${parsed.pathname || ""}`;
+    if (query) full = `${full}?${query}`;
+    return full;
+  } catch {
+    return "";
+  }
+}

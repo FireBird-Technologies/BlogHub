@@ -65,7 +65,7 @@ export default function CommentNode(props: CommentNodeProps) {
   return (
     <div>
       <div className="flex gap-3">
-        <Avatar src={comment.author.avatar_url} name={comment.author.name} size={avatarSize} />
+        <Avatar src={comment.author.avatar_url} name={comment.author.name} position={comment.author.avatar_position} scale={comment.author.avatar_scale} size={avatarSize} />
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline justify-between gap-2">
             <div className="flex items-baseline gap-2">
@@ -113,7 +113,7 @@ export default function CommentNode(props: CommentNodeProps) {
               onSubmit={(e) => onReplySubmit(e, comment.id)}
               className="mt-3 flex gap-2 border-l border-gray-100 pl-3"
             >
-              <Avatar src={user.avatar_url} name={user.name} size={replyAvatarSize} />
+              <Avatar src={user.avatar_url} name={user.name} position={user.avatar_position} scale={user.avatar_scale} size={replyAvatarSize} />
               <div className="flex-1 flex flex-col gap-2">
                 <input
                   type="text"

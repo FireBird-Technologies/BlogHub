@@ -1,51 +1,28 @@
 import { useRef, useState, type ChangeEvent, type CSSProperties } from "react";
 import { Camera, Upload } from "lucide-react";
 import Avatar from "./Avatar";
+import { fileToResizedDataUrl } from "../../lib/imageUpload";
 
 interface AvatarPickerProps {
   src?: string | null;
   name?: string;
   size?: number;
+  /** CSS object-position for the preview crop (e.g. "50% 30%"). */
+  position?: string | null;
+  /** Zoom factor for the preview crop (1 = fit). */
+  scale?: number | null;
   onChange: (dataUrl: string) => void;
   className?: string;
 }
 
 const MAX_DIMENSION = 256;
 
-/** Load an image file, scale it down, and return a compact JPEG data URL. */
-async function fileToResizedDataUrl(file: File): Promise<string> {
-  const objectUrl = URL.createObjectURL(file);
-  try {
-    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const el = new Image();
-      el.onload = () => resolve(el);
-      el.onerror = () => reject(new Error("Could not load image"));
-      el.src = objectUrl;
-    });
-
-    const scale = Math.min(1, MAX_DIMENSION / Math.max(img.width, img.height));
-    const w = Math.round(img.width * scale);
-    const h = Math.round(img.height * scale);
-
-    const canvas = document.createElement("canvas");
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("Canvas not supported");
-    // JPEG has no alpha channel — paint a white backdrop for transparent images.
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, w, h);
-    ctx.drawImage(img, 0, 0, w, h);
-    return canvas.toDataURL("image/jpeg", 0.85);
-  } finally {
-    URL.revokeObjectURL(objectUrl);
-  }
-}
-
 export default function AvatarPicker({
   src,
   name,
   size = 96,
+  position,
+  scale,
   onChange,
   className = "",
 }: AvatarPickerProps) {
@@ -62,7 +39,7 @@ export default function AvatarPicker({
     }
     setError("");
     try {
-      onChange(await fileToResizedDataUrl(file));
+      onChange(await fileToResizedDataUrl(file, MAX_DIMENSION));
     } catch {
       setError("Could not process that image.");
     }
@@ -80,7 +57,7 @@ export default function AvatarPicker({
           className={`group relative h-full w-full rounded-full overflow-hidden cursor-pointer ${className}`}
           aria-label="Change profile photo"
         >
-          <Avatar src={src} name={name} size={size} />
+          <Avatar src={src} name={name} size={size} position={position} scale={scale} />
           <span
             className="absolute inset-0 flex items-center justify-center bg-black/45 text-white
                        opacity-0 group-hover:opacity-100 transition-opacity"

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import String, Text, DateTime, Boolean
+from sqlalchemy import String, Text, DateTime, Boolean, Float
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,6 +17,10 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(256), nullable=False)
     tag: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     avatar_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # CSS object-position (e.g. "50% 30%") for how avatar_url is cropped. Null = center.
+    avatar_position: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    # Zoom factor for the avatar crop (1.0 = fit, higher = zoomed in). Null = 1.
+    avatar_scale: Mapped[float | None] = mapped_column(Float, nullable=True)
     website: Mapped[str | None] = mapped_column(Text, nullable=True)
     onboarded: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     subscribed_only: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)

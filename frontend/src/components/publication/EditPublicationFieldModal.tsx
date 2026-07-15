@@ -5,6 +5,8 @@ import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import Spinner from "../ui/Spinner";
 import CustomDropdown from "../ui/CustomDropdown";
+import ImageUploadButton from "../ui/ImageUploadButton";
+import AdjustImageModal, { ImageThumbWithAdjust } from "../ui/AdjustImageModal";
 import api, { formatApiErrorDetail } from "../../lib/api";
 import { CATEGORIES, isCategory, normalizeCategoryForStorage, type Category } from "../../constants/categories";
 import { publicationShortId } from "../../lib/publicationUrl";
@@ -40,6 +42,8 @@ interface PublicationUpdatePayload {
   title: string;
   description?: string;
   image_url?: string;
+  image_position?: string | null;
+  image_scale?: number | null;
   category: string;
   tags: string[];
   additional_links: string[];
@@ -53,6 +57,8 @@ function buildBasePayload(pub: Publication, customCategory?: string): Publicatio
     title: pub.title,
     description: pub.description ?? undefined,
     image_url: pub.image_url ?? undefined,
+    image_position: pub.image_position ?? null,
+    image_scale: pub.image_scale ?? null,
     category: isPredefined ? pub.category : (customCategory || pub.category || CATEGORIES[0]),
     tags: pub.tags ?? [],
     additional_links: pub.additional_links ?? [],
@@ -79,6 +85,9 @@ export default function EditPublicationFieldModal({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [imagePosition, setImagePosition] = useState<string | null>(null);
+  const [imageScale, setImageScale] = useState<number | null>(null);
+  const [adjustingImage, setAdjustingImage] = useState(false);
   const [url, setUrl] = useState("");
   const [category, setCategory] = useState<string>(CATEGORIES[0]);
   const [customCategory, setCustomCategory] = useState("");
@@ -92,6 +101,8 @@ export default function EditPublicationFieldModal({
     setTitle(publication.title ?? "");
     setDescription(publication.description ?? "");
     setImageUrl(publication.image_url ?? "");
+    setImagePosition(publication.image_position ?? null);
+    setImageScale(publication.image_scale ?? null);
     setUrl(publication.url ?? "");
     const isPredefined = isCategory(publication.category);
     setCategory(isPredefined ? publication.category : "__custom__");
@@ -159,6 +170,8 @@ export default function EditPublicationFieldModal({
           ...base,
           title: t,
           image_url: imageUrl.trim() || undefined,
+          image_position: imageUrl.trim() ? imagePosition : null,
+          image_scale: imageUrl.trim() ? imageScale : null,
           category: normalizeCategoryForStorage(category === "__custom__" ? customCategory : category),
           tags: tagsStr
             .split(",")
@@ -212,6 +225,8 @@ export default function EditPublicationFieldModal({
           url: u,
           description: description.trim() || undefined,
           image_url: imageUrl.trim() || undefined,
+          image_position: imageUrl.trim() ? imagePosition : null,
+          image_scale: imageUrl.trim() ? imageScale : null,
           category: normalizeCategoryForStorage(category === "__custom__" ? customCategory : category),
           tags: tagsStr
             .split(",")
@@ -249,18 +264,71 @@ export default function EditPublicationFieldModal({
             </div>
 
             <div>
-              <label className="block text-xs text-gray-500 mb-1.5 font-medium">Image URL</label>
-              <input
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://…"
-                className={inputCls}
-              />
-              {imageUrl && (
-                <div className="mt-2 rounded-lg border border-gray-200 overflow-hidden aspect-video bg-gray-100">
-                  <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+              <div className="flex items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <label className="block text-xs text-gray-500 mb-1.5 font-medium">Image</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={imageUrl}
+                      onChange={(e) => {
+                        setImageUrl(e.target.value);
+                        setImagePosition(null); // different image → reset crop
+                        setImageScale(null);
+                      }}
+                      placeholder="Paste an image URL…"
+                      className={`${inputCls} flex-1 min-w-0`}
+                    />
+                    <ImageUploadButton
+                      onUpload={(url) => {
+                        setImageUrl(url);
+                        setImagePosition(null);
+                        setImageScale(null);
+                      }}
+                    />
+                  </div>
                 </div>
+                {imageUrl && (
+                  <div className="flex flex-col items-center gap-1">
+                    <ImageThumbWithAdjust
+                      src={imageUrl}
+                      position={imagePosition}
+                      scale={imageScale}
+                      className="w-[62px] h-[62px]"
+                      onClick={() => setAdjustingImage(true)}
+                    />
+                    <p className="w-[72px] text-center text-[10px] leading-tight text-gray-400">
+                      Row/card crop
+                    </p>
+                  </div>
+                )}
+              </div>
+              {imageUrl && (
+                <>
+                  <p className="mt-1.5 text-[11px] text-gray-400">
+                    Click the thumbnail to adjust its row/card crop.
+                  </p>
+                  <div className="mt-3">
+                    <p className="text-[11px] text-gray-400 mb-1">Full image (detail page)</p>
+                    <div className="w-full rounded-lg border border-gray-200 overflow-hidden aspect-video bg-gray-100">
+                      <img src={imageUrl} alt="" className="w-full h-full object-contain" />
+                    </div>
+                  </div>
+                </>
+              )}
+              {imageUrl && (
+                <AdjustImageModal
+                  src={imageUrl}
+                  isOpen={adjustingImage}
+                  position={imagePosition}
+                  scale={imageScale}
+                  aspect={1}
+                  onClose={() => setAdjustingImage(false)}
+                  onSave={(pos, sc) => {
+                    setImagePosition(pos);
+                    setImageScale(sc);
+                  }}
+                />
               )}
             </div>
 

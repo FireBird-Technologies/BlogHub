@@ -98,8 +98,10 @@ export default function LandingNavbar() {
                   to="/dashboard"
                   className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                 >
-                  <Avatar name={user.name} size={32} />
-                  <span className="text-sm text-gray-600 truncate">@{user.tag}</span>
+                  <Avatar src={user.avatar_url} name={user.name} position={user.avatar_position} scale={user.avatar_scale} size={32} />
+                  <span className="text-sm text-gray-600 truncate">
+                    {user.tag ? `@${user.tag}` : user.name}
+                  </span>
                 </Link>
                 <button
                   onClick={logout}
@@ -173,7 +175,7 @@ export default function LandingNavbar() {
                   className="flex-shrink-0"
                   title="Go to dashboard"
                 >
-                  <Avatar name={user.name} size={28} />
+                  <Avatar src={user.avatar_url} name={user.name} position={user.avatar_position} scale={user.avatar_scale} size={28} />
                 </Link>
                 <button
                   onClick={logout}

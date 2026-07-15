@@ -9,6 +9,7 @@ import type { Publication } from "../../types/models";
 import { useAuth } from "../../context/AuthContext";
 import { publicationPath } from "../../lib/publicationUrl";
 import { formatCategoryDisplay } from "../../constants/categories";
+import CropImage from "../ui/CropImage";
 
 interface PublicationRowProps {
   publication: Publication;
@@ -31,6 +32,8 @@ export default function PublicationRow({
     title,
     description,
     image_url,
+    image_position,
+    image_scale,
     category,
     upvote_count,
     comment_count,
@@ -75,15 +78,13 @@ export default function PublicationRow({
         </div>
       )}
 
-      <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-gray-100 overflow-hidden border border-gray-100">
+      <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-gray-100 overflow-hidden border border-gray-100">
         {image_url ? (
-          <img
+          <CropImage
             src={image_url}
-            alt=""
-            className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-            }}
+            position={image_position}
+            scale={image_scale}
+            className="w-full h-full transition-transform duration-200 group-hover:scale-105"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-50 to-rose-50">
@@ -119,7 +120,7 @@ export default function PublicationRow({
         )}
 
         <div className="flex flex-wrap items-center gap-2 mt-auto">
-          <Avatar src={author?.avatar_url} name={author?.name} size={20} />
+          <Avatar src={author?.avatar_url} name={author?.name} position={author?.avatar_position} scale={author?.avatar_scale} size={20} />
           <span className="text-xs font-medium text-gray-600 truncate">{byline}</span>
         </div>
       </div>

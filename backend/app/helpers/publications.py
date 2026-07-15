@@ -103,6 +103,8 @@ def _pub_to_out(
         title=pub.title,
         description=pub.description,
         image_url=pub.image_url,
+        image_position=pub.image_position,
+        image_scale=pub.image_scale,
         category=pub.category,
         tags=pub.tags or [],
         additional_links=[str(u) for u in (pub.additional_links or []) if u],
@@ -112,6 +114,7 @@ def _pub_to_out(
         rank=rank,
         is_upvoted=pub.id in upvoted_ids,
         is_verified=verified_at is not None,
+        is_unlisted=pub.is_unlisted,
         verified_at=verified_at,
         my_claim_status=my_status_map.get(pub.id, "none"),
         created_at=pub.created_at,
@@ -204,9 +207,12 @@ def _apply_publication_filters(
     date_from: datetime | None,
     date_to: datetime | None,
     filter_by_user_id: uuid.UUID | None,
+    include_unlisted: bool = False,
 ):
     from app.models.publication import Publication
 
+    if not include_unlisted:
+        stmt = stmt.where(Publication.is_unlisted.is_(False))
     if filter_by_user_id:
         stmt = stmt.where(Publication.user_id == filter_by_user_id)
     if category:
@@ -236,7 +242,7 @@ def _apply_publication_filters(
 async def list_distinct_tags(db: AsyncSession) -> list[str]:
     from app.models.publication import Publication
 
-    result = await db.execute(select(Publication.tags))
+    result = await db.execute(select(Publication.tags).where(Publication.is_unlisted.is_(False)))
     seen: set[str] = set()
     for row in result.scalars().all():
         if not isinstance(row, list):
@@ -263,6 +269,7 @@ async def build_publications_query(
     user_id: uuid.UUID | None,
     filter_by_user_id: uuid.UUID | None = None,
     sort: str | None = "ranked",
+    include_unlisted: bool = False,
 ) -> PaginatedPublications:
     from app.models.publication import Publication
     from app.models.comment import Comment
@@ -272,6 +279,7 @@ async def build_publications_query(
             db, cursor=cursor, limit=limit, category=category, search=search,
             tag=tag, date_from=date_from, date_to=date_to,
             user_id=user_id, filter_by_user_id=filter_by_user_id,
+            include_unlisted=include_unlisted,
         )
 
     if sort == "ranked_global":
@@ -279,6 +287,7 @@ async def build_publications_query(
             db, cursor=cursor, limit=limit, category=category, search=search,
             tag=tag, date_from=date_from, date_to=date_to,
             user_id=user_id, filter_by_user_id=filter_by_user_id,
+            include_unlisted=include_unlisted,
         )
 
     # ── date / seed ordering ─────────────────────────────────────────────────
@@ -291,6 +300,7 @@ async def build_publications_query(
         date_from=date_from,
         date_to=date_to,
         filter_by_user_id=filter_by_user_id,
+        include_unlisted=include_unlisted,
     )
 
     count_stmt = select(func.count()).select_from(stmt.subquery())
@@ -340,6 +350,7 @@ async def _ranked_query(
     date_to: datetime | None = None,
     user_id: uuid.UUID | None,
     filter_by_user_id: uuid.UUID | None = None,
+    include_unlisted: bool = False,
 ) -> PaginatedPublications:
     from app.models.publication import Publication
     from app.models.comment import Comment
@@ -369,6 +380,7 @@ async def _ranked_query(
             date_from=date_from,
             date_to=date_to,
             filter_by_user_id=filter_by_user_id,
+            include_unlisted=include_unlisted,
         )
 
     count_base = select(Publication.id).outerjoin(
@@ -382,6 +394,7 @@ async def _ranked_query(
         date_from=date_from,
         date_to=date_to,
         filter_by_user_id=filter_by_user_id,
+        include_unlisted=include_unlisted,
     )
     count_q = select(func.count()).select_from(count_base.subquery())
     total_result = await db.execute(count_q)
@@ -443,6 +456,7 @@ async def _ranked_global_query(
     date_to: datetime | None = None,
     user_id: uuid.UUID | None,
     filter_by_user_id: uuid.UUID | None = None,
+    include_unlisted: bool = False,
 ) -> PaginatedPublications:
     """All-time ranking: sort purely by engagement (upvotes + comments), ignoring publish date."""
     from app.models.publication import Publication
@@ -469,6 +483,7 @@ async def _ranked_global_query(
             date_from=date_from,
             date_to=date_to,
             filter_by_user_id=filter_by_user_id,
+            include_unlisted=include_unlisted,
         )
 
     count_base = select(Publication.id).outerjoin(
@@ -482,6 +497,7 @@ async def _ranked_global_query(
         date_from=date_from,
         date_to=date_to,
         filter_by_user_id=filter_by_user_id,
+        include_unlisted=include_unlisted,
     )
     count_q = select(func.count()).select_from(count_base.subquery())
     total_result = await db.execute(count_q)
@@ -568,7 +584,7 @@ async def get_publication_by_id(
         select(func.count(Publication.id))
         .select_from(Publication)
         .outerjoin(cc_sub, Publication.id == cc_sub.c.publication_id)
-        .where(same_calendar_day, ahead_that_day)
+        .where(same_calendar_day, ahead_that_day, Publication.is_unlisted.is_(False))
     )
     rank_result = await db.execute(
         rank_stmt,
