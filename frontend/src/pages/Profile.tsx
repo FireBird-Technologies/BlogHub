@@ -82,8 +82,7 @@ export default function Profile() {
     emails?.find((e) => e.id === openEmailId) ?? null;
 
   // The publication + specific run the analytics modal is showing. Kept as a pair
-  // (not just an id) since the modal needs the publication's upvote/comment totals,
-  // which don't live on the booking itself.
+  // (not just an id) since the modal still labels the run with the publication title.
   const [analyticsTarget, setAnalyticsTarget] = useState<{
     publication: Publication;
     booking: MyBooking;

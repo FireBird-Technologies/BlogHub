@@ -1,4 +1,4 @@
-import { MessageCircle, ArrowBigUp, Eye } from "lucide-react";
+import { ArrowUpRightFromSquare, Eye } from "lucide-react";
 import Modal from "../ui/Modal";
 import type { MyBooking, Publication } from "../../types/models";
 
@@ -29,7 +29,7 @@ function StatCard({ icon, label, value, accent }: StatCardProps) {
   );
 }
 
-/** A simple bar comparing this run's visits against upvotes/comments, so the
+/** A simple bar comparing this run's clicks against impressions, so the
  *  numbers have some visual context rather than sitting as bare digits. */
 function StatBar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
   const pct = max > 0 ? Math.max(4, Math.round((value / max) * 100)) : 0;
@@ -54,8 +54,7 @@ interface FeaturedAnalyticsModalProps {
   booking: MyBooking | null;
 }
 
-/** Analytics for a featured publication: visits the slot earned, plus its overall
- *  upvotes and comments, so the author can see the full picture in one place. */
+/** Analytics for a featured publication: the audience reached and the visits earned. */
 export default function FeaturedAnalyticsModal({
   isOpen,
   onClose,
@@ -63,9 +62,8 @@ export default function FeaturedAnalyticsModal({
   booking,
 }: FeaturedAnalyticsModalProps) {
   const clicks = booking?.click_count ?? 0;
-  const upvotes = publication.upvote_count;
-  const comments = publication.comment_count;
-  const max = Math.max(clicks, upvotes, comments, 1);
+  const impressions = booking?.impression_count ?? 0;
+  const max = Math.max(clicks, impressions, 1);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Analytics" maxWidth="max-w-md">
@@ -79,36 +77,29 @@ export default function FeaturedAnalyticsModal({
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <StatCard
-            icon={<Eye size={13} />}
+            icon={<ArrowUpRightFromSquare size={13} />}
             label="Clicks"
             value={clicks}
             accent="text-amber-600"
           />
           <StatCard
-            icon={<ArrowBigUp size={13} />}
-            label="Upvotes"
-            value={upvotes}
-            accent="text-red-500"
-          />
-          <StatCard
-            icon={<MessageCircle size={13} />}
-            label="Comments"
-            value={comments}
+            icon={<Eye size={13} />}
+            label="Impressions"
+            value={impressions}
             accent="text-blue-500"
           />
         </div>
 
         <div className="flex flex-col gap-2.5 pt-1">
           <StatBar label="Clicks" value={clicks} max={max} color="bg-amber-500" />
-          <StatBar label="Upvotes" value={upvotes} max={max} color="bg-red-500" />
-          <StatBar label="Comments" value={comments} max={max} color="bg-blue-500" />
+          <StatBar label="Impressions" value={impressions} max={max} color="bg-blue-500" />
         </div>
 
         <p className="text-[11px] text-gray-400 pt-1 border-t border-gray-100">
-          Clicks count clicks on the featured card only, while your publication is live in the
-          slot. Upvotes and comments are totals for the publication overall, not just this run.
+          Impressions count unique visitors who saw the featured card during this run. Clicks
+          count clicks on the featured card only, while your publication is live in the slot.
         </p>
       </div>
     </Modal>

@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, MessageCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -8,7 +8,7 @@ import ContactSupportModal from "./ContactSupportModal";
 import CommentsModal from "../publication/CommentsModal";
 import UpvoteButton from "../publication/UpvoteButton";
 import Avatar from "../ui/Avatar";
-import { outboundUrl, trackFeaturedClick } from "../../lib/featuredUtm";
+import { outboundUrl, trackFeaturedClick, trackFeaturedImpression } from "../../lib/featuredUtm";
 import { formatCategoryDisplay } from "../../constants/categories";
 import { publicationPath } from "../../lib/publicationUrl";
 import CropImage from "../ui/CropImage";
@@ -149,7 +149,27 @@ export default function FeaturedPublicationBanner({
   const [featuring, setFeaturing] = useState(false);
   const [contacting, setContacting] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const articleRef = useRef<HTMLElement | null>(null);
   const slotIsOpen = !isLoading && !isError && !data;
+
+  useEffect(() => {
+    if (!data) return;
+    const el = articleRef.current;
+    if (!el) return;
+
+    let tracked = false;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (tracked || !entry.isIntersecting) return;
+        tracked = true;
+        trackFeaturedImpression(data.publication.id, data.slot_id);
+        observer.disconnect();
+      },
+      { threshold: 0.5 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [data]);
 
   // An errored lookup is not the same as an empty slot: inviting someone to buy a
   // slot we couldn't read is worse than showing nothing.
@@ -229,6 +249,7 @@ export default function FeaturedPublicationBanner({
       <HelpLinks onContact={() => setContacting(true)} />
 
       <article
+        ref={articleRef}
         role="button"
         tabIndex={0}
         onClick={activate}

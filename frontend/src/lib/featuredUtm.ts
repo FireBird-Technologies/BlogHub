@@ -14,11 +14,46 @@
 //   (the marketing email uses its own tagging — see backend app/helpers/email.py,
 //   utm_content="marketing_email" — since it isn't a click made in the browser here)
 
+import { getToken } from "./auth";
+
+const API_URL = import.meta.env.VITE_API_URL ?? "";
+const VISITOR_KEY = "bloghub_featured_visitor_id";
+const IMPRESSION_PREFIX = "bloghub_featured_impression:";
+
 const UTM = {
   utm_source: "bloghub",
   utm_medium: "referral",
   utm_campaign: "featured",
 } as const;
+
+function getFeaturedVisitorId(): string {
+  try {
+    const existing = localStorage.getItem(VISITOR_KEY);
+    if (existing) return existing;
+
+    const id = crypto.randomUUID();
+    localStorage.setItem(VISITOR_KEY, id);
+    return id;
+  } catch {
+    return crypto.randomUUID();
+  }
+}
+
+function hasTrackedImpression(slotId: string): boolean {
+  try {
+    return localStorage.getItem(`${IMPRESSION_PREFIX}${slotId}`) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markTrackedImpression(slotId: string): void {
+  try {
+    localStorage.setItem(`${IMPRESSION_PREFIX}${slotId}`, "1");
+  } catch {
+    /* storage can be unavailable in private mode */
+  }
+}
 
 /** Append the featured-slot UTM params to an outbound URL.
  *
@@ -60,11 +95,40 @@ export function outboundUrl(href: string, content: string, isFeatured: boolean):
  */
 export function trackFeaturedClick(publicationId: string, isFeatured: boolean): void {
   if (!isFeatured) return;
-  const url = `${import.meta.env.VITE_API_URL ?? ""}/api/featured/${publicationId}/click`;
+  const url = `${API_URL}/api/featured/${publicationId}/click`;
   try {
     if (navigator.sendBeacon?.(url)) return;
     void fetch(url, { method: "POST", keepalive: true }).catch(() => {});
   } catch {
     /* never block the outbound navigation */
+  }
+}
+
+/** Count a unique impression once the featured card is actually visible.
+ *
+ * The browser visitor id is first-party state we create ourselves. We send it even
+ * when the user is signed in so the backend can avoid double-counting someone who
+ * first saw the card logged out and later logged in from the same browser.
+ */
+export function trackFeaturedImpression(publicationId: string, slotId: string): void {
+  if (hasTrackedImpression(slotId)) return;
+
+  const visitorId = getFeaturedVisitorId();
+  const token = getToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  try {
+    void fetch(`${API_URL}/api/featured/${publicationId}/impression`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ visitor_id: visitorId }),
+      keepalive: true,
+    }).catch(() => {});
+    markTrackedImpression(slotId);
+  } catch {
+    /* never let analytics affect rendering */
   }
 }

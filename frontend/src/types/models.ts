@@ -136,11 +136,15 @@ export interface FeaturedAvailability {
 }
 
 export interface ActiveFeature {
+  /** Specific featured booking currently being shown. */
+  slot_id: string;
   publication: Publication;
   start_date: string;
   end_date: string;
   /** Outbound clicks BlogHub has sent to this publication during its featured run. */
   click_count: number;
+  /** Unique viewers who saw the featured card during this run. */
+  impression_count: number;
 }
 
 /** The announcement email drafted for a featured publication. Needs the author's
@@ -186,6 +190,7 @@ export interface MyBooking {
   approval_status: "pending" | "approved" | "rejected";
   is_active: boolean;
   click_count: number;
+  impression_count: number;
 }
 
 export interface FeatureCheckout {
