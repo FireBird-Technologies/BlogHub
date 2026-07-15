@@ -1,13 +1,184 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { BarChart3, Check, Mail } from "lucide-react";
 import LegalPageLayout, { LegalSection } from "../components/legal/LegalPageLayout";
+import Button from "../components/ui/Button";
+import { useAuth } from "../context/AuthContext";
+import {
+  type FeatureDuration,
+  POST_LOGIN_PATH_KEY,
+  featureDashboardPath,
+} from "../lib/featuredCheckout";
 import { LEGAL } from "../constants/legal";
 
-export default function FeaturedFaq() {
+type Section = "pricing" | "faqs";
+
+const linkClass =
+  "text-base sm:text-lg font-semibold text-red-600 underline underline-offset-2 transition-colors hover:text-red-700";
+
+function SectionLinks({
+  section,
+  onSection,
+}: {
+  section: Section;
+  onSection: (s: Section) => void;
+}) {
+  const other: Section = section === "pricing" ? "faqs" : "pricing";
+  const label = other === "pricing" ? "Pricing" : "FAQs";
+
   return (
-    <LegalPageLayout
-      title="Featured Publication FAQ"
-      description={`How the paid featured slot works on ${LEGAL.siteName} — pricing, scheduling, availability, and what you get.`}
-      canonicalPath="/featured-faq"
-    >
+    <div className="flex items-center sm:flex-shrink-0">
+      <button type="button" onClick={() => onSection(other)} className={linkClass}>
+        {label}
+      </button>
+    </div>
+  );
+}
+
+const PACKAGES = [
+  {
+    durationDays: 7 as FeatureDuration,
+    name: "7 days",
+    price: "$30",
+    label: "Launch week",
+    description: "A focused run for a new post, product update, or announcement.",
+    advantages: [
+      "Top placement on the home page and dashboard",
+      "No competing publication in the featured slot",
+      "Featured card stays live for one full week",
+      "Announcement email drafted for your approval",
+      "You choose when the email is sent",
+      "Clicks and unique impressions in your analytics",
+      "UTM-tagged outbound links during the run",
+      "Good fit for launches, new posts, and short campaigns",
+    ],
+  },
+  {
+    durationDays: 14 as FeatureDuration,
+    name: "14 days",
+    price: "$60",
+    label: "Campaign",
+    description: "More time for readers to see the feature across multiple visits.",
+    advantages: [
+      "Prominent placement in main discovery pages",
+      "Your publication is the only featured listing",
+      "Two full weeks in the featured card",
+      "Editable subscriber announcement email included",
+      "You choose the email send time",
+      "UTM-tagged traffic for your own analytics",
+      "More time to catch repeat dashboard visitors",
+      "Better runway for newsletter and social promotion",
+    ],
+  },
+  {
+    durationDays: 30 as FeatureDuration,
+    name: "30 days",
+    price: "$80",
+    label: "Best value",
+    description: "The longest run, best for ongoing launches or evergreen pages.",
+    advantages: [
+      "Month-long visibility on home and dashboard",
+      "Exclusive ownership of the featured position",
+      "Best daily price of the three packages",
+      "Editable subscriber announcement email included",
+      "You choose the email send time",
+      "Run-level clicks and unique impression tracking",
+      "Best fit for evergreen pages and ongoing launches",
+      "Longer visibility window across visitor habits",
+    ],
+  },
+] as const;
+
+function PricingContent() {
+  const navigate = useNavigate();
+  const { user, openLoginModal } = useAuth();
+
+  const startPackage = (durationDays: FeatureDuration) => {
+    const path = featureDashboardPath(durationDays);
+    if (user) {
+      navigate(path);
+      return;
+    }
+    try {
+      sessionStorage.setItem(POST_LOGIN_PATH_KEY, path);
+    } catch {
+      /* private mode */
+    }
+    openLoginModal();
+  };
+
+  return (
+    <div className="flex flex-col gap-8">
+      <section>
+        <div className="grid gap-4 md:grid-cols-3">
+          {PACKAGES.map((pkg) => (
+            <article
+              key={pkg.name}
+              className="flex flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm font-semibold text-gray-900">{pkg.name}</h3>
+                <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600">
+                  {pkg.label}
+                </span>
+              </div>
+              <p className="mt-3 text-3xl font-bold tracking-tight text-gray-900">{pkg.price}</p>
+              <p className="mt-2 min-h-[48px] text-sm text-gray-500">{pkg.description}</p>
+              <ul className="mt-4 flex flex-col gap-2 border-t border-gray-100 pt-4">
+                {pkg.advantages.map((advantage) => (
+                  <li key={advantage} className="flex gap-2 text-sm text-gray-600">
+                    <Check size={15} className="mt-0.5 flex-shrink-0 text-red-600" />
+                    <span>{advantage}</span>
+                  </li>
+                ))}
+              </ul>
+              <Button
+                variant="primary"
+                size="sm"
+                className="mt-4 w-full justify-center"
+                onClick={() => startPackage(pkg.durationDays)}
+              >
+                Get started
+              </Button>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-2">
+        <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+            <Mail size={16} className="text-red-600" />
+            Marketing email included
+          </div>
+          <p className="mt-2 text-sm text-gray-600">
+            We draft a subscriber announcement for your publication. You can edit the subject,
+            body, button text, and decide when it should send before checkout. Nothing goes out
+            until you finalise it and we approve it.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+            <BarChart3 size={16} className="text-red-600" />
+            Run-level analytics
+          </div>
+          <p className="mt-2 text-sm text-gray-600">
+            Your profile shows clicks and unique impressions for each featured run. Outbound links
+            are also tagged with BlogHub featured UTM parameters for your own analytics.
+          </p>
+        </div>
+      </section>
+
+      <p className="text-sm text-gray-500">
+        One payment, no subscription, no auto-renewal. Payment is handled by Stripe.
+      </p>
+    </div>
+  );
+}
+
+function FaqContent() {
+  return (
+    <>
       <LegalSection title="What is it?">
         <p>
           One paid slot at the top of {LEGAL.siteName}. Your publication sits in a highlighted card
@@ -86,10 +257,8 @@ export default function FeaturedFaq() {
           {LEGAL.siteName}, signed in or not.
         </p>
         <p>
-          You also get a count. Every click on your featured card is recorded and shown live on the
-          card. That&apos;s clicks on the card only, not clicks on your links once someone is already
-          reading your page. Those would have happened anyway, and mixing them in would tell you
-          nothing about the slot.
+          You also get run-level analytics: unique impressions for people who saw the featured card,
+          and clicks on the featured card while your publication is live in the slot.
         </p>
         <p>
           While you&apos;re featured we also tag the links on your publication page with{" "}
@@ -125,6 +294,26 @@ export default function FeaturedFaq() {
           , or use the <strong>Contact support</strong> link above the featured card.
         </p>
       </LegalSection>
+    </>
+  );
+}
+
+export default function FeaturedFaq() {
+  const [section, setSection] = useState<Section>("pricing");
+
+  return (
+    <LegalPageLayout
+      title="Featured Publication"
+      description={`How the paid featured slot works on ${LEGAL.siteName} — pricing, scheduling, availability, and what you get.`}
+      canonicalPath="/featured-faq"
+      showLastUpdated={false}
+      headerRight={<SectionLinks section={section} onSection={setSection} />}
+    >
+      <h2 className="text-lg font-semibold text-gray-900">
+        {section === "pricing" ? "Pricing" : "FAQs"}
+      </h2>
+
+      {section === "pricing" ? <PricingContent /> : <FaqContent />}
     </LegalPageLayout>
   );
 }

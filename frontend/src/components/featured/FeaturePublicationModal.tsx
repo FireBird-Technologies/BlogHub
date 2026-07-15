@@ -75,6 +75,8 @@ function formatPrice(cents?: number): string {
 interface FeaturePublicationModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Pre-select a package duration when opened from pricing, etc. */
+  initialDurationDays?: number;
 }
 
 /** Book the site-wide featured slot: pick free dates, pick one of your publications, pay.
@@ -82,7 +84,11 @@ interface FeaturePublicationModalProps {
  * Payment is confirmed server-side by the Stripe webhook — landing back on the
  * success URL is not proof of anything.
  */
-export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePublicationModalProps) {
+export default function FeaturePublicationModal({
+  isOpen,
+  onClose,
+  initialDurationDays,
+}: FeaturePublicationModalProps) {
   const { user } = useAuth();
   const [step, setStep] = useState<Step>("dates");
   const [selectedStart, setSelectedStart] = useState<Date | null>(null);
@@ -114,7 +120,11 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
     if (isOpen) {
       setStep("dates");
       setSelectedStart(null);
-      setDuration(DEFAULT_DURATION);
+      setDuration(
+        initialDurationDays === 7 || initialDurationDays === 14 || initialDurationDays === 30
+          ? initialDurationDays
+          : DEFAULT_DURATION,
+      );
       setPublicationId(null);
       setDraft(null);
       setError(null);
@@ -124,7 +134,7 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
       setLinkFetched(false);
       setLinkUrlError(null);
     }
-  }, [isOpen]);
+  }, [isOpen, initialDurationDays]);
 
   const handleFetchLink = () => {
     setLinkUrlError(null);

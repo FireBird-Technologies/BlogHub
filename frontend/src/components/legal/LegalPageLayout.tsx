@@ -14,6 +14,9 @@ interface LegalPageLayoutProps {
   canonicalPath: string;
   children: ReactNode;
   crossLink?: { label: string; to: string };
+  /** Optional controls shown to the right of the page title (e.g. section links). */
+  headerRight?: ReactNode;
+  showLastUpdated?: boolean;
 }
 
 export default function LegalPageLayout({
@@ -22,6 +25,8 @@ export default function LegalPageLayout({
   canonicalPath,
   children,
   crossLink,
+  headerRight,
+  showLastUpdated = true,
 }: LegalPageLayoutProps) {
   const { user } = useAuth();
 
@@ -48,8 +53,15 @@ export default function LegalPageLayout({
           </Link>
 
           <header className="mb-10 border-b border-gray-200 pb-8">
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">{title}</h1>
-            <p className="text-sm text-gray-400 mt-3">Last updated: {LEGAL.effectiveDate}</p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">{title}</h1>
+                {showLastUpdated && (
+                  <p className="text-sm text-gray-400 mt-3">Last updated: {LEGAL.effectiveDate}</p>
+                )}
+              </div>
+              {headerRight}
+            </div>
           </header>
 
           <article className="legal-prose flex flex-col gap-8 text-gray-700 text-[15px] leading-relaxed">

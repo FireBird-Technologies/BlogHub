@@ -109,7 +109,7 @@ function HelpLinks({ onContact }: { onContact: () => void }) {
   return (
     <div className="flex justify-end items-center gap-4 mb-1.5">
       <Link to="/featured-faq" className={linkClass}>
-        FAQs
+        Learn more
       </Link>
       <button type="button" onClick={onContact} className={linkClass}>
         Contact support

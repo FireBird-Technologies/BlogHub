@@ -6,23 +6,32 @@ import FilterBar from "../components/filters/FilterBar";
 import { datePresetToRange, type DatePreset } from "../components/filters/DateFilter";
 import DashboardPublicationList from "../components/publication/DashboardPublicationList";
 import FeaturedPublicationBanner from "../components/featured/FeaturedPublicationBanner";
+import FeaturePublicationModal from "../components/featured/FeaturePublicationModal";
 import SubmitModal from "../components/submit/SubmitModal";
 import Pagination from "../components/ui/Pagination";
 import Button from "../components/ui/Button";
 import { usePublications } from "../hooks/usePublications";
 import { useActiveFeature } from "../hooks/useFeatured";
 import { useAuth } from "../context/AuthContext";
+import {
+  FEATURE_DURATION_PARAM,
+  POST_LOGIN_PATH_KEY,
+  featureDashboardPath,
+  parseFeatureDuration,
+} from "../lib/featuredCheckout";
 
 const PAGE_SIZE = 10;
 
 export default function Dashboard() {
-  const { user, openLoginModal } = useAuth();
+  const { user, loading: authLoading, openLoginModal } = useAuth();
   const { data: featured } = useActiveFeature();
   const [searchParams, setSearchParams] = useSearchParams();
   const [category, setCategory] = useState("");
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [datePreset, setDatePreset] = useState<DatePreset>("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [featureModalOpen, setFeatureModalOpen] = useState(false);
+  const [featureDuration, setFeatureDuration] = useState<number | undefined>();
   const [searchResetKey, setSearchResetKey] = useState(0);
   const [currentPage, setCurrentPage] = useState(() => {
     const p = Number(searchParams.get("page"));
@@ -79,6 +88,35 @@ export default function Dashboard() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, search, datePreset]);
+
+  // Open the featured booking modal when arriving from pricing (e.g. /dashboard?feature=14).
+  useEffect(() => {
+    if (authLoading) return;
+    const days = parseFeatureDuration(searchParams.get(FEATURE_DURATION_PARAM));
+    if (days == null) return;
+
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete(FEATURE_DURATION_PARAM);
+        return next;
+      },
+      { replace: true },
+    );
+
+    if (!user) {
+      try {
+        sessionStorage.setItem(POST_LOGIN_PATH_KEY, featureDashboardPath(days));
+      } catch {
+        /* private mode */
+      }
+      openLoginModal();
+      return;
+    }
+
+    setFeatureDuration(days);
+    setFeatureModalOpen(true);
+  }, [searchParams, user, authLoading, openLoginModal, setSearchParams]);
 
   const queryKey = [
     "publications",
@@ -170,6 +208,11 @@ export default function Dashboard() {
       </main>
 
       <SubmitModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+      <FeaturePublicationModal
+        isOpen={featureModalOpen}
+        onClose={() => setFeatureModalOpen(false)}
+        initialDurationDays={featureDuration}
+      />
     </div>
   );
 }
