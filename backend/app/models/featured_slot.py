@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, datetime, timezone
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -69,6 +69,11 @@ class FeaturedSlot(Base):
     click_count: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default="0"
     )
+    # Unique visitors who actually saw the featured card during this run. Backed by
+    # FeaturedSlotImpression rows so repeats from the same viewer remain idempotent.
+    impression_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True
     )
@@ -76,3 +81,33 @@ class FeaturedSlot(Base):
 
     publication: Mapped["Publication"] = relationship("Publication")  # noqa: F821
     user: Mapped["User"] = relationship("User")  # noqa: F821
+
+
+class FeaturedSlotImpression(Base):
+    """One identity that has seen a featured slot.
+
+    A viewer can have both a browser identity and a signed-in user identity. The
+    unique constraint keeps each identity idempotent per booking; helper logic ties
+    the two together so logging in after a guest view does not increment twice.
+    """
+
+    __tablename__ = "featured_slot_impressions"
+    __table_args__ = (
+        UniqueConstraint("slot_id", "identity_type", "identity_hash", name="uq_featured_impression_identity"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    slot_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("featured_slots.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    identity_type: Mapped[str] = mapped_column(String(16), nullable=False)
+    identity_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True
+    )
+
+    slot: Mapped["FeaturedSlot"] = relationship("FeaturedSlot")  # noqa: F821
+    user: Mapped["User | None"] = relationship("User")  # noqa: F821

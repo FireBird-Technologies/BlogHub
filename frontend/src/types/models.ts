@@ -6,6 +6,10 @@ export interface User {
   name: string;
   tag: string;
   avatar_url: string | null;
+  /** CSS object-position for how avatar_url is cropped (e.g. "50% 30%"). */
+  avatar_position?: string | null;
+  /** Zoom factor for the avatar crop (1 = fit). */
+  avatar_scale?: number | null;
   website?: string | null;
   onboarded: boolean;
 }
@@ -22,6 +26,10 @@ export interface Publication {
   title: string;
   description: string | null;
   image_url: string | null;
+  /** CSS object-position for how image_url is cropped in card thumbnails. */
+  image_position?: string | null;
+  /** Zoom factor for the thumbnail crop (1 = fit). */
+  image_scale?: number | null;
   category: string;
   tags: string[];
   additional_links: string[];
@@ -86,6 +94,8 @@ export interface PublicationDraft {
   title?: string;
   description?: string;
   image_url?: string;
+  image_position?: string | null;
+  image_scale?: number | null;
   category?: string;
   tags?: string[];
   additional_links?: string[];
@@ -104,6 +114,8 @@ export interface PublicationFromLinkPayload {
   title: string;
   description?: string;
   image_url?: string;
+  image_position?: string | null;
+  image_scale?: number | null;
   category: string;
   tags?: string[];
 }
@@ -124,11 +136,15 @@ export interface FeaturedAvailability {
 }
 
 export interface ActiveFeature {
+  /** Specific featured booking currently being shown. */
+  slot_id: string;
   publication: Publication;
   start_date: string;
   end_date: string;
   /** Outbound clicks BlogHub has sent to this publication during its featured run. */
   click_count: number;
+  /** Unique viewers who saw the featured card during this run. */
+  impression_count: number;
 }
 
 /** The announcement email drafted for a featured publication. Needs the author's
@@ -174,6 +190,7 @@ export interface MyBooking {
   approval_status: "pending" | "approved" | "rejected";
   is_active: boolean;
   click_count: number;
+  impression_count: number;
 }
 
 export interface FeatureCheckout {

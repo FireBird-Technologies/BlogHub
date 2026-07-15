@@ -15,6 +15,7 @@ import { useScrape } from "../../hooks/useScrape";
 import api, { formatApiErrorDetail } from "../../lib/api";
 import { normalizeLinkUrl, normalizePublicationUrl } from "../../lib/urlNormalize";
 import ImageUploadButton from "../ui/ImageUploadButton";
+import AdjustImageModal, { ImageThumbWithAdjust } from "../ui/AdjustImageModal";
 import { publicationShortId } from "../../lib/publicationUrl";
 import type { Publication, SocialLinkInput } from "../../types/models";
 
@@ -35,6 +36,8 @@ interface PublicationUpdatePayload {
   title: string;
   description?: string;
   image_url?: string;
+  image_position?: string | null;
+  image_scale?: number | null;
   category: string;
   tags: string[];
   additional_links: string[];
@@ -54,6 +57,10 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  // CSS object-position + zoom for how the image is cropped in card thumbnails.
+  const [imagePosition, setImagePosition] = useState<string | null>(null);
+  const [imageScale, setImageScale] = useState<number | null>(null);
+  const [adjustingImage, setAdjustingImage] = useState(false);
   const [category, setCategory] = useState<string>(CATEGORIES[0]);
   const [customCategory, setCustomCategory] = useState("");
   const [tagsStr, setTagsStr] = useState("");
@@ -76,6 +83,8 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
     setTitle(publication.title ?? "");
     setDescription(publication.description ?? "");
     setImageUrl(publication.image_url ?? "");
+    setImagePosition(publication.image_position ?? null);
+    setImageScale(publication.image_scale ?? null);
     const isPredefined = isCategory(publication.category);
     setCategory(isPredefined ? publication.category : "__custom__");
     setCustomCategory(isPredefined ? "" : publication.category);
@@ -118,7 +127,11 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
         onSuccess: (data) => {
           if (data.title) setTitle(data.title);
           if (data.description) setDescription(data.description);
-          if (data.image_url) setImageUrl(data.image_url);
+          if (data.image_url) {
+            setImageUrl(data.image_url);
+            setImagePosition(null); // new image → reset crop to center
+            setImageScale(null);
+          }
         },
         onError: () => {
           setFieldError("Could not fetch details for that URL. Check it and try again.");
@@ -192,6 +205,8 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
         title: title.trim(),
         description: description.trim() || undefined,
         image_url: imageUrl.trim() || undefined,
+        image_position: imageUrl.trim() ? imagePosition : null,
+        image_scale: imageUrl.trim() ? imageScale : null,
         category: normalizeCategoryForStorage(category === "__custom__" ? customCategory : category),
         tags,
         additional_links,
@@ -251,29 +266,67 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
             )}
           </label>
           <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-24 h-24 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden">
-              {imageUrl && (
-                <img
-                  src={imageUrl}
-                  alt=""
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
-              )}
-            </div>
             <div className="flex-1 min-w-0 flex flex-col gap-2">
               <input
                 type="url"
                 value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
+                onChange={(e) => {
+                  setImageUrl(e.target.value);
+                  setImagePosition(null); // different image → reset crop
+                  setImageScale(null);
+                }}
                 placeholder="Paste an image URL…"
                 className={`${inputClsSm} w-full`}
               />
-              <ImageUploadButton onUpload={setImageUrl} className="self-start py-1.5" />
+              <ImageUploadButton
+                onUpload={(url) => {
+                  setImageUrl(url);
+                  setImagePosition(null);
+                  setImageScale(null);
+                }}
+                className="self-start py-1.5"
+              />
+              {imageUrl && (
+                <p className="text-[11px] text-gray-400">Click the image to adjust its thumbnail crop.</p>
+              )}
             </div>
+            {imageUrl ? (
+              <div className="flex flex-col items-center gap-1">
+                <ImageThumbWithAdjust
+                  src={imageUrl}
+                  position={imagePosition}
+                  scale={imageScale}
+                  className="w-20 h-20"
+                  onClick={() => setAdjustingImage(true)}
+                />
+                <p className="w-20 text-center text-[10px] leading-tight text-gray-400">Card crop</p>
+              </div>
+            ) : (
+              <div className="flex-shrink-0 w-20 h-20 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden" />
+            )}
           </div>
+          {imageUrl && (
+            <div className="mt-3">
+              <p className="text-[11px] text-gray-400 mb-1">Full image (detail page)</p>
+              <div className="w-full rounded-lg border border-gray-200 overflow-hidden aspect-video bg-gray-100">
+                <img src={imageUrl} alt="" className="w-full h-full object-contain" />
+              </div>
+            </div>
+          )}
+          {imageUrl && (
+            <AdjustImageModal
+              src={imageUrl}
+              isOpen={adjustingImage}
+              position={imagePosition}
+              scale={imageScale}
+              aspect={1}
+              onClose={() => setAdjustingImage(false)}
+              onSave={(pos, sc) => {
+                setImagePosition(pos);
+                setImageScale(sc);
+              }}
+            />
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

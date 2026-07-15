@@ -27,6 +27,8 @@ interface PublicationGridProps {
   };
   isLoading?: boolean;
   ranked?: boolean;
+  /** Profile cards should show the default centered image, not the saved listing crop. */
+  applyImageCrop?: boolean;
   /** Overrides the empty-state copy (e.g. per profile tab). */
   emptyState?: { title?: string; description?: string };
 }
@@ -43,6 +45,7 @@ export default function PublicationGrid({
   featuredInfo,
   isLoading,
   ranked = false,
+  applyImageCrop = true,
   emptyState,
 }: PublicationGridProps) {
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -119,6 +122,7 @@ export default function PublicationGrid({
             featuredEmails={info?.emails}
             onOpenEmail={info?.onOpenEmail}
             onOpenAnalytics={info?.onOpenAnalytics}
+            applyImageCrop={applyImageCrop}
           />
           );
         })}

@@ -5,6 +5,7 @@ exclusive calendar range. Dates are inclusive `date` values (no time component):
 two ranges overlap iff `a.start <= b.end AND a.end >= b.start`.
 """
 
+import hashlib
 import logging
 import uuid
 from datetime import date, datetime, time, timedelta, timezone
@@ -13,6 +14,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 import stripe
 from fastapi import HTTPException, status
 from sqlalchemy import and_, delete, or_, select, text, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from starlette.concurrency import run_in_threadpool
@@ -22,7 +24,7 @@ from app.helpers.email import (
     send_feature_purchase_notification,
 )
 from app.helpers.publications import _batch_claims, _batch_meta, _pub_to_out
-from app.models.featured_slot import FeaturedSlot
+from app.models.featured_slot import FeaturedSlot, FeaturedSlotImpression
 from app.models.publication import Publication
 from app.schemas.featured import (
     ActiveFeatureOut,
@@ -709,9 +711,11 @@ async def get_active_feature(
             verified_map=verified_map,
             my_status_map=my_status_map,
         ),
+        slot_id=slot.id,
         start_date=slot.start_date,
         end_date=slot.end_date,
         click_count=slot.click_count,
+        impression_count=slot.impression_count,
     )
 
 
@@ -862,3 +866,105 @@ async def record_click(db: AsyncSession, publication_id: uuid.UUID) -> int:
     row = result.first()
     await db.commit()
     return row[0] if row else 0
+
+
+def _impression_hash(identity_type: str, value: str) -> str:
+    """Stable one-way identity used only for featured impression dedupe."""
+    raw = f"{identity_type}:{value}:{settings.JWT_SECRET}".encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()
+
+
+async def record_impression(
+    db: AsyncSession,
+    publication_id: uuid.UUID,
+    *,
+    user_id: uuid.UUID | None,
+    visitor_id: str,
+) -> int:
+    """Count one unique featured-card impression for the active booking.
+
+    The browser visitor id is sent for everyone. If the viewer is signed in, we also
+    attach the user id. A logged-out view followed by a logged-in view from the same
+    browser therefore records a user alias but does not increment twice.
+    """
+    today = date.today()
+    result = await db.execute(
+        select(FeaturedSlot)
+        .where(
+            and_(
+                FeaturedSlot.publication_id == publication_id,
+                FeaturedSlot.is_active.is_(True),
+                FeaturedSlot.status == "paid",
+                FeaturedSlot.approval_status == "approved",
+                FeaturedSlot.start_date <= today,
+                FeaturedSlot.end_date >= today,
+            )
+        )
+        .limit(1)
+    )
+    slot = result.scalar_one_or_none()
+    if slot is None:
+        return 0
+
+    visitor_id = visitor_id.strip()
+    identities: list[tuple[str, str, uuid.UUID | None]] = [
+        ("visitor", _impression_hash("visitor", visitor_id), None)
+    ]
+    if user_id is not None:
+        identities.append(("user", _impression_hash("user", str(user_id)), user_id))
+
+    existing = await db.execute(
+        select(FeaturedSlotImpression.id)
+        .where(
+            and_(
+                FeaturedSlotImpression.slot_id == slot.id,
+                or_(
+                    *[
+                        and_(
+                            FeaturedSlotImpression.identity_type == identity_type,
+                            FeaturedSlotImpression.identity_hash == identity_hash,
+                        )
+                        for identity_type, identity_hash, _ in identities
+                    ]
+                ),
+            )
+        )
+        .limit(1)
+    )
+    already_seen = existing.first() is not None
+
+    now = datetime.now(timezone.utc)
+    rows = [
+        {
+            "slot_id": slot.id,
+            "user_id": row_user_id,
+            "identity_type": identity_type,
+            "identity_hash": identity_hash,
+            "created_at": now,
+        }
+        for identity_type, identity_hash, row_user_id in identities
+    ]
+    insert_result = await db.execute(
+        pg_insert(FeaturedSlotImpression)
+        .values(rows)
+        .on_conflict_do_nothing(
+            index_elements=["slot_id", "identity_type", "identity_hash"]
+        )
+        .returning(FeaturedSlotImpression.id)
+    )
+    inserted_count = len(insert_result.scalars().all())
+
+    if not already_seen and inserted_count == len(identities):
+        updated = await db.execute(
+            update(FeaturedSlot)
+            .where(FeaturedSlot.id == slot.id)
+            .values(impression_count=FeaturedSlot.impression_count + 1)
+            .returning(FeaturedSlot.impression_count)
+        )
+        row = updated.first()
+        await db.commit()
+        return row[0] if row else slot.impression_count + 1
+
+    await db.commit()
+    await db.refresh(slot)
+    return slot.impression_count

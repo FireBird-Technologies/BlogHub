@@ -13,6 +13,7 @@ from app.helpers.featured import (
     get_my_bookings,
     get_slot_for_review,
     record_click,
+    record_impression,
     reconcile_slots,
     slot_end_date,
 )
@@ -39,6 +40,7 @@ from app.schemas.featured import (
     FeaturedAvailabilityOut,
     FeaturedEmailOut,
     FeaturedEmailUpdateIn,
+    FeaturedImpressionIn,
     MyBookingOut,
     ReconcileOut,
     SupportRequestIn,
@@ -134,6 +136,27 @@ async def featured_click(publication_id: uuid.UUID, db: AsyncSession = Depends(g
     to call from any publication page.
     """
     await record_click(db, publication_id)
+
+
+@router.post("/featured/{publication_id}/impression", status_code=status.HTTP_204_NO_CONTENT)
+async def featured_impression(
+    publication_id: uuid.UUID,
+    payload: FeaturedImpressionIn,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_optional_user),
+):
+    """Record a unique impression on the visible featured card.
+
+    Public like clicks because guests see the card too. Signed-in requests include
+    auth through the normal optional dependency so the backend can dedupe a visitor
+    who saw the slot logged out and later logged in.
+    """
+    await record_impression(
+        db,
+        publication_id,
+        user_id=current_user.id if current_user else None,
+        visitor_id=payload.visitor_id,
+    )
 
 
 @router.post("/featured/support", status_code=status.HTTP_204_NO_CONTENT)
@@ -255,6 +278,7 @@ async def my_featured_bookings(
             approval_status=s.approval_status,
             is_active=s.is_active,
             click_count=s.click_count,
+            impression_count=s.impression_count,
         )
         for s in slots
     ]

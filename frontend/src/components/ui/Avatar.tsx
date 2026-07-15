@@ -1,9 +1,14 @@
 import type { CSSProperties } from "react";
+import CropImage from "./CropImage";
 
 interface AvatarProps {
   src?: string | null;
   name?: string;
   size?: number;
+  /** CSS object-position for how src is cropped (e.g. "50% 30%"). */
+  position?: string | null;
+  /** Zoom factor for the crop (1 = fit). */
+  scale?: number | null;
   className?: string;
 }
 
@@ -30,17 +35,19 @@ function getColor(name = ""): string {
   return colors[idx];
 }
 
-export default function Avatar({ src, name = "", size = 32, className = "" }: AvatarProps) {
+export default function Avatar({ src, name = "", size = 32, position, scale, className = "" }: AvatarProps) {
   const style: CSSProperties = { width: `${size}px`, height: `${size}px`, flexShrink: 0 };
   const textClass = size >= 48 ? "text-sm" : "text-xs";
 
   if (src) {
     return (
-      <img
+      <CropImage
         src={src}
         alt={name}
+        position={position}
+        scale={scale}
         style={style}
-        className={`rounded-full object-cover ${className}`}
+        className={`rounded-full ${className}`}
       />
     );
   }

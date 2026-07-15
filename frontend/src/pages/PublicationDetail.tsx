@@ -675,7 +675,7 @@ export default function PublicationDetail() {
           )}
 
           <div className="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4">
-            <Avatar src={pub.author?.avatar_url} name={pub.author?.name} size={48} />
+            <Avatar src={pub.author?.avatar_url} name={pub.author?.name} position={pub.author?.avatar_position} scale={pub.author?.avatar_scale} size={48} />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-900">
                 {pub.author?.name}

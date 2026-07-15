@@ -6,7 +6,9 @@ import Button from "../ui/Button";
 import Spinner from "../ui/Spinner";
 import CustomDropdown from "../ui/CustomDropdown";
 import ImageUploadButton from "../ui/ImageUploadButton";
+import AdjustImageModal, { ImageThumbWithAdjust } from "../ui/AdjustImageModal";
 import FeatureCalendar from "./FeatureCalendar";
+import CropImage from "../ui/CropImage";
 import { useScrape } from "../../hooks/useScrape";
 import { useAuth } from "../../context/AuthContext";
 import { useUserPublications } from "../../hooks/useUserPublications";
@@ -45,6 +47,8 @@ interface LinkFields {
   title: string;
   description: string;
   image_url: string;
+  image_position: string | null;
+  image_scale: number | null;
   category: string;
   customCategory: string;
   tags: string;
@@ -55,6 +59,8 @@ const EMPTY_LINK_FIELDS: LinkFields = {
   title: "",
   description: "",
   image_url: "",
+  image_position: null,
+  image_scale: null,
   category: "",
   customCategory: "",
   tags: "",
@@ -93,6 +99,7 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
   const [linkUrl, setLinkUrl] = useState("");
   const [linkFields, setLinkFields] = useState<LinkFields>(EMPTY_LINK_FIELDS);
   const [linkFetched, setLinkFetched] = useState(false);
+  const [adjustingLinkImage, setAdjustingLinkImage] = useState(false);
   const [linkUrlError, setLinkUrlError] = useState<string | null>(null);
 
   const availability = useFeatureAvailability(isOpen);
@@ -140,6 +147,8 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
           title: data.title ?? "",
           description: data.description ?? "",
           image_url: data.image_url ?? "",
+          image_position: null,
+          image_scale: null,
           category: "",
           customCategory: "",
           tags: "",
@@ -228,6 +237,8 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
         title: linkFields.title.trim(),
         description: linkFields.description.trim() || undefined,
         image_url: linkFields.image_url.trim() || undefined,
+        image_position: linkFields.image_url.trim() ? linkFields.image_position : null,
+        image_scale: linkFields.image_url.trim() ? linkFields.image_scale : null,
         category: normalizeCategoryForStorage(
           linkFields.category === "__custom__" ? linkFields.customCategory : linkFields.category,
         ),
@@ -418,13 +429,11 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
                         >
                           <div className="flex-shrink-0 w-11 h-11 rounded-lg bg-gray-100 overflow-hidden">
                             {pub.image_url && (
-                              <img
+                              <CropImage
                                 src={pub.image_url}
-                                alt=""
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = "none";
-                                }}
+                                position={pub.image_position}
+                                scale={pub.image_scale}
+                                className="w-full h-full"
                               />
                             )}
                           </div>
@@ -473,19 +482,18 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
 
                 {linkFetched && (
                   <div className="flex flex-col gap-3 pt-1 border-t border-gray-100">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-28 h-28 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden">
-                        {linkFields.image_url && (
-                          <img
-                            src={linkFields.image_url}
-                            alt=""
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.style.display = "none";
-                            }}
-                          />
-                        )}
-                      </div>
+                    <div className="flex items-center gap-3">
+                      {linkFields.image_url ? (
+                        <ImageThumbWithAdjust
+                          src={linkFields.image_url}
+                          position={linkFields.image_position}
+                          scale={linkFields.image_scale}
+                          className="w-28 h-28"
+                          onClick={() => setAdjustingLinkImage(true)}
+                        />
+                      ) : (
+                        <div className="flex-shrink-0 w-28 h-28 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden" />
+                      )}
                       <div className="flex-1 min-w-0 flex flex-col gap-2">
                         <label className="flex flex-col gap-1.5">
                           <span className="text-xs font-medium text-gray-600">Image</span>
@@ -493,17 +501,37 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
                             <input
                               type="url"
                               value={linkFields.image_url}
-                              onChange={(e) => setLinkFields((f) => ({ ...f, image_url: e.target.value }))}
+                              onChange={(e) =>
+                                setLinkFields((f) => ({ ...f, image_url: e.target.value, image_position: null, image_scale: null }))
+                              }
                               placeholder="Paste an image URL…"
                               className="flex-1 min-w-0 bg-white border border-gray-200 text-gray-800 text-xs rounded-lg
                                          px-3 py-2 placeholder:text-gray-400 focus:outline-none
                                          focus:border-red-400 focus:ring-1 focus:ring-red-400/20"
                             />
                             <ImageUploadButton
-                              onUpload={(dataUrl) => setLinkFields((f) => ({ ...f, image_url: dataUrl }))}
+                              onUpload={(dataUrl) =>
+                                setLinkFields((f) => ({ ...f, image_url: dataUrl, image_position: null, image_scale: null }))
+                              }
                             />
                           </div>
+                          {linkFields.image_url && (
+                            <p className="text-[11px] text-gray-400">Click the image to adjust its thumbnail crop.</p>
+                          )}
                         </label>
+                        {linkFields.image_url && (
+                          <AdjustImageModal
+                            src={linkFields.image_url}
+                            isOpen={adjustingLinkImage}
+                            position={linkFields.image_position}
+                            scale={linkFields.image_scale}
+                            aspect={1}
+                            onClose={() => setAdjustingLinkImage(false)}
+                            onSave={(pos, sc) =>
+                              setLinkFields((f) => ({ ...f, image_position: pos, image_scale: sc }))
+                            }
+                          />
+                        )}
                         <div className="grid grid-cols-2 gap-2">
                           <label className="flex flex-col gap-1.5">
                             <span className="text-xs font-medium text-gray-600">Category *</span>

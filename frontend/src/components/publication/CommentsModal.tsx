@@ -155,7 +155,7 @@ export default function CommentsModal({ isOpen, onClose, publication }: Comments
 
       {user ? (
         <form onSubmit={handleSubmit} className="flex gap-2 border-t border-gray-100 pt-4">
-          <Avatar src={user.avatar_url} name={user.name} size={28} />
+          <Avatar src={user.avatar_url} name={user.name} position={user.avatar_position} scale={user.avatar_scale} size={28} />
           <div className="flex-1 flex gap-2">
             <input
               ref={commentInputRef}

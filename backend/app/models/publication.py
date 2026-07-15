@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, String, Text, Integer, DateTime, ForeignKey, JSON
+from sqlalchemy import Boolean, String, Text, Integer, Float, DateTime, ForeignKey, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -62,6 +62,11 @@ class Publication(Base):
     title: Mapped[str] = mapped_column(String(512), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # CSS object-position (e.g. "50% 30%") chosen by the owner for how image_url is
+    # cropped in card/row thumbnails. Null = browser default (center).
+    image_position: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    # Zoom factor for the thumbnail crop (1.0 = fit, higher = zoomed in). Null = 1.
+    image_scale: Mapped[float | None] = mapped_column(Float, nullable=True)
     category: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     tags: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
     additional_links: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")

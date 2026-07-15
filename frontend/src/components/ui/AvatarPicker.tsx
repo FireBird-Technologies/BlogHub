@@ -7,6 +7,10 @@ interface AvatarPickerProps {
   src?: string | null;
   name?: string;
   size?: number;
+  /** CSS object-position for the preview crop (e.g. "50% 30%"). */
+  position?: string | null;
+  /** Zoom factor for the preview crop (1 = fit). */
+  scale?: number | null;
   onChange: (dataUrl: string) => void;
   className?: string;
 }
@@ -17,6 +21,8 @@ export default function AvatarPicker({
   src,
   name,
   size = 96,
+  position,
+  scale,
   onChange,
   className = "",
 }: AvatarPickerProps) {
@@ -51,7 +57,7 @@ export default function AvatarPicker({
           className={`group relative h-full w-full rounded-full overflow-hidden cursor-pointer ${className}`}
           aria-label="Change profile photo"
         >
-          <Avatar src={src} name={name} size={size} />
+          <Avatar src={src} name={name} size={size} position={position} scale={scale} />
           <span
             className="absolute inset-0 flex items-center justify-center bg-black/45 text-white
                        opacity-0 group-hover:opacity-100 transition-opacity"

@@ -16,6 +16,7 @@ import { siteName, defaultOgImage } from "../content/siteContent";
 import { publicationPath } from "../lib/publicationUrl";
 import { CATEGORY_DESCRIPTIONS } from "../constants/categories";
 import type { Publication, RoundupDetail } from "../types/models";
+import CropImage from "../components/ui/CropImage";
 
 function formatMonth(iso: string): string {
   const d = new Date(`${iso}T00:00:00`);
@@ -65,13 +66,13 @@ function RoundupItem({ pub, position }: { pub: Publication; position: number }) 
         </div>
 
         {/* Thumbnail */}
-        <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-gray-100 overflow-hidden border border-gray-100">
+        <div className="flex-shrink-0 self-center w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-gray-100 overflow-hidden border border-gray-100">
           {pub.image_url ? (
-            <img
+            <CropImage
               src={pub.image_url}
-              alt=""
-              className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-              onError={(e) => { e.currentTarget.style.display = "none"; }}
+              position={pub.image_position}
+              scale={pub.image_scale}
+              className="w-full h-full transition-transform duration-200 group-hover:scale-105"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-50 to-rose-50">
@@ -105,7 +106,7 @@ function RoundupItem({ pub, position }: { pub: Publication; position: number }) 
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-auto">
             <div className="flex items-center gap-1.5">
-              <Avatar src={pub.author?.avatar_url} name={pub.author?.name} size={20} />
+              <Avatar src={pub.author?.avatar_url} name={pub.author?.name} position={pub.author?.avatar_position} scale={pub.author?.avatar_scale} size={20} />
               <span className="text-xs font-medium text-gray-600 truncate">{byline}</span>
             </div>
             <span className="text-gray-300 text-xs hidden sm:inline" aria-hidden>|</span>

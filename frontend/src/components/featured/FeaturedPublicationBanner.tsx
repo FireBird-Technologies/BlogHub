@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, MessageCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -8,9 +8,10 @@ import ContactSupportModal from "./ContactSupportModal";
 import CommentsModal from "../publication/CommentsModal";
 import UpvoteButton from "../publication/UpvoteButton";
 import Avatar from "../ui/Avatar";
-import { outboundUrl, trackFeaturedClick } from "../../lib/featuredUtm";
+import { outboundUrl, trackFeaturedClick, trackFeaturedImpression } from "../../lib/featuredUtm";
 import { formatCategoryDisplay } from "../../constants/categories";
 import { publicationPath } from "../../lib/publicationUrl";
+import CropImage from "../ui/CropImage";
 
 /** The card body — identical whether it holds a paid feature or the worked example,
  *  so an author sees exactly the listing they would be buying. */
@@ -19,9 +20,13 @@ interface CardContent {
   description?: string | null;
   category: string;
   image_url?: string | null;
+  image_position?: string | null;
+  image_scale?: number | null;
   author_name?: string;
   author_tag?: string;
   author_avatar?: string | null;
+  author_avatar_position?: string | null;
+  author_avatar_scale?: number | null;
   upvote_count: number;
   comment_count?: number;
 }
@@ -33,13 +38,11 @@ function CardBody({ pub }: { pub: CardContent }) {
         className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-white overflow-hidden border border-amber-200"
       >
         {pub.image_url ? (
-          <img
+          <CropImage
             src={pub.image_url}
-            alt=""
-            className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-            }}
+            position={pub.image_position}
+            scale={pub.image_scale}
+            className="w-full h-full transition-transform duration-200 group-hover:scale-105"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-amber-50">
@@ -66,7 +69,7 @@ function CardBody({ pub }: { pub: CardContent }) {
         )}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-auto pt-0.5">
           <span className="flex items-center gap-1.5 min-w-0">
-            <Avatar src={pub.author_avatar} name={pub.author_name} size={18} />
+            <Avatar src={pub.author_avatar} name={pub.author_name} position={pub.author_avatar_position} scale={pub.author_avatar_scale} size={18} />
             <span className="text-xs text-gray-500 truncate">
               {pub.author_tag ? `@${pub.author_tag}` : pub.author_name}
             </span>
@@ -146,7 +149,27 @@ export default function FeaturedPublicationBanner({
   const [featuring, setFeaturing] = useState(false);
   const [contacting, setContacting] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const articleRef = useRef<HTMLElement | null>(null);
   const slotIsOpen = !isLoading && !isError && !data;
+
+  useEffect(() => {
+    if (!data) return;
+    const el = articleRef.current;
+    if (!el) return;
+
+    let tracked = false;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (tracked || !entry.isIntersecting) return;
+        tracked = true;
+        trackFeaturedImpression(data.publication.id, data.slot_id);
+        observer.disconnect();
+      },
+      { threshold: 0.5 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [data]);
 
   // An errored lookup is not the same as an empty slot: inviting someone to buy a
   // slot we couldn't read is worse than showing nothing.
@@ -226,6 +249,7 @@ export default function FeaturedPublicationBanner({
       <HelpLinks onContact={() => setContacting(true)} />
 
       <article
+        ref={articleRef}
         role="button"
         tabIndex={0}
         onClick={activate}
@@ -263,9 +287,13 @@ export default function FeaturedPublicationBanner({
             description: pub.description,
             category: pub.category,
             image_url: pub.image_url,
+            image_position: pub.image_position,
+            image_scale: pub.image_scale,
             author_name: pub.author?.name,
             author_tag: pub.author?.tag,
             author_avatar: pub.author?.avatar_url,
+            author_avatar_position: pub.author?.avatar_position,
+            author_avatar_scale: pub.author?.avatar_scale,
             upvote_count: pub.upvote_count,
             comment_count: pub.comment_count,
           }}

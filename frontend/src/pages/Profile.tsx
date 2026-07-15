@@ -82,8 +82,7 @@ export default function Profile() {
     emails?.find((e) => e.id === openEmailId) ?? null;
 
   // The publication + specific run the analytics modal is showing. Kept as a pair
-  // (not just an id) since the modal needs the publication's upvote/comment totals,
-  // which don't live on the booking itself.
+  // (not just an id) since the modal still labels the run with the publication title.
   const [analyticsTarget, setAnalyticsTarget] = useState<{
     publication: Publication;
     booking: MyBooking;
@@ -120,7 +119,7 @@ export default function Profile() {
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
         <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 mb-8 shadow-sm">
           <div className="flex flex-col xs:flex-row sm:flex-row items-start gap-4 sm:gap-5">
-            <Avatar src={user.avatar_url} name={user.name} size={72} className="rounded-2xl" />
+            <Avatar src={user.avatar_url} name={user.name} position={user.avatar_position} scale={user.avatar_scale} size={72} className="rounded-2xl" />
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3">
@@ -186,12 +185,12 @@ export default function Profile() {
         )}
 
         <div>
-          <div className="flex items-center justify-between gap-3 mb-6">
-            <div className="flex gap-1 rounded-lg bg-gray-100 p-1 text-sm font-medium">
+          <div className="flex items-center justify-between gap-2 sm:gap-3 mb-6">
+            <div className="flex gap-1 rounded-lg bg-gray-100 p-1 text-xs sm:text-sm font-medium">
               <button
                 type="button"
                 onClick={() => setTab("mine")}
-                className={`rounded-md px-3 py-1.5 transition-colors ${
+                className={`rounded-md px-2 py-1 sm:px-3 sm:py-1.5 transition-colors ${
                   tab === "mine" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -200,15 +199,20 @@ export default function Profile() {
               <button
                 type="button"
                 onClick={() => setTab("featured")}
-                className={`rounded-md px-3 py-1.5 transition-colors ${
+                className={`rounded-md px-2 py-1 sm:px-3 sm:py-1.5 transition-colors ${
                   tab === "featured" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
                 }`}
               >
                 Featured listing
               </button>
             </div>
-            <Button variant="primary" size="sm" onClick={() => setFeaturing(true)}>
-              <Star size={14} fill="currentColor" />
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setFeaturing(true)}
+              className="gap-1 px-2 py-1 text-[11px] sm:gap-2 sm:px-3 sm:py-1.5 sm:text-sm"
+            >
+              <Star size={12} fill="currentColor" className="sm:w-3.5 sm:h-3.5" />
               <span>Feature your publication</span>
             </Button>
           </div>
@@ -222,6 +226,7 @@ export default function Profile() {
             onEdit={(p) => setPubToEdit(p)}
             featuredInfo={featuredInfo}
             isLoading={isLoading}
+            applyImageCrop={false}
             emptyState={
               tab === "mine"
                 ? { title: "No publication created yet", description: "" }
