@@ -2,7 +2,9 @@ import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
 import LandingNavbar from "../landing/LandingNavbar";
+import Navbar from "../layout/Navbar";
 import Footer from "../landing/Footer";
+import { useAuth } from "../../context/AuthContext";
 import { useDocumentMeta } from "../../hooks/useDocumentMeta";
 import { LEGAL } from "../../constants/legal";
 
@@ -21,6 +23,8 @@ export default function LegalPageLayout({
   children,
   crossLink,
 }: LegalPageLayoutProps) {
+  const { user } = useAuth();
+
   useDocumentMeta({
     title: `${title} — ${LEGAL.siteName}`,
     description,
@@ -30,11 +34,13 @@ export default function LegalPageLayout({
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <LandingNavbar />
+      {/* Logged-in visitors get the dashboard navbar (so its home link points at the
+          dashboard); logged-out visitors get the public landing navbar. */}
+      {user ? <Navbar /> : <LandingNavbar />}
       <main className="flex-1 px-4 sm:px-6 py-10 sm:py-14">
         <div className="max-w-3xl mx-auto">
           <Link
-            to="/"
+            to={user ? "/dashboard" : "/"}
             className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors mb-8"
           >
             <ArrowLeft size={15} />
