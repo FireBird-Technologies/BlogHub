@@ -29,7 +29,7 @@ export default function FeaturedFaq() {
       <LegalSection title="How do I book?">
         <p>
           Hit <strong>Get featured</strong> on the card at the top of the home page or dashboard, or
-          go to your profile and click <strong>Feature a publication</strong>.
+          go to your profile and click <strong>Feature your publication</strong>.
         </p>
         <p>
           Pick a start date, pick which of your publications to feature, and pay through Stripe. Days

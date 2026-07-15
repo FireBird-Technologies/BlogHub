@@ -19,7 +19,6 @@ interface CardContent {
   description?: string | null;
   category: string;
   image_url?: string | null;
-  image_wide?: boolean;
   author_name?: string;
   author_tag?: string;
   author_avatar?: string | null;
@@ -31,9 +30,7 @@ function CardBody({ pub }: { pub: CardContent }) {
   return (
     <div className="flex gap-3 mt-2">
       <div
-        className={`flex-shrink-0 h-14 sm:h-20 rounded-lg bg-white overflow-hidden border border-amber-200 ${
-          pub.image_wide ? "w-28 sm:w-40" : "w-14 sm:w-20"
-        }`}
+        className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-white overflow-hidden border border-amber-200"
       >
         {pub.image_url ? (
           <img
@@ -59,9 +56,6 @@ function CardBody({ pub }: { pub: CardContent }) {
       </div>
 
       <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-        <span className="text-[11px] font-medium text-gray-400">
-          {formatCategoryDisplay(pub.category)}
-        </span>
         <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-snug line-clamp-1">
           {pub.title}
         </h3>
@@ -76,6 +70,10 @@ function CardBody({ pub }: { pub: CardContent }) {
             <span className="text-xs text-gray-500 truncate">
               {pub.author_tag ? `@${pub.author_tag}` : pub.author_name}
             </span>
+          </span>
+          <span className="text-gray-300">|</span>
+          <span className="text-[11px] font-medium text-gray-400">
+            {formatCategoryDisplay(pub.category)}
           </span>
         </div>
       </div>
@@ -94,8 +92,7 @@ const EXAMPLE_PUBLICATION = {
   description:
     "Paste a URL and get a narrated, captioned video ready for YouTube, Shorts and LinkedIn. Reach a 4x wider audience from writing you have already published.",
   category: "Tech",
-  image_url: "/assets/Banner.PNG",
-  image_wide: true,
+  image_url: "/assets/b2b.png",
   author_name: "Blog2Video",
   author_tag: "admin.blog2video",
   upvote_count: 2228,
@@ -281,7 +278,7 @@ export default function FeaturedPublicationBanner({
             thumbnail (image width + the gap-3 from the row above). */}
         <div
           className="flex items-center gap-2 mt-2.5 pt-2.5 border-t border-amber-100/80
-                      pl-[68px] sm:pl-[92px]"
+                      pl-[76px] sm:pl-[92px]"
           onClick={(e) => e.stopPropagation()}
         >
           <button

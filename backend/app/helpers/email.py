@@ -452,6 +452,64 @@ async def send_feature_approved_notification(
         logger.warning("Resend draft-ready email error: %s", exc)
 
 
+async def send_feature_rejected_notification(
+    *,
+    to_email: str | None,
+    author_name: str | None,
+    publication,
+    slot,
+) -> None:
+    """Tell the buyer their paid booking was cancelled by our team, and that a refund
+    is on its way. The refund itself is issued by hand in the Stripe dashboard."""
+    if not settings.RESEND_API_KEY or not to_email:
+        return
+
+    pub_title = html.escape(publication.title or "your publication")
+    greeting = f"Hi {html.escape(author_name)}," if author_name and author_name.strip() else "Hi,"
+    dates = html.escape(f"{slot.start_date.isoformat()} → {slot.end_date.isoformat()}")
+    contact_email = html.escape(settings.FEATURE_NOTIFY_EMAIL)
+
+    body = f"""
+    <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;">
+      <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 8px;">{greeting}</p>
+      <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
+        We&#39;re sorry to let you know that your featured booking for <strong>{pub_title}</strong>
+        ({dates}) has been cancelled by our review team, so it won&#39;t run.
+      </p>
+      <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
+        You will be refunded your paid amount. Refunds are issued back to your original payment method
+        and usually arrive within <strong>3–4 business days</strong>, and always within
+        <strong>10 days</strong> at the latest.
+      </p>
+      <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
+        If you have any questions or the refund doesn&#39;t arrive in that time, just reach out to us at
+        <a href="mailto:{contact_email}" style="color:#dc2626;text-decoration:none;">{contact_email}</a>
+        and we&#39;ll help sort it out.
+      </p>
+    </div>
+    """
+
+    payload = {
+        "from": settings.FEATURE_FROM_EMAIL,
+        "to": [to_email],
+        "reply_to": settings.FEATURE_NOTIFY_EMAIL,
+        "subject": f"Your BlogHub feature booking was cancelled: {publication.title}",
+        "html": body,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                RESEND_ENDPOINT,
+                headers={"Authorization": f"Bearer {settings.RESEND_API_KEY}"},
+                json=payload,
+            )
+        if resp.status_code >= 400:
+            logger.warning("Resend feature-rejected email failed (%s): %s", resp.status_code, resp.text)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Resend feature-rejected email error: %s", exc)
+
+
 async def send_featured_marketing_email(
     *,
     to_email: str,

@@ -75,6 +75,12 @@ export default function PublicationCard({
     }
   };
 
+  // An unlisted publication exists only to back a featured slot. When it has no live
+  // or upcoming booking, its slot has expired or been deleted — so it's a *past*
+  // featured listing. (my-bookings only returns live/upcoming runs.)
+  const isPastFeatured =
+    Boolean(publication.is_unlisted) && (!featuredBookings || featuredBookings.length === 0);
+
   // Created from an arbitrary link for a featured slot — it has no reachable public
   // detail page, so the card should go straight to the external URL instead.
   const handleCardClick = () => {
@@ -95,6 +101,12 @@ export default function PublicationCard({
     >
       <div className="relative aspect-video bg-gray-100 overflow-hidden flex-shrink-0">
         {rank != null && rank > 0 && <RankBadge rank={rank} />}
+        {isPastFeatured && (
+          <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full text-xs font-semibold
+                          text-white bg-gray-500/90 shadow">
+            Past featured
+          </div>
+        )}
         {featuredBookings && featuredBookings.length > 0 && onOpenEmail && onOpenAnalytics && (
           <div className="absolute top-2 right-2 z-10">
             <FeaturedSlotsMenu

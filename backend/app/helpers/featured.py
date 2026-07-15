@@ -749,6 +749,21 @@ async def approve_slot(db: AsyncSession, slot_id: uuid.UUID, *, approve: bool) -
 
     await db.commit()
 
+    if not approve:
+        # Tell the buyer their booking was cancelled and that a refund is coming.
+        # Best-effort: a failed email must not undo a rejection that already succeeded.
+        try:
+            from app.helpers.email import send_feature_rejected_notification
+
+            await send_feature_rejected_notification(
+                to_email=slot.user.email if slot.user else None,
+                author_name=slot.user.name if slot.user else None,
+                publication=slot.publication,
+                slot=slot,
+            )
+        except Exception:  # noqa: BLE001
+            logger.exception("Could not send the rejection email for slot %s", slot.id)
+
     if approve:
         # Go live immediately if the run already covers today, rather than making the
         # buyer wait for the next scheduler tick.

@@ -27,6 +27,8 @@ interface PublicationGridProps {
   };
   isLoading?: boolean;
   ranked?: boolean;
+  /** Overrides the empty-state copy (e.g. per profile tab). */
+  emptyState?: { title?: string; description?: string };
 }
 
 export default function PublicationGrid({
@@ -41,6 +43,7 @@ export default function PublicationGrid({
   featuredInfo,
   isLoading,
   ranked = false,
+  emptyState,
 }: PublicationGridProps) {
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -90,7 +93,11 @@ export default function PublicationGrid({
   if (publications.length === 0) {
     return (
       <div className="grid">
-        <EmptyState onSubmit={onSubmit} />
+        <EmptyState
+          onSubmit={onSubmit}
+          title={emptyState?.title}
+          description={emptyState?.description}
+        />
       </div>
     );
   }

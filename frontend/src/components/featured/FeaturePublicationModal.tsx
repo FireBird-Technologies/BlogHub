@@ -5,6 +5,7 @@ import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import Spinner from "../ui/Spinner";
 import CustomDropdown from "../ui/CustomDropdown";
+import ImageUploadButton from "../ui/ImageUploadButton";
 import FeatureCalendar from "./FeatureCalendar";
 import { useScrape } from "../../hooks/useScrape";
 import { useAuth } from "../../context/AuthContext";
@@ -126,6 +127,12 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
       setLinkUrlError("Please enter a valid URL.");
       return;
     }
+    // If this link is already one of the buyer's listings, don't create a duplicate —
+    // send them to pick it from the "Your publications" tab instead.
+    if (publications.some((p) => p.url === canonicalUrl)) {
+      setLinkUrlError('This link is already one of your listings — select it from the "Your publications" tab.');
+      return;
+    }
     scrape.mutate({ url: withScheme, mode: "link" }, {
       onSuccess: (data) => {
         setLinkFields({
@@ -171,10 +178,12 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
   );
   const priceLabel = formatPrice(availability.data?.prices[String(duration)]);
 
-  // Publications created via "Use a link" are unlisted (not real submissions) — leave
-  // them out of this picker, they're only ever booked through that tab itself.
-  const publications: Publication[] =
-    userPubs.data?.pages.flatMap((p) => p.items).filter((pub) => !pub.is_unlisted) ?? [];
+  // Both real publications and feature-only (unlisted) listings are selectable here,
+  // so a past featured link can be reused directly without re-entering its URL. Real
+  // publications sort first; the reusable feature-only listings follow.
+  const publications: Publication[] = [
+    ...(userPubs.data?.pages.flatMap((p) => p.items) ?? []),
+  ].sort((a, b) => Number(Boolean(a.is_unlisted)) - Number(Boolean(b.is_unlisted)));
   const endDate = selectedStart ? addDays(selectedStart, duration - 1) : null;
 
   /** Fetch the drafted announcement for a chosen publication and move to the last step. */
@@ -270,7 +279,7 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
   );
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Feature a publication" maxWidth="max-w-lg">
+    <Modal isOpen={isOpen} onClose={onClose} title="Feature your publication" maxWidth="max-w-lg">
       <div className="flex flex-col gap-5">
         <div className="flex items-center gap-2 text-xs font-medium">
           <span className={step === "dates" ? "text-red-600" : "text-gray-400"}>1. Dates</span>
@@ -356,10 +365,6 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
 
         {availability.data && step === "publication" && selectedStart && endDate && (
           <>
-            <p className="text-sm text-gray-500">
-              Which publication should run in the featured slot?
-            </p>
-
             <div className="flex gap-1 rounded-lg bg-gray-100 p-1 text-sm font-medium">
               <button
                 type="button"
@@ -381,6 +386,12 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
               </button>
             </div>
 
+            <p className="text-xs text-gray-400">
+              {pubSource === "mine"
+                ? "Pick one of the publications you've already added to BlogHub — or reuse a past feature-only listing."
+                : "Feature any web page (a product, article, or landing page) that isn't a BlogHub publication. We'll fetch its details and create a listing just for this feature."}
+            </p>
+
             {pubSource === "mine" ? (
               userPubs.isLoading ? (
                 <div className="flex justify-center py-10">
@@ -388,7 +399,7 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
                 </div>
               ) : publications.length === 0 ? (
                 <p className="text-sm text-gray-500 py-8 text-center">
-                  You have no publications yet — submit one first, or use the "Use a link" tab.
+                  You have no publications yet — submit one first to feature it, or use the "Use a website link" tab.
                 </p>
               ) : (
                 <ul className="flex flex-col gap-2 max-h-64 overflow-y-auto thin-scrollbar list-none p-0 m-0">
@@ -419,8 +430,14 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-gray-900 truncate">{pub.title}</p>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-gray-400 flex items-center gap-1.5">
                               {formatCategoryDisplay(pub.category)}
+                              {pub.is_unlisted && (
+                                <span className="inline-flex items-center rounded-full bg-gray-100 px-1.5 py-0.5
+                                                 text-[10px] font-medium text-gray-500">
+                                  Featured listing
+                                </span>
+                              )}
                             </p>
                           </div>
                           {selected && (
@@ -471,16 +488,21 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col gap-2">
                         <label className="flex flex-col gap-1.5">
-                          <span className="text-xs font-medium text-gray-600">Image URL</span>
-                          <input
-                            type="url"
-                            value={linkFields.image_url}
-                            onChange={(e) => setLinkFields((f) => ({ ...f, image_url: e.target.value }))}
-                            placeholder="https://example.com/image.png"
-                            className="w-full bg-white border border-gray-200 text-gray-800 text-xs rounded-lg
-                                       px-3 py-2 placeholder:text-gray-400 focus:outline-none
-                                       focus:border-red-400 focus:ring-1 focus:ring-red-400/20"
-                          />
+                          <span className="text-xs font-medium text-gray-600">Image</span>
+                          <div className="flex gap-2">
+                            <input
+                              type="url"
+                              value={linkFields.image_url}
+                              onChange={(e) => setLinkFields((f) => ({ ...f, image_url: e.target.value }))}
+                              placeholder="Paste an image URL…"
+                              className="flex-1 min-w-0 bg-white border border-gray-200 text-gray-800 text-xs rounded-lg
+                                         px-3 py-2 placeholder:text-gray-400 focus:outline-none
+                                         focus:border-red-400 focus:ring-1 focus:ring-red-400/20"
+                            />
+                            <ImageUploadButton
+                              onUpload={(dataUrl) => setLinkFields((f) => ({ ...f, image_url: dataUrl }))}
+                            />
+                          </div>
                         </label>
                         <div className="grid grid-cols-2 gap-2">
                           <label className="flex flex-col gap-1.5">

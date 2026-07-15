@@ -14,11 +14,15 @@ import {
 import { useScrape } from "../../hooks/useScrape";
 import api, { formatApiErrorDetail } from "../../lib/api";
 import { normalizeLinkUrl, normalizePublicationUrl } from "../../lib/urlNormalize";
+import ImageUploadButton from "../ui/ImageUploadButton";
 import { publicationShortId } from "../../lib/publicationUrl";
 import type { Publication, SocialLinkInput } from "../../types/models";
 
-const inputCls =
-  "w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-lg px-3 py-2.5 placeholder:text-gray-400 focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400/20 hover:border-gray-300 transition-colors";
+const inputBase =
+  "w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-lg px-3 placeholder:text-gray-400 focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400/20 hover:border-gray-300 transition-colors";
+const inputCls = `${inputBase} py-2.5`;
+// Shorter variant for compact fields (URL, image URL).
+const inputClsSm = `${inputBase} py-1.5`;
 
 function tagsToString(tags: string[] | undefined): string {
   if (!tags) return "";
@@ -208,7 +212,7 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             maxLength={2048}
-            className={inputCls}
+            className={inputClsSm}
             required
           />
         </div>
@@ -247,7 +251,7 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
             )}
           </label>
           <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-16 h-16 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden">
+            <div className="flex-shrink-0 w-24 h-24 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden">
               {imageUrl && (
                 <img
                   src={imageUrl}
@@ -259,13 +263,16 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
                 />
               )}
             </div>
-            <input
-              type="url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://…"
-              className={`${inputCls} flex-1 min-w-0`}
-            />
+            <div className="flex-1 min-w-0 flex flex-col gap-2">
+              <input
+                type="url"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="Paste an image URL…"
+                className={`${inputClsSm} w-full`}
+              />
+              <ImageUploadButton onUpload={setImageUrl} className="self-start py-1.5" />
+            </div>
           </div>
         </div>
 

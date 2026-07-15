@@ -28,6 +28,7 @@ export default function Profile() {
   const [editing, setEditing] = useState(false);
   const [pubToEdit, setPubToEdit] = useState<Publication | null>(null);
   const [featuring, setFeaturing] = useState(false);
+  const [tab, setTab] = useState<"mine" | "featured">("mine");
   const [searchParams, setSearchParams] = useSearchParams();
 
   const queryKey = ["user-publications", user?.id] as const;
@@ -98,6 +99,11 @@ export default function Profile() {
     onOpenEmail: setOpenEmailId,
     onOpenAnalytics: (booking: MyBooking) => setAnalyticsTarget({ publication: p, booking }),
   });
+
+  // One query returns both real and unlisted (feature-only) publications; split them
+  // client-side per tab, preserving the InfiniteData page shape for infinite scroll.
+  const minePages = data?.pages.map((p) => ({ ...p, items: p.items.filter((x) => !x.is_unlisted) }));
+  const featuredPages = data?.pages.map((p) => ({ ...p, items: p.items.filter((x) => x.is_unlisted) }));
 
   if (!user) return null;
 
@@ -181,14 +187,33 @@ export default function Profile() {
 
         <div>
           <div className="flex items-center justify-between gap-3 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">My Publications</h2>
+            <div className="flex gap-1 rounded-lg bg-gray-100 p-1 text-sm font-medium">
+              <button
+                type="button"
+                onClick={() => setTab("mine")}
+                className={`rounded-md px-3 py-1.5 transition-colors ${
+                  tab === "mine" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                My Publications
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab("featured")}
+                className={`rounded-md px-3 py-1.5 transition-colors ${
+                  tab === "featured" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Featured listing
+              </button>
+            </div>
             <Button variant="primary" size="sm" onClick={() => setFeaturing(true)}>
               <Star size={14} fill="currentColor" />
-              <span>Feature a publication</span>
+              <span>Feature your publication</span>
             </Button>
           </div>
           <PublicationGrid
-            pages={data?.pages}
+            pages={tab === "mine" ? minePages : featuredPages}
             isFetchingNextPage={isFetchingNextPage}
             hasNextPage={hasNextPage}
             fetchNextPage={fetchNextPage}
@@ -197,6 +222,11 @@ export default function Profile() {
             onEdit={(p) => setPubToEdit(p)}
             featuredInfo={featuredInfo}
             isLoading={isLoading}
+            emptyState={
+              tab === "mine"
+                ? { title: "No publication created yet", description: "" }
+                : { title: "No featured listing created yet", description: "" }
+            }
           />
         </div>
       </main>

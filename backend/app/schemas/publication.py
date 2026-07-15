@@ -9,6 +9,16 @@ from app.models.publication import normalize_category
 
 MAX_ADDITIONAL_LINKS = 5
 MAX_SOCIAL_LINKS = 8
+# image_url may be a base64 data URI from an in-app upload (resized client-side), so
+# it can be far longer than a plain URL. Cap it so a huge payload can't be stored.
+# ~1.5 MB of data-URL text ≈ a ~1.1 MP JPEG, comfortably above the 1128px banner cap.
+MAX_IMAGE_LENGTH = 1_500_000
+
+
+def _check_image_length(v: str | None) -> str | None:
+    if v is not None and len(v) > MAX_IMAGE_LENGTH:
+        raise ValueError("Image is too large; please use a smaller image.")
+    return v
 
 
 class SocialLinkIn(BaseModel):
@@ -48,6 +58,11 @@ class _PublicationWritableFields(BaseModel):
     @classmethod
     def validate_category(cls, v: str) -> str:
         return normalize_category(v)
+
+    @field_validator("image_url")
+    @classmethod
+    def check_image(cls, v: str | None) -> str | None:
+        return _check_image_length(v)
 
     @field_validator("additional_links")
     @classmethod
@@ -110,6 +125,11 @@ class PublicationFromLinkCreate(BaseModel):
     @classmethod
     def validate_category(cls, v: str) -> str:
         return normalize_category(v)
+
+    @field_validator("image_url")
+    @classmethod
+    def check_image(cls, v: str | None) -> str | None:
+        return _check_image_length(v)
 
 
 class SocialLinkOut(BaseModel):

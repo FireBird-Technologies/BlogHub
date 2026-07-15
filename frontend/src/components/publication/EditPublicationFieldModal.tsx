@@ -5,6 +5,7 @@ import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import Spinner from "../ui/Spinner";
 import CustomDropdown from "../ui/CustomDropdown";
+import ImageUploadButton from "../ui/ImageUploadButton";
 import api, { formatApiErrorDetail } from "../../lib/api";
 import { CATEGORIES, isCategory, normalizeCategoryForStorage, type Category } from "../../constants/categories";
 import { publicationShortId } from "../../lib/publicationUrl";
@@ -249,14 +250,17 @@ export default function EditPublicationFieldModal({
             </div>
 
             <div>
-              <label className="block text-xs text-gray-500 mb-1.5 font-medium">Image URL</label>
-              <input
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://…"
-                className={inputCls}
-              />
+              <label className="block text-xs text-gray-500 mb-1.5 font-medium">Image</label>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="Paste an image URL…"
+                  className={`${inputCls} flex-1 min-w-0`}
+                />
+                <ImageUploadButton onUpload={setImageUrl} />
+              </div>
               {imageUrl && (
                 <div className="mt-2 rounded-lg border border-gray-200 overflow-hidden aspect-video bg-gray-100">
                   <img src={imageUrl} alt="" className="w-full h-full object-cover" />

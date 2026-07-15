@@ -165,6 +165,21 @@ async def create_publication(
     if not canonical_url:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid publication URL")
 
+    # Guard against a cross-type duplicate: an unlisted (feature-only) listing keeps
+    # the full path, so it can point at the exact same URL this submission does even
+    # though this endpoint collapses to the base site. Block that so the same page
+    # isn't backed by two rows.
+    full_url = normalize_link_url(data.url)
+    if full_url and full_url != canonical_url:
+        dupe = await db.execute(
+            select(Publication).where(Publication.url == full_url, Publication.is_unlisted.is_(True))
+        )
+        if dupe.scalar_one_or_none() is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="This link already exists as a featured-only listing.",
+            )
+
     result = await db.execute(select(Publication).where(Publication.url == canonical_url))
     existing = result.scalar_one_or_none()
 
@@ -232,6 +247,20 @@ async def create_publication_from_link(
     URL the buyer wants to advertise — not a normal submission, so no claim/verified
     conflict handling: an unlisted row was never publicly listed for anyone to claim.
     """
+    # data.url is already the full-path canonical (normalize_link_url, via the schema).
+    # Guard against a cross-type duplicate: if the same exact URL already exists as a
+    # normal (listed) publication, don't also create a feature-only row for it.
+    base_url = normalize_publication_url(data.url)
+    if base_url and base_url != data.url:
+        listed_dupe = await db.execute(
+            select(Publication).where(Publication.url == base_url, Publication.is_unlisted.is_(False))
+        )
+        if listed_dupe.scalar_one_or_none() is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="This link already exists as a publication.",
+            )
+
     result = await db.execute(select(Publication).where(Publication.url == data.url))
     existing = result.scalar_one_or_none()
 
