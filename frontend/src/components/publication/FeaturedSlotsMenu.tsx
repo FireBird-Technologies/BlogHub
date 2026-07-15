@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import ReactDOM from "react-dom";
-import { BarChart3, Mail, Star } from "lucide-react";
+import { BarChart3, ChevronDown, Mail, Star } from "lucide-react";
 import type { FeaturedEmail, MyBooking } from "../../types/models";
 
 export type FeaturedPillState = "active" | "scheduled" | "pending";
@@ -58,11 +58,17 @@ function IconDropdown({
   label,
   needsAction,
   panel,
+  triggerClassName,
+  panelTitle,
 }: {
   icon: ReactNode;
   label: string;
   needsAction?: boolean;
   panel: ReactNode;
+  /** Overrides the default sky/amber pill styling for the trigger button. */
+  triggerClassName?: string;
+  /** Heading shown at the top of the dropdown panel (defaults to `label`). */
+  panelTitle?: string;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLButtonElement>(null);
@@ -119,15 +125,19 @@ function IconDropdown({
         }}
         title={label}
         aria-label={label}
-        className={`relative flex items-center gap-0.5 px-1.5 h-5 rounded-full border shadow-sm
-                    text-[10px] font-medium transition-colors ${
-                      needsAction
-                        ? "bg-amber-500 border-amber-500 text-white hover:bg-amber-600"
-                        : "bg-sky-50 border-sky-200 text-sky-700 hover:border-sky-300 hover:bg-sky-100"
-                    }`}
+        className={
+          triggerClassName ??
+          `relative flex items-center gap-0.5 px-1.5 h-5 rounded-full border shadow-sm
+           text-[10px] font-medium transition-colors ${
+             needsAction
+               ? "bg-amber-500 border-amber-500 text-white hover:bg-amber-600"
+               : "bg-sky-50 border-sky-200 text-sky-700 hover:border-sky-300 hover:bg-sky-100"
+           }`
+        }
       >
         {icon}
         <span>{label}</span>
+        <ChevronDown size={10} className={`transition-transform ${open ? "rotate-180" : ""}`} />
         {needsAction && (
           <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500 border border-white" />
         )}
@@ -142,7 +152,7 @@ function IconDropdown({
             className="fixed w-56 z-50 rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden"
           >
             <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-gray-400 border-b border-gray-100">
-              {label}
+              {panelTitle ?? label}
             </p>
             <ul className="list-none p-0 m-0 max-h-72 overflow-y-auto">{panel}</ul>
           </div>,
@@ -188,13 +198,38 @@ export default function FeaturedSlotsMenu({
 
   return (
     <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-      <span
-        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border
-                    text-[10px] font-bold uppercase tracking-wide shadow-sm ${PILL_STYLES[topState]}`}
-      >
-        {topState === "active" && <Star size={9} fill="currentColor" />}
-        {single ? PILL_LABELS[topState] : `${sorted.length} featured runs`}
-      </span>
+      {single ? (
+        <span
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border
+                      text-[10px] font-bold uppercase tracking-wide shadow-sm ${PILL_STYLES[topState]}`}
+        >
+          {topState === "active" && <Star size={9} fill="currentColor" />}
+          {PILL_LABELS[topState]}
+        </span>
+      ) : (
+        <IconDropdown
+          icon={topState === "active" ? <Star size={9} fill="currentColor" /> : null}
+          label={`${sorted.length} featured runs`}
+          panelTitle="Featured runs"
+          triggerClassName={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border
+                             text-[10px] font-bold uppercase tracking-wide shadow-sm ${PILL_STYLES[topState]}`}
+          panel={sorted.map((b) => (
+            <li key={b.id} className="border-b border-gray-50 last:border-0">
+              <div className="flex items-center gap-2 px-3 py-2 text-xs text-gray-700">
+                <span className="flex-1">
+                  {formatDay(b.start_date)} – {formatDay(b.end_date)}
+                </span>
+                <span
+                  className={`flex-shrink-0 px-1.5 py-0.5 rounded-full border text-[9px] font-bold
+                              uppercase tracking-wide ${PILL_STYLES[bookingState(b)]}`}
+                >
+                  {PILL_LABELS[bookingState(b)]}
+                </span>
+              </div>
+            </li>
+          ))}
+        />
+      )}
 
       {/* Analytics — its own circle, its own dropdown when there's more than one run. */}
       {single ? (
@@ -228,12 +263,6 @@ export default function FeaturedSlotsMenu({
                 <BarChart3 size={12} className="flex-shrink-0 text-amber-600" />
                 <span className="flex-1">
                   {formatDay(b.start_date)} – {formatDay(b.end_date)}
-                </span>
-                <span
-                  className={`flex-shrink-0 px-1.5 py-0.5 rounded-full border text-[9px] font-bold
-                              uppercase tracking-wide ${PILL_STYLES[bookingState(b)]}`}
-                >
-                  {PILL_LABELS[bookingState(b)]}
                 </span>
               </button>
             </li>
