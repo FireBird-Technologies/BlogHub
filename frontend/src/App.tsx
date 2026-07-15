@@ -19,6 +19,8 @@ import AdminApproveClaim from "./pages/AdminApproveClaim";
 import NotFound from "./pages/NotFound";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import FeaturedFaq from "./pages/FeaturedFaq";
+import AdminApproveFeatured from "./pages/AdminApproveFeatured";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,7 +64,9 @@ export default function App() {
               <Route path="/blogs/:slug" element={<BlogPostPage />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/featured-faq" element={<FeaturedFaq />} />
               <Route path="/admin/approve-claim" element={<AdminApproveClaim />} />
+              <Route path="/admin/approve-featured" element={<AdminApproveFeatured />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <LoginPromptModal />

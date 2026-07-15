@@ -1,6 +1,7 @@
 import { useState, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { MessageCircle, Pencil, Trash2 } from "lucide-react";
+import FeaturedSlotsMenu from "./FeaturedSlotsMenu";
 import type { QueryKey } from "@tanstack/react-query";
 import Badge from "../ui/Badge";
 import VerifiedTick from "../ui/VerifiedTick";
@@ -8,7 +9,7 @@ import Avatar from "../ui/Avatar";
 import Spinner from "../ui/Spinner";
 import UpvoteButton from "./UpvoteButton";
 import CommentsModal from "./CommentsModal";
-import type { Publication } from "../../types/models";
+import type { FeaturedEmail, MyBooking, Publication } from "../../types/models";
 import { useAuth } from "../../context/AuthContext";
 import { publicationPath } from "../../lib/publicationUrl";
 
@@ -28,9 +29,28 @@ interface PublicationCardProps {
   onDelete?: (id: string) => void | Promise<void>;
   onEdit?: (p: Publication) => void;
   rank?: number;
+  /** This publication's featured runs. A publication may hold several, so with more
+   *  than one the pill becomes a dropdown. Empty/undefined renders nothing. */
+  featuredBookings?: MyBooking[];
+  /** The announcements for those runs, paired by `slot_id`. */
+  featuredEmails?: FeaturedEmail[];
+  /** Opens one announcement by id. */
+  onOpenEmail?: (emailId: string) => void;
+  /** Opens the analytics modal for a given featured run. */
+  onOpenAnalytics?: (booking: MyBooking) => void;
 }
 
-export default function PublicationCard({ publication, queryKey, onDelete, onEdit, rank }: PublicationCardProps) {
+export default function PublicationCard({
+  publication,
+  queryKey,
+  onDelete,
+  onEdit,
+  rank,
+  featuredBookings,
+  featuredEmails,
+  onOpenEmail,
+  onOpenAnalytics,
+}: PublicationCardProps) {
   const navigate = useNavigate();
   const { user, openLoginModal } = useAuth();
   const { id, title, description, image_url, category, upvote_count, comment_count, is_upvoted, author } =
@@ -55,16 +75,48 @@ export default function PublicationCard({ publication, queryKey, onDelete, onEdi
     }
   };
 
+  // An unlisted publication exists only to back a featured slot. When it has no live
+  // or upcoming booking, its slot has expired or been deleted — so it's a *past*
+  // featured listing. (my-bookings only returns live/upcoming runs.)
+  const isPastFeatured =
+    Boolean(publication.is_unlisted) && (!featuredBookings || featuredBookings.length === 0);
+
+  // Created from an arbitrary link for a featured slot — it has no reachable public
+  // detail page, so the card should go straight to the external URL instead.
+  const handleCardClick = () => {
+    if (publication.is_unlisted) {
+      window.open(publication.url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    navigate(publicationPath(publication));
+  };
+
   return (
     <article
       role="presentation"
-      onClick={() => navigate(publicationPath(publication))}
+      onClick={handleCardClick}
       className="group bg-white border border-gray-200 rounded-xl overflow-hidden cursor-pointer
                  transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300
                  hover:shadow-lg hover:shadow-black/5 flex flex-col"
     >
       <div className="relative aspect-video bg-gray-100 overflow-hidden flex-shrink-0">
         {rank != null && rank > 0 && <RankBadge rank={rank} />}
+        {isPastFeatured && (
+          <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full text-xs font-semibold
+                          text-white bg-gray-500/90 shadow">
+            Past featured
+          </div>
+        )}
+        {featuredBookings && featuredBookings.length > 0 && onOpenEmail && onOpenAnalytics && (
+          <div className="absolute top-2 right-2 z-10">
+            <FeaturedSlotsMenu
+              bookings={featuredBookings}
+              emails={featuredEmails ?? []}
+              onOpenEmail={onOpenEmail}
+              onOpenAnalytics={onOpenAnalytics}
+            />
+          </div>
+        )}
         {image_url ? (
           <img
             src={image_url}

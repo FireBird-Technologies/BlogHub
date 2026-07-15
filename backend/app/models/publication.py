@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import String, Text, Integer, DateTime, ForeignKey, JSON
+from sqlalchemy import Boolean, String, Text, Integer, DateTime, ForeignKey, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -67,6 +67,14 @@ class Publication(Base):
     additional_links: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
     social_links: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
     upvote_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    # Created from an arbitrary URL for a paid featured slot rather than a normal
+    # submission — real, queryable Publication row (so the whole featured pipeline
+    # works unchanged), just excluded from public browsing: home feed, search,
+    # categories, tags, roundups, and other users' view of the owner's profile.
+    # Still visible to its own owner (e.g. their own publications list).
+    is_unlisted: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false", index=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True
     )

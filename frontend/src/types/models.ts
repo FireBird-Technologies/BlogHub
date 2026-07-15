@@ -31,6 +31,9 @@ export interface Publication {
   rank?: number | null;
   is_upvoted: boolean;
   is_verified: boolean;
+  /** Created from an arbitrary link for a featured slot — has no reachable public
+   *  detail page, so "View details" should not be offered for it. */
+  is_unlisted?: boolean;
   verified_at: string | null;
   my_claim_status: "none" | "pending" | "rejected";
   created_at: string;
@@ -92,4 +95,91 @@ export interface PublicationDraft {
 export interface SocialLinkInput {
   label: string;
   url: string;
+}
+
+/** Create (or reuse) an unlisted publication to back a featured slot, from an
+ *  arbitrary URL — see `POST /api/publications/from-link`. */
+export interface PublicationFromLinkPayload {
+  url: string;
+  title: string;
+  description?: string;
+  image_url?: string;
+  category: string;
+  tags?: string[];
+}
+
+/** Paid featured slot: a booked date range. Dates are inclusive `YYYY-MM-DD` strings. */
+export interface BookedRange {
+  start_date: string;
+  end_date: string;
+  status: "pending" | "paid";
+}
+
+export interface FeaturedAvailability {
+  booked: BookedRange[];
+  /** duration_days -> price in cents, keyed as a string over the wire (e.g. `{ "7": 3000 }`). */
+  prices: Record<string, number>;
+  min_start_date: string;
+  max_start_date: string;
+}
+
+export interface ActiveFeature {
+  publication: Publication;
+  start_date: string;
+  end_date: string;
+  /** Outbound clicks BlogHub has sent to this publication during its featured run. */
+  click_count: number;
+}
+
+/** The announcement email drafted for a featured publication. Needs the author's
+ *  approval and the admin's before it is scheduled. */
+export interface FeaturedEmail {
+  id: string;
+  /** The booking this announcement belongs to — a publication may have several. */
+  slot_id: string;
+  publication_id: string;
+  publication_title?: string | null;
+  /** The run this announcement is for, used to label it when there is more than one. */
+  start_date?: string | null;
+  end_date?: string | null;
+  subject: string;
+  body: string;
+  /** Label of the button that links to the publication, e.g. "Read the article". */
+  button_text?: string | null;
+  author_approved: boolean;
+  admin_approved: boolean;
+  status: "draft" | "scheduled" | "sending" | "sent" | "cancelled";
+  /** A UTC instant: every subscriber receives it at the same moment. */
+  scheduled_at?: string | null;
+  /** The IANA zone the author picked that time in, so we show it back as they typed it. */
+  author_timezone?: string | null;
+  sent_at?: string | null;
+}
+
+/** The drafted announcement, fetched during checkout before the author pays. */
+export interface ComposedEmail {
+  subject: string;
+  body: string;
+  button_text: string;
+  suggested_send_at: string;
+}
+
+/** One of the author's own featured bookings, so they can track where it stands. */
+export interface MyBooking {
+  id: string;
+  publication_id: string;
+  publication_title?: string | null;
+  start_date: string;
+  end_date: string;
+  approval_status: "pending" | "approved" | "rejected";
+  is_active: boolean;
+  click_count: number;
+}
+
+export interface FeatureCheckout {
+  checkout_url: string;
+  slot_id: string;
+  amount_cents: number;
+  start_date: string;
+  end_date: string;
 }

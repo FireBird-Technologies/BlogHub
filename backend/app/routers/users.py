@@ -74,4 +74,5 @@ async def get_user_publications(
         seed=None,
         user_id=current_user.id,
         filter_by_user_id=user_id,
+        include_unlisted=(current_user.id == user_id),
     )

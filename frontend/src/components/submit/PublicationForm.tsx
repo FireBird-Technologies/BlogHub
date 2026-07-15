@@ -2,6 +2,7 @@ import { useState, type ChangeEvent, type FormEvent } from "react";
 import { CATEGORIES, isCategory, normalizeCategoryForStorage, type Category } from "../../constants/categories";
 import type { PublicationDraft } from "../../types/models";
 import Button from "../ui/Button";
+import ImageUploadButton from "../ui/ImageUploadButton";
 
 function tagsToString(tags: string[] | undefined): string {
   if (!tags) return "";
@@ -99,6 +100,37 @@ export default function PublicationForm({ draft, onContinue }: PublicationFormPr
           placeholder="Brief description of the publication…"
           className={`${inputCls} resize-none`}
         />
+      </div>
+
+      <div>
+        <label className="block text-xs text-gray-500 mb-1.5 font-medium">Image</label>
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0 w-24 h-24 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden">
+            {form.image_url && (
+              <img
+                src={form.image_url}
+                alt=""
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            )}
+          </div>
+          <div className="flex-1 min-w-0 flex flex-col gap-2">
+            <input
+              type="url"
+              value={form.image_url}
+              onChange={set("image_url")}
+              placeholder="Paste an image URL…"
+              className={`${inputCls} w-full`}
+            />
+            <ImageUploadButton
+              onUpload={(dataUrl) => setForm((f) => ({ ...f, image_url: dataUrl }))}
+              className="self-start"
+            />
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">

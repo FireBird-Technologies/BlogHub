@@ -3,12 +3,22 @@ from datetime import datetime
 
 from pydantic import AnyHttpUrl, BaseModel, ConfigDict, field_validator
 
-from app.helpers.url_normalize import normalize_publication_url
+from app.helpers.url_normalize import normalize_link_url, normalize_publication_url
 from app.schemas.user import UserOut
 from app.models.publication import normalize_category
 
 MAX_ADDITIONAL_LINKS = 5
 MAX_SOCIAL_LINKS = 8
+# image_url may be a base64 data URI from an in-app upload (resized client-side), so
+# it can be far longer than a plain URL. Cap it so a huge payload can't be stored.
+# ~1.5 MB of data-URL text ≈ a ~1.1 MP JPEG, comfortably above the 1128px banner cap.
+MAX_IMAGE_LENGTH = 1_500_000
+
+
+def _check_image_length(v: str | None) -> str | None:
+    if v is not None and len(v) > MAX_IMAGE_LENGTH:
+        raise ValueError("Image is too large; please use a smaller image.")
+    return v
 
 
 class SocialLinkIn(BaseModel):
@@ -49,6 +59,11 @@ class _PublicationWritableFields(BaseModel):
     def validate_category(cls, v: str) -> str:
         return normalize_category(v)
 
+    @field_validator("image_url")
+    @classmethod
+    def check_image(cls, v: str | None) -> str | None:
+        return _check_image_length(v)
+
     @field_validator("additional_links")
     @classmethod
     def cap_additional(cls, v: list) -> list:
@@ -70,6 +85,51 @@ class PublicationCreate(_PublicationWritableFields):
 
 class PublicationUpdate(_PublicationWritableFields):
     """Owner-only full replace of editable fields (same body as create)."""
+
+    @field_validator("url")
+    @classmethod
+    def normalize_url(cls, v: str) -> str:
+        # Don't collapse to the base site here: whether to shorten depends on the
+        # target publication's is_unlisted flag, which the schema can't see. The
+        # update route applies the correct normalizer (link vs publication). We
+        # only validate that it's a well-formed URL and keep the full path intact.
+        canonical = normalize_link_url(v)
+        if not canonical:
+            raise ValueError("url must be a valid URL")
+        return canonical
+
+
+class PublicationFromLinkCreate(BaseModel):
+    """Create (or reuse) an unlisted publication to back a featured slot, from an
+    arbitrary URL the buyer wants to advertise — not a normal public submission, so
+    no additional_links/social_links (kept minimal for a quick review step)."""
+
+    url: str
+    title: str
+    description: str | None = None
+    image_url: str | None = None
+    category: str
+    tags: list[str] = []
+
+    @field_validator("url")
+    @classmethod
+    def normalize_url(cls, v: str) -> str:
+        # Unlike a publication submission, keep the full path — this may be a
+        # specific product/article/landing page, not a site's homepage.
+        canonical = normalize_link_url(v)
+        if not canonical:
+            raise ValueError("url must be a valid URL")
+        return canonical
+
+    @field_validator("category")
+    @classmethod
+    def validate_category(cls, v: str) -> str:
+        return normalize_category(v)
+
+    @field_validator("image_url")
+    @classmethod
+    def check_image(cls, v: str | None) -> str | None:
+        return _check_image_length(v)
 
 
 class SocialLinkOut(BaseModel):
@@ -94,6 +154,10 @@ class PublicationOut(BaseModel):
     rank: int | None = None
     is_upvoted: bool = False
     is_verified: bool = False
+    # Created from an arbitrary link for a featured slot rather than a normal
+    # submission — has no reachable public detail page, so the frontend should not
+    # offer a "View details" link for it.
+    is_unlisted: bool = False
     verified_at: datetime | None = None
     my_claim_status: str = "none"  # none | pending | rejected
     created_at: datetime

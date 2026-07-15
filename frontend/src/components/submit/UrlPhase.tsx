@@ -8,9 +8,21 @@ import Spinner from "../ui/Spinner";
 
 interface UrlPhaseProps {
   onScraped: (data: ScrapeResult & { url: string }) => void;
+  /** How to canonicalize the entered URL before scraping/storing it. Defaults to
+   *  the publication normalizer (collapses to the bare site). Pass `normalizeLinkUrl`
+   *  when the full path matters, e.g. featuring a specific page rather than a site. */
+  normalizeUrl?: (url: string) => string;
+  /** Prompt copy — defaults to the publication-submission wording. */
+  prompt?: string;
+  hint?: string;
 }
 
-export default function UrlPhase({ onScraped }: UrlPhaseProps) {
+export default function UrlPhase({
+  onScraped,
+  normalizeUrl = normalizePublicationUrl,
+  prompt = "Enter the main website URL of the publication you want to share.",
+  hint = "Use the homepage URL (e.g. https://firebirdtech.com).",
+}: UrlPhaseProps) {
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
   const { mutate, isPending } = useScrape();
@@ -21,19 +33,19 @@ export default function UrlPhase({ onScraped }: UrlPhaseProps) {
     try {
       new URL(scrapeUrl);
     } catch {
-      setError("Please enter a valid site URL (e.g. firebirdtech.com or https://firebirdtech.com)");
+      setError("Please enter a valid URL (e.g. firebirdtech.com or https://firebirdtech.com)");
       return;
     }
 
-    const canonicalUrl = normalizePublicationUrl(scrapeUrl);
+    const canonicalUrl = normalizeUrl(scrapeUrl);
     if (!canonicalUrl) {
-      setError("Could not determine your main site from that URL.");
+      setError("Could not determine a valid URL from that.");
       return;
     }
 
     setUrl(canonicalUrl);
 
-    mutate(scrapeUrl, {
+    mutate({ url: scrapeUrl, mode: "publication" }, {
       onSuccess: (data) => onScraped({ ...data, url: canonicalUrl }),
       onError: () => setError("Could not reach that URL. Try another."),
     });
@@ -41,7 +53,7 @@ export default function UrlPhase({ onScraped }: UrlPhaseProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-gray-500 text-sm">Enter the <strong>main website URL</strong> of the publication you want to share.</p>
+      <p className="text-gray-500 text-sm">{prompt}</p>
       <div className="flex gap-2">
         <div className="relative flex-1">
           <Link2 size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
@@ -60,9 +72,7 @@ export default function UrlPhase({ onScraped }: UrlPhaseProps) {
           {isPending ? <Spinner size={16} /> : "Fetch Preview"}
         </Button>
       </div>
-      <p className="text-xs text-gray-400 -mt-2">
-        Use the homepage URL (e.g. <span className="font-medium">https://firebirdtech.com</span>).
-      </p>
+      <p className="text-xs text-gray-400 -mt-2">{hint}</p>
       {error && <p className="text-red-600 text-sm">{error}</p>}
     </div>
   );

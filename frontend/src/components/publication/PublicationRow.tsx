@@ -75,7 +75,7 @@ export default function PublicationRow({
         </div>
       )}
 
-      <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-gray-100 overflow-hidden border border-gray-100">
+      <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-gray-100 overflow-hidden border border-gray-100">
         {image_url ? (
           <img
             src={image_url}
