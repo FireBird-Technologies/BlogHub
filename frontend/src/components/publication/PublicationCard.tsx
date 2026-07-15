@@ -12,6 +12,7 @@ import CommentsModal from "./CommentsModal";
 import type { FeaturedEmail, MyBooking, Publication } from "../../types/models";
 import { useAuth } from "../../context/AuthContext";
 import { publicationPath } from "../../lib/publicationUrl";
+import CropImage from "../ui/CropImage";
 
 function RankBadge({ rank }: { rank: number }) {
   const base =
@@ -38,6 +39,8 @@ interface PublicationCardProps {
   onOpenEmail?: (emailId: string) => void;
   /** Opens the analytics modal for a given featured run. */
   onOpenAnalytics?: (booking: MyBooking) => void;
+  /** Whether the saved thumbnail crop should affect this card image. */
+  applyImageCrop?: boolean;
 }
 
 export default function PublicationCard({
@@ -50,14 +53,16 @@ export default function PublicationCard({
   featuredEmails,
   onOpenEmail,
   onOpenAnalytics,
+  applyImageCrop = true,
 }: PublicationCardProps) {
   const navigate = useNavigate();
   const { user, openLoginModal } = useAuth();
-  const { id, title, description, image_url, category, upvote_count, comment_count, is_upvoted, author } =
+  const { id, title, description, image_url, image_position, image_scale, category, upvote_count, comment_count, is_upvoted, author } =
     publication;
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const handleDelete = async (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
@@ -117,18 +122,14 @@ export default function PublicationCard({
             />
           </div>
         )}
-        {image_url ? (
-          <img
+        {image_url && !imgError ? (
+          <CropImage
             src={image_url}
             alt={title}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            onError={(e) => {
-              const parent = e.currentTarget.parentElement;
-              if (parent) {
-                parent.innerHTML =
-                  '<div class="w-full h-full flex items-center justify-center"><div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center"><svg class="text-red-300 w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div></div>';
-              }
-            }}
+            position={applyImageCrop ? image_position : null}
+            scale={applyImageCrop ? image_scale : null}
+            onError={() => setImgError(true)}
+            className="w-full h-full transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -188,7 +189,7 @@ export default function PublicationCard({
           ) : (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 min-w-0">
-                <Avatar src={author?.avatar_url} name={author?.name} size={24} />
+                <Avatar src={author?.avatar_url} name={author?.name} position={author?.avatar_position} scale={author?.avatar_scale} size={24} />
                 <span className="text-xs text-gray-400 truncate">{author?.name?.split(/\s+/)[0]}</span>
               </div>
               <div className="flex items-center gap-1.5">

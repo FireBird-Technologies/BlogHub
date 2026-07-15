@@ -18,6 +18,7 @@ import {
   yesterdayKey,
 } from "../../lib/publicationGrouping";
 import type { Publication } from "../../types/models";
+import CropImage from "../ui/CropImage";
 
 
 /** Dashboard-style row; stats are display-only. Entire card is one click target for guests. */
@@ -32,6 +33,8 @@ function LandingPreviewRow({
     title,
     description,
     image_url,
+    image_position,
+    image_scale,
     category,
     upvote_count,
     comment_count,
@@ -55,13 +58,11 @@ function LandingPreviewRow({
     >
       <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-gray-100 overflow-hidden border border-gray-100">
         {image_url ? (
-          <img
+          <CropImage
             src={image_url}
-            alt=""
-            className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-            }}
+            position={image_position}
+            scale={image_scale}
+            className="w-full h-full transition-transform duration-200 group-hover:scale-105"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-red-50">
@@ -94,7 +95,7 @@ function LandingPreviewRow({
           <p className="text-xs text-gray-500 leading-relaxed line-clamp-1">{firstSentence(description)}</p>
         )}
         <div className="flex flex-wrap items-center gap-2 mt-auto">
-          <Avatar src={author?.avatar_url} name={author?.name} size={18} />
+          <Avatar src={author?.avatar_url} name={author?.name} position={author?.avatar_position} scale={author?.avatar_scale} size={18} />
           <span className="text-xs text-gray-500 truncate">
             {author?.tag ? `@${author.tag}` : author?.name}
           </span>

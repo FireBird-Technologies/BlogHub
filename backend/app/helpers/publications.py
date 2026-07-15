@@ -103,6 +103,8 @@ def _pub_to_out(
         title=pub.title,
         description=pub.description,
         image_url=pub.image_url,
+        image_position=pub.image_position,
+        image_scale=pub.image_scale,
         category=pub.category,
         tags=pub.tags or [],
         additional_links=[str(u) for u in (pub.additional_links or []) if u],

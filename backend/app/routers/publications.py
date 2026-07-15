@@ -195,6 +195,8 @@ async def create_publication(
             existing.title = data.title.strip()
             existing.description = data.description
             existing.image_url = data.image_url
+            existing.image_position = data.image_position
+            existing.image_scale = data.image_scale
             existing.category = data.category
             existing.tags = [t.strip().lower() for t in data.tags if t.strip()]
             existing.additional_links = [str(u) for u in data.additional_links]
@@ -220,6 +222,8 @@ async def create_publication(
         title=data.title.strip(),
         description=data.description,
         image_url=data.image_url,
+        image_position=data.image_position,
+        image_scale=data.image_scale,
         category=data.category,
         tags=[t.strip().lower() for t in data.tags if t.strip()],
         additional_links=[str(u) for u in data.additional_links],
@@ -270,6 +274,14 @@ async def create_publication_from_link(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="This link is already on BlogHub under another account.",
             )
+        existing.title = data.title.strip()
+        existing.description = data.description
+        existing.image_url = data.image_url
+        existing.image_position = data.image_position
+        existing.image_scale = data.image_scale
+        existing.category = data.category
+        existing.tags = [t.strip().lower() for t in data.tags if t.strip()]
+        await db.commit()
         response.status_code = status.HTTP_200_OK
         pub_id = existing.id
     else:
@@ -279,6 +291,8 @@ async def create_publication_from_link(
             title=data.title.strip(),
             description=data.description,
             image_url=data.image_url,
+            image_position=data.image_position,
+            image_scale=data.image_scale,
             category=data.category,
             tags=[t.strip().lower() for t in data.tags if t.strip()],
             is_unlisted=True,
@@ -331,6 +345,8 @@ async def update_publication(
     pub.title = data.title.strip()
     pub.description = data.description
     pub.image_url = data.image_url
+    pub.image_position = data.image_position
+    pub.image_scale = data.image_scale
     pub.category = data.category
     pub.tags = [t.strip().lower() for t in data.tags if t.strip()]
     pub.additional_links = [str(u) for u in data.additional_links]
@@ -504,6 +520,8 @@ async def resubmit_and_claim(
     pub.title = data.title.strip()
     pub.description = data.description
     pub.image_url = data.image_url
+    pub.image_position = data.image_position
+    pub.image_scale = data.image_scale
     pub.category = data.category
     pub.tags = [t.strip().lower() for t in data.tags if t.strip()]
     pub.additional_links = [str(u) for u in data.additional_links]

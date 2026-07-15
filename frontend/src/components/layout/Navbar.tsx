@@ -49,7 +49,7 @@ export default function Navbar() {
                            hover:border-red-300 hover:bg-red-50/50 hover:text-gray-900 hover:shadow
                            transition-all"
               >
-                <Avatar src={user.avatar_url} name={user.name} size={28} />
+                <Avatar src={user.avatar_url} name={user.name} position={user.avatar_position} scale={user.avatar_scale} size={28} />
                 <span className="hidden sm:block">{user.tag ? `@${user.tag}` : user.name}</span>
                 <span className="sm:hidden">Profile</span>
               </Link>

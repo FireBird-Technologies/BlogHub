@@ -21,6 +21,31 @@ def _check_image_length(v: str | None) -> str | None:
     return v
 
 
+def check_image_position(v: str | None) -> str | None:
+    """Validate a CSS object-position value (e.g. "50% 30%"). Kept short and simple
+    so it can't be abused to inject arbitrary CSS."""
+    if v is None:
+        return v
+    s = v.strip()
+    if not s:
+        return None
+    if len(s) > 32:
+        raise ValueError("Invalid image position.")
+    return s
+
+
+# Zoom bounds for the thumbnail crop. 1.0 = fit (no zoom); cap keeps the transform sane.
+MIN_IMAGE_SCALE = 1.0
+MAX_IMAGE_SCALE = 5.0
+
+
+def check_image_scale(v: float | None) -> float | None:
+    """Clamp the zoom factor into [1, 5]; null stays null (treated as 1)."""
+    if v is None:
+        return v
+    return max(MIN_IMAGE_SCALE, min(MAX_IMAGE_SCALE, float(v)))
+
+
 class SocialLinkIn(BaseModel):
     label: str
     url: AnyHttpUrl
@@ -41,6 +66,8 @@ class _PublicationWritableFields(BaseModel):
     title: str
     description: str | None = None
     image_url: str | None = None
+    image_position: str | None = None
+    image_scale: float | None = None
     category: str
     tags: list[str] = []
     additional_links: list[AnyHttpUrl] = []
@@ -63,6 +90,16 @@ class _PublicationWritableFields(BaseModel):
     @classmethod
     def check_image(cls, v: str | None) -> str | None:
         return _check_image_length(v)
+
+    @field_validator("image_position")
+    @classmethod
+    def check_position(cls, v: str | None) -> str | None:
+        return check_image_position(v)
+
+    @field_validator("image_scale")
+    @classmethod
+    def check_scale(cls, v: float | None) -> float | None:
+        return check_image_scale(v)
 
     @field_validator("additional_links")
     @classmethod
@@ -108,6 +145,8 @@ class PublicationFromLinkCreate(BaseModel):
     title: str
     description: str | None = None
     image_url: str | None = None
+    image_position: str | None = None
+    image_scale: float | None = None
     category: str
     tags: list[str] = []
 
@@ -131,6 +170,16 @@ class PublicationFromLinkCreate(BaseModel):
     def check_image(cls, v: str | None) -> str | None:
         return _check_image_length(v)
 
+    @field_validator("image_position")
+    @classmethod
+    def check_position(cls, v: str | None) -> str | None:
+        return check_image_position(v)
+
+    @field_validator("image_scale")
+    @classmethod
+    def check_scale(cls, v: float | None) -> float | None:
+        return check_image_scale(v)
+
 
 class SocialLinkOut(BaseModel):
     label: str
@@ -145,6 +194,8 @@ class PublicationOut(BaseModel):
     title: str
     description: str | None
     image_url: str | None
+    image_position: str | None = None
+    image_scale: float | None = None
     category: str
     tags: list[str]
     additional_links: list[str] = []

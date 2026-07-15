@@ -66,6 +66,8 @@ function buildDraftFromScrape(data: ScrapeResult & { url: string }): SubmitDraft
     title: data.title?.trim() || titleFromUrl(data.url),
     description: data.description ?? "",
     image_url: data.image_url ?? "",
+    image_position: null,
+    image_scale: null,
     category: undefined,
     tags: [],
     additional_links: [],
@@ -78,6 +80,8 @@ interface CreatePublicationPayload {
   title: string;
   description?: string;
   image_url?: string;
+  image_position?: string | null;
+  image_scale?: number | null;
   category: string;
   tags: string[];
   additional_links: string[];
@@ -221,6 +225,8 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
       title: draft.title.trim(),
       description: draft.description || undefined,
       image_url: draft.image_url || undefined,
+      image_position: draft.image_url ? draft.image_position : null,
+      image_scale: draft.image_url ? draft.image_scale : null,
       category: draft.category,
       tags: draft.tags ?? [],
       additional_links: payload.additional_links ?? [],
@@ -265,6 +271,8 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
       title: draft.title.trim(),
       description: draft.description || undefined,
       image_url: draft.image_url || undefined,
+      image_position: draft.image_url ? draft.image_position : null,
+      image_scale: draft.image_url ? draft.image_scale : null,
       category: draft.category,
       tags: draft.tags ?? [],
       additional_links: linksPayload?.additional_links ?? [],

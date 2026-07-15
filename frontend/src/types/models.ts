@@ -6,6 +6,10 @@ export interface User {
   name: string;
   tag: string;
   avatar_url: string | null;
+  /** CSS object-position for how avatar_url is cropped (e.g. "50% 30%"). */
+  avatar_position?: string | null;
+  /** Zoom factor for the avatar crop (1 = fit). */
+  avatar_scale?: number | null;
   website?: string | null;
   onboarded: boolean;
 }
@@ -22,6 +26,10 @@ export interface Publication {
   title: string;
   description: string | null;
   image_url: string | null;
+  /** CSS object-position for how image_url is cropped in card thumbnails. */
+  image_position?: string | null;
+  /** Zoom factor for the thumbnail crop (1 = fit). */
+  image_scale?: number | null;
   category: string;
   tags: string[];
   additional_links: string[];
@@ -86,6 +94,8 @@ export interface PublicationDraft {
   title?: string;
   description?: string;
   image_url?: string;
+  image_position?: string | null;
+  image_scale?: number | null;
   category?: string;
   tags?: string[];
   additional_links?: string[];
@@ -104,6 +114,8 @@ export interface PublicationFromLinkPayload {
   title: string;
   description?: string;
   image_url?: string;
+  image_position?: string | null;
+  image_scale?: number | null;
   category: string;
   tags?: string[];
 }
