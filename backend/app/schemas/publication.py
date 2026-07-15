@@ -71,6 +71,18 @@ class PublicationCreate(_PublicationWritableFields):
 class PublicationUpdate(_PublicationWritableFields):
     """Owner-only full replace of editable fields (same body as create)."""
 
+    @field_validator("url")
+    @classmethod
+    def normalize_url(cls, v: str) -> str:
+        # Don't collapse to the base site here: whether to shorten depends on the
+        # target publication's is_unlisted flag, which the schema can't see. The
+        # update route applies the correct normalizer (link vs publication). We
+        # only validate that it's a well-formed URL and keep the full path intact.
+        canonical = normalize_link_url(v)
+        if not canonical:
+            raise ValueError("url must be a valid URL")
+        return canonical
+
 
 class PublicationFromLinkCreate(BaseModel):
     """Create (or reuse) an unlisted publication to back a featured slot, from an

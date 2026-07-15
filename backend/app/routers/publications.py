@@ -16,7 +16,7 @@ from app.helpers.publications import (
     resolve_publication_short_id,
     toggle_upvote,
 )
-from app.helpers.url_normalize import normalize_publication_url
+from app.helpers.url_normalize import normalize_link_url, normalize_publication_url
 from app.models.publication import Publication
 from app.models.publication_claim import PublicationClaim
 from app.schemas.claim import ApproveClaimRequest, ClaimCreate, ClaimOut, ResubmitAndClaimCreate
@@ -280,7 +280,10 @@ async def update_publication(
     if pub.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your publication")
 
-    canonical_url = normalize_publication_url(data.url)
+    # Unlisted publications are link-only (a specific page), so keep the full path;
+    # normal publications collapse to their base site. Mirrors the scrape flow.
+    normalize_url = normalize_link_url if pub.is_unlisted else normalize_publication_url
+    canonical_url = normalize_url(data.url)
     if not canonical_url:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid publication URL")
     if canonical_url != pub.url:

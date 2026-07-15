@@ -45,7 +45,7 @@ export default function UrlPhase({
 
     setUrl(canonicalUrl);
 
-    mutate(scrapeUrl, {
+    mutate({ url: scrapeUrl, mode: "publication" }, {
       onSuccess: (data) => onScraped({ ...data, url: canonicalUrl }),
       onError: () => setError("Could not reach that URL. Try another."),
     });

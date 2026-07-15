@@ -13,6 +13,7 @@ import {
 } from "../submit/PublicationLinksStep";
 import { useScrape } from "../../hooks/useScrape";
 import api, { formatApiErrorDetail } from "../../lib/api";
+import { normalizeLinkUrl, normalizePublicationUrl } from "../../lib/urlNormalize";
 import { publicationShortId } from "../../lib/publicationUrl";
 import type { Publication, SocialLinkInput } from "../../types/models";
 
@@ -55,6 +56,11 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
   const [fieldError, setFieldError] = useState("");
   const [extraSlots, setExtraSlots] = useState(() => initLinkExtraSlots([]));
   const [socials, setSocials] = useState<SocialLinkInput[]>(() => [emptySocialRow()]);
+  // The last URL whose metadata has already been fetched. Seeded to the
+  // publication's own URL (its fields were fetched when it was created), so the
+  // primary button starts as "Save changes". Whenever the URL is edited to
+  // something other than this, the button becomes "Fetch" until they re-fetch.
+  const [fetchedUrl, setFetchedUrl] = useState("");
   const scrape = useScrape();
 
   useEffect(() => {
@@ -62,6 +68,7 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
     setSaveError("");
     setFieldError("");
     setUrl(publication.url ?? "");
+    setFetchedUrl(publication.url ?? "");
     setTitle(publication.title ?? "");
     setDescription(publication.description ?? "");
     setImageUrl(publication.image_url ?? "");
@@ -73,27 +80,48 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
     setSocials(initLinkSocialRows(publication.social_links ?? []));
   }, [publication, isOpen]);
 
-  // For an unlisted (link-only) publication, re-fetch its image/title/description
-  // live as the URL is edited — there's no separate "Use a link" review step here,
-  // so this is the only chance to refresh them. Debounced so it doesn't fire on
-  // every keystroke, and skipped on the very first render (the seeded URL is
-  // already correct, no need to re-scrape what we just loaded).
-  useEffect(() => {
-    if (!isOpen || !publication?.is_unlisted) return;
-    if (!url.trim() || url === publication.url) return;
-    const timer = setTimeout(() => {
-      const withScheme = url.includes("://") ? url : `https://${url}`;
-      scrape.mutate(withScheme, {
+  // The URL has been edited to something we haven't fetched metadata for yet, so
+  // the primary action should be "Fetch" (re-scrape title/description/image)
+  // rather than "Save changes".
+  const needsFetch = Boolean(url.trim()) && url.trim() !== fetchedUrl.trim();
+
+  // Fetch title/description/image for the edited URL. Unlisted publications are
+  // link-only (a specific page) so keep the full path; normal publications are
+  // identified by their base site.
+  const handleFetch = () => {
+    if (!url.trim() || !publication) return;
+    setSaveError("");
+    setFieldError("");
+    const withScheme = url.includes("://") ? url : `https://${url}`;
+    // Unlisted publications are link-only (a specific page): keep the full path on
+    // both frontend and backend. Normal publications collapse to their base site.
+    const canonicalUrl = publication.is_unlisted
+      ? normalizeLinkUrl(withScheme)
+      : normalizePublicationUrl(withScheme);
+    if (!canonicalUrl) {
+      setFieldError("Please enter a valid URL.");
+      return;
+    }
+    // Shorten (normal) / normalize (unlisted) the field instantly, before the
+    // scrape resolves — matching the normal creation form's behavior. Also marks
+    // this URL as fetched so the button flips back to "Save changes".
+    setUrl(canonicalUrl);
+    setFetchedUrl(canonicalUrl);
+    const mode = publication.is_unlisted ? "link" : "publication";
+    scrape.mutate(
+      { url: withScheme, mode },
+      {
         onSuccess: (data) => {
           if (data.title) setTitle(data.title);
           if (data.description) setDescription(data.description);
           if (data.image_url) setImageUrl(data.image_url);
         },
-      });
-    }, 600);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url, isOpen, publication?.is_unlisted, publication?.url]);
+        onError: () => {
+          setFieldError("Could not fetch details for that URL. Check it and try again.");
+        },
+      },
+    );
+  };
 
   const publicationId = publication?.id;
 
@@ -125,6 +153,14 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    // When the URL has been edited but not yet fetched, the primary button acts as
+    // "Fetch" — scrape the new URL instead of saving. Routing both through the
+    // form's submit (rather than swapping button elements mid-click) avoids a
+    // re-render race that could otherwise submit-and-close the modal on fetch.
+    if (needsFetch) {
+      handleFetch();
+      return;
+    }
     setSaveError("");
     setFieldError("");
     if (!publicationId) return;
@@ -204,7 +240,7 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
         <div>
           <label className="block text-xs text-gray-500 mb-1.5 font-medium">
             Image URL
-            {publication.is_unlisted && scrape.isPending && (
+            {scrape.isPending && (
               <span className="ml-1.5 inline-flex items-center gap-1 text-gray-400 font-normal normal-case">
                 <Spinner size={10} /> fetching…
               </span>
@@ -289,8 +325,14 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
           <Button type="button" variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isPending}>
-            {isPending ? <Spinner size={16} /> : "Save changes"}
+          <Button type="submit" disabled={isPending || scrape.isPending}>
+            {isPending || scrape.isPending ? (
+              <Spinner size={16} />
+            ) : needsFetch ? (
+              "Fetch"
+            ) : (
+              "Save changes"
+            )}
           </Button>
         </div>
       </form>

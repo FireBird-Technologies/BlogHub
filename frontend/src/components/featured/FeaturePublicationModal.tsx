@@ -126,7 +126,7 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
       setLinkUrlError("Please enter a valid URL.");
       return;
     }
-    scrape.mutate(withScheme, {
+    scrape.mutate({ url: withScheme, mode: "link" }, {
       onSuccess: (data) => {
         setLinkFields({
           url: canonicalUrl,
@@ -377,7 +377,7 @@ export default function FeaturePublicationModal({ isOpen, onClose }: FeaturePubl
                   pubSource === "link" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
                 }`}
               >
-                <Link2 size={13} /> Use a link
+                <Link2 size={13} /> Use a website link
               </button>
             </div>
 
