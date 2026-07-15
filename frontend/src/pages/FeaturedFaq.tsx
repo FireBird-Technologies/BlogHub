@@ -152,9 +152,9 @@ function PricingContent() {
             Marketing email included
           </div>
           <p className="mt-2 text-sm text-gray-600">
-            We draft a subscriber announcement for your publication. You can edit the subject,
-            body, button text, and decide when it should send before checkout. Nothing goes out
-            until you finalise it and we approve it.
+            We draft a subscriber announcement during checkout. You edit the subject, body,
+            button text, and send time before paying; completing payment finalises your copy.
+            Nothing goes out until we approve it.
           </p>
         </div>
         <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
@@ -236,18 +236,18 @@ function FaqContent() {
 
       <LegalSection title="The announcement email">
         <p>
-          When you pay, we write a short email about your publication to send to {LEGAL.siteName}{" "}
-          subscribers. Open it from the envelope on your publication&apos;s card in your profile.
-          Read it, rewrite as much of it as you like.
+          The booking flow has an announcement step before you pay. We draft a short email about
+          your publication for {LEGAL.siteName} subscribers. You can rewrite the subject, message,
+          and button text, and choose when it should send — any day within your featured run.
         </p>
         <p>
-          When it says what you want it to say, <strong>finalise</strong> it. That locks the wording
-          and hands it to us. Nothing goes out before you do that.
+          When you complete payment, that version is saved and finalised from your side. You can
+          still open it from the envelope on your publication&apos;s card in your profile, but it
+          is read-only after checkout.
         </p>
         <p>
-          We approve it, then it sends 24 hours after your publication actually goes live. Not 24
-          hours after approval. Book a run for next month and the email lands the day after that run
-          starts, when there&apos;s something for people to click on.
+          Our team approves your booking and the email. Nothing goes out until both are approved.
+          It then sends at the time you picked during checkout.
         </p>
       </LegalSection>
 
