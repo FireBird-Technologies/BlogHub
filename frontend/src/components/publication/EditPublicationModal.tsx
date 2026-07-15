@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import Spinner from "../ui/Spinner";
+import CustomDropdown from "../ui/CustomDropdown";
 import { CATEGORIES, isCategory, normalizeCategoryForStorage, type Category } from "../../constants/categories";
 import {
   PublicationLinksFields,
@@ -332,18 +333,16 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs text-gray-500 mb-1.5 font-medium">Category *</label>
-            <select
+            <CustomDropdown
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className={inputCls}
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-              <option value="__custom__">Other / Custom…</option>
-            </select>
+              options={[
+                ...CATEGORIES.map((c) => ({ value: c, label: c })),
+                { value: "__custom__", label: "Other / Custom…" },
+              ]}
+              onChange={setCategory}
+              placeholder="Select a category…"
+              buttonClassName="text-gray-900 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100"
+            />
             {category === "__custom__" && (
               <input
                 type="text"
