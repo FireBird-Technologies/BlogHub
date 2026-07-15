@@ -1,7 +1,8 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
-import { CATEGORIES, isCategory, normalizeCategoryForStorage, type Category } from "../../constants/categories";
+import { CATEGORIES, isCategory, normalizeCategoryForStorage } from "../../constants/categories";
 import type { PublicationDraft } from "../../types/models";
 import Button from "../ui/Button";
+import CustomDropdown from "../ui/CustomDropdown";
 import ImageUploadButton from "../ui/ImageUploadButton";
 import AdjustImageModal, { ImageThumbWithAdjust } from "../ui/AdjustImageModal";
 
@@ -168,17 +169,16 @@ export default function PublicationForm({ draft, onContinue }: PublicationFormPr
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-xs text-gray-500 mb-1.5 font-medium">Category *</label>
-          <select value={form.category} onChange={set("category")} className={inputCls}>
-            <option value="" disabled>
-              Select a category…
-            </option>
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-            <option value="__custom__">Other / Custom…</option>
-          </select>
+          <CustomDropdown
+            value={form.category}
+            options={[
+              ...CATEGORIES.map((c) => ({ value: c, label: c })),
+              { value: "__custom__", label: "Other / Custom…" },
+            ]}
+            onChange={(v) => setForm((f) => ({ ...f, category: v }))}
+            placeholder="Select a category…"
+            buttonClassName="text-gray-900 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100"
+          />
           {form.category === "__custom__" && (
             <input
               type="text"
