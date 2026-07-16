@@ -210,7 +210,7 @@ export default function HeroSection() {
         transition={{ duration: 0.55, delay: 0.08 }}
         className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.15] lg:leading-[1.2] tracking-tight text-gray-900"
       >
-        Promote your publication
+        Product Hunt for publications
         <br />
         <span className="text-red-600">real readers, zero cost</span>
       </motion.h1>
@@ -221,9 +221,8 @@ export default function HeroSection() {
         transition={{ duration: 0.55, delay: 0.16 }}
         className="text-lg text-gray-500 leading-relaxed max-w-2xl"
       >
-        Submit your blog or newsletter once. BlogHub promotes it to
-        thousands of readers, drives real traffic to your site, and builds
-        SEO backlinks — completely free.
+        Launch your blog or newsletter to thousands of readers,
+        completely free. Real traffic, SEO backlinks.
       </motion.p>
 
       <motion.div
