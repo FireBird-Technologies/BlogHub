@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, ArrowRight } from "lucide-react";
+import { Search, ArrowRight, Menu, X } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import Button from "../ui/Button";
 import Avatar from "../ui/Avatar";
@@ -10,13 +10,27 @@ export default function LandingNavbar() {
   const navigate = useNavigate();
   const { user, loading, openLoginModal, logout } = useAuth();
   const [search, setSearch] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
+
+  // Close the mobile menu when clicking outside of it.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [menuOpen]);
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -83,12 +97,20 @@ export default function LandingNavbar() {
 
           {/* Right — Auth */}
           <div className="flex-shrink-0 flex items-center gap-3">
-            <Link
-              to="/blogs"
-              className="text-sm font-semibold text-gray-600 hover:text-red-600 transition-colors"
-            >
-              Blogs
-            </Link>
+            <div className="flex items-center gap-7">
+              <Link
+                to="/featured-faq"
+                className="text-sm font-semibold text-gray-600 hover:text-red-600 transition-colors"
+              >
+                Get featured
+              </Link>
+              <Link
+                to="/blogs"
+                className="text-sm font-semibold text-gray-600 hover:text-red-600 transition-colors"
+              >
+                Blogs
+              </Link>
+            </div>
             <span className="h-5 w-px bg-gray-200" aria-hidden />
             {loading ? (
               <div className="w-10 h-10 bg-gray-100 rounded-full animate-pulse" />
@@ -159,13 +181,6 @@ export default function LandingNavbar() {
 
           {/* Right — Auth */}
           <div className="flex-shrink-0 flex items-center gap-3">
-            <Link
-              to="/blogs"
-              className="text-xs font-semibold text-gray-600 hover:text-red-600 transition-colors"
-            >
-              Blogs
-            </Link>
-            <span className="h-4 w-px bg-gray-200" aria-hidden />
             {loading ? (
               <div className="w-8 h-8 bg-gray-100 rounded-full animate-pulse" />
             ) : user ? (
@@ -198,15 +213,52 @@ export default function LandingNavbar() {
                   </svg>
                 </button>
               </>
-            ) : (
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={openLoginModal}
+            ) : null}
+
+            {/* Burger menu */}
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setMenuOpen((o) => !o)}
+                className="p-1.5 -mr-1.5 text-gray-600 hover:text-red-600 transition-colors"
+                aria-label="Menu"
+                aria-expanded={menuOpen}
               >
-                Sign in
-              </Button>
-            )}
+                {menuOpen ? <X size={22} /> : <Menu size={22} />}
+              </button>
+
+              {menuOpen && (
+                <div className="absolute right-0 top-full mt-1 w-44 rounded-xl border border-gray-100 bg-white py-1 shadow-lg z-50">
+                  {!loading && !user && (
+                    <>
+                      <button
+                        onClick={() => {
+                          setMenuOpen(false);
+                          openLoginModal();
+                        }}
+                        className="block w-full text-left px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        Sign in
+                      </button>
+                      <div className="my-1 h-px bg-gray-100" />
+                    </>
+                  )}
+                  <Link
+                    to="/featured-faq"
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors"
+                  >
+                    Get featured
+                  </Link>
+                  <Link
+                    to="/blogs"
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors"
+                  >
+                    Blogs
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

@@ -181,7 +181,7 @@ export default function Dashboard() {
             className="flex-shrink-0"
           >
             <Plus size={15} />
-            <span>Add Publication</span>
+            <span>Add publication for free</span>
           </Button>
         </div>
 

@@ -200,7 +200,7 @@ export default function FeaturedPublicationBanner({
                 className="flex-shrink-0 rounded-full border border-amber-400 bg-amber-500 px-3 py-1
                            text-xs font-semibold text-white transition-colors group-hover:bg-amber-600"
               >
-                Get featured — from $30
+                Get featured
               </span>
             </span>
           </div>
