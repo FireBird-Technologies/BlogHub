@@ -7,6 +7,8 @@ from app.models.roundup import FeaturedRoundup
 from app.models.featured_slot import FeaturedSlot, FeaturedSlotImpression
 from app.models.featured_email import FeaturedEmail
 from app.models.featured_email_recipient import FeaturedEmailRecipient
+from app.models.update_email import UpdateEmail
+from app.models.update_email_send import UpdateEmailSend
 
 __all__ = [
     "User",
@@ -19,4 +21,6 @@ __all__ = [
     "FeaturedSlotImpression",
     "FeaturedEmail",
     "FeaturedEmailRecipient",
+    "UpdateEmail",
+    "UpdateEmailSend",
 ]

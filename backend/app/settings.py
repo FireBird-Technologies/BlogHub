@@ -31,6 +31,11 @@ class Settings(BaseSettings):
     STRIPE_FEATURED_PRICE_ID_30D: str | None = None
     FEATURE_NOTIFY_EMAIL: str = "arslan@firebird-technologies.com"
     FEATURE_FROM_EMAIL: str = "BlogHub <featured@bloghub.app>"
+    # Product-update email campaigns (DB-driven daily batches). Sent from Arslan
+    # personally, not the BlogHub newsletter address.
+    UPDATE_EMAIL_FROM_EMAIL: str = "Arslan Shahid <arslan@bloghub.app>"
+    # Default UTC hour (0-23) a campaign's daily batch runs when its send_hour is -1.
+    UPDATE_EMAIL_SEND_HOUR: int = 9
 
     class Config:
         env_file = ".env"
