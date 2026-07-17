@@ -16,6 +16,7 @@ import logging
 from app.database import AsyncSessionLocal
 from app.helpers.featured import reconcile_slots
 from app.helpers.featured_email import send_due_emails
+from app.helpers.update_email import run_due_update_emails
 
 logger = logging.getLogger(__name__)
 
@@ -31,10 +32,11 @@ INITIAL_DELAY_SECONDS = 60
 
 
 async def _reconcile_once() -> None:
-    """One tick: reconcile the slots, then send any marketing email that is due.
+    """One tick: reconcile the slots, send any featured marketing email that is due,
+    then run any product-update campaign batch that is due.
 
-    The two are independent, so each gets its own try/except — a failure in one must
-    not stop the other from running.
+    The three are independent, so each gets its own try/except — a failure in one must
+    not stop the others from running.
 
     Note the send is only as punctual as the tick: an email scheduled for T+24h
     actually goes out somewhere in [T+24h, T+29h). That is fine for a marketing blast
@@ -62,6 +64,13 @@ async def _reconcile_once() -> None:
                 )
         except Exception:  # noqa: BLE001
             logger.exception("Featured marketing email send failed")
+
+        try:
+            due = await run_due_update_emails(db)
+            if due["batches_run"]:
+                logger.info("Update emails: %s campaign batch(es) run", due["batches_run"])
+        except Exception:  # noqa: BLE001
+            logger.exception("Update email batch send failed")
 
 
 async def _reconcile_loop() -> None:

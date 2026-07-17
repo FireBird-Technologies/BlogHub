@@ -2,6 +2,7 @@ import html
 import logging
 import re
 from datetime import timezone
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -12,6 +13,36 @@ from app.settings import settings
 logger = logging.getLogger(__name__)
 
 RESEND_ENDPOINT = "https://api.resend.com/emails"
+
+# UTM tag for links in the product-update emails. Mirrors the featured announcement's
+# tag (same utm_source="bloghub", utm_medium="email") but its own utm_campaign="update"
+# / utm_content="update_email", so clicks from an update email are distinguishable from
+# the featured campaign and from on-site clicks in the site's analytics.
+_UPDATE_EMAIL_UTM = {
+    "utm_source": "bloghub",
+    "utm_medium": "email",
+    "utm_campaign": "update",
+    "utm_content": "update_email",
+}
+
+
+def _with_update_email_utm(url: str) -> str:
+    """Append the update-email UTM tag to an outbound URL.
+
+    Preserves any query string already on the link and never overwrites a param already
+    set. Falls back to the raw URL for anything that isn't a parseable absolute http(s)
+    link, so a bad URL degrades to a plain link rather than breaking the send.
+    """
+    try:
+        parts = urlsplit(url)
+        if parts.scheme not in ("http", "https"):
+            return url
+        query = dict(parse_qsl(parts.query, keep_blank_values=True))
+        for key, value in _UPDATE_EMAIL_UTM.items():
+            query.setdefault(key, value)
+        return urlunsplit(parts._replace(query=urlencode(query)))
+    except Exception:  # noqa: BLE001
+        return url
 
 
 def _publication_detail_url(pub) -> str:
@@ -582,6 +613,88 @@ async def send_featured_marketing_email(
             )
     except Exception as exc:  # noqa: BLE001
         logger.warning("Resend featured marketing email error: %s", exc)
+
+
+async def send_update_email(
+    *,
+    to_email: str,
+    name: str,
+    subject: str,
+    body: str,
+    unsubscribe_token: str,
+) -> bool:
+    """A product-update campaign email, to one subscriber.
+
+    Styled to read like a personal note from Arslan rather than a marketing template:
+    the greeting and the admin's body render as plain text (a `pre` block with the
+    system font), followed by a thin rule and a small muted-grey footer with a
+    "Visit us at bloghub.app" line and a "click here" unsubscribe link. A plain-text
+    alternative is sent alongside for clients that prefer it. Sent from
+    `UPDATE_EMAIL_FROM_EMAIL` (Arslan personally), not the newsletter address.
+
+    Unlike most helpers in this module, this returns True/False rather than swallowing
+    the outcome silently: the batch loop records `sent`/`failed` per recipient, so it
+    needs to know. It still never raises — a single bad address must not abort the batch.
+    """
+    if not settings.RESEND_API_KEY:
+        logger.warning("Update email skipped: RESEND_API_KEY not configured.")
+        return False
+
+    unsubscribe_url = (
+        f"{settings.BACKEND_URL}/api/users/unsubscribe-digest?token={unsubscribe_token}"
+    )
+
+    first_name = (name or "").split()[0] if name else "there"
+
+    # Tag the "Visit us at" link so clicks from update emails are attributable and can
+    # be told apart from the featured-announcement campaign in the site's analytics.
+    site_url = _with_update_email_utm("https://bloghub.app")
+
+    text_body = (
+        f"Hi {first_name},\n\n"
+        f"{body}\n\n"
+        f"---\n"
+        f"Visit us at {site_url}\n"
+        f"To unsubscribe from these emails, visit: {unsubscribe_url}\n"
+    )
+
+    html_body = (
+        f"<pre style='font-family:inherit;font-size:15px;white-space:pre-wrap;margin:0;'>"
+        f"Hi {html.escape(first_name)},\n\n"
+        f"{html.escape(body)}"
+        f"</pre>"
+        f"<hr style='border:none;border-top:1px solid #e5e7eb;margin:24px 0;'/>"
+        f"<p style='font-size:12px;color:#9ca3af;margin:0 0 6px;'>"
+        f"Visit us at <a href='{html.escape(site_url)}' style='color:#9ca3af;text-decoration:underline;text-decoration-color:#9ca3af;'>bloghub.app</a>"
+        f"</p>"
+        f"<p style='font-size:12px;color:#9ca3af;margin:0;'>"
+        f"To unsubscribe from these emails, "
+        f"<a href='{html.escape(unsubscribe_url)}' style='color:#9ca3af;text-decoration:underline;text-decoration-color:#9ca3af;'>click here</a>."
+        f"</p>"
+    )
+
+    payload = {
+        "from": settings.UPDATE_EMAIL_FROM_EMAIL,
+        "to": [to_email],
+        "subject": subject,
+        "html": html_body,
+        "text": text_body,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                RESEND_ENDPOINT,
+                headers={"Authorization": f"Bearer {settings.RESEND_API_KEY}"},
+                json=payload,
+            )
+        if resp.status_code >= 400:
+            logger.warning("Resend update email failed (%s): %s", resp.status_code, resp.text)
+            return False
+        return True
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Resend update email error: %s", exc)
+        return False
 
 
 async def send_support_request(
