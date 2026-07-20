@@ -7,16 +7,25 @@ import Pagination from "../components/ui/Pagination";
 import { useDocumentMeta } from "../hooks/useDocumentMeta";
 import { useJsonLd } from "../hooks/useJsonLd";
 import { useRoundups } from "../hooks/useRoundups";
-import { siteName } from "../content/siteContent";
+import { siteName, blogPosts } from "../content/siteContent";
 import { blogIndexSchema } from "../seo/schema";
 import type { RoundupSummary } from "../types/models";
+import type { BlogPost } from "../content/seoTypes";
 
 /** Max roundup cards shown per section page (desktop and mobile). */
 const ROUNDUPS_PER_PAGE = 6;
 
+/** Max article cards shown per page in the "Guides & articles" section. */
+const ARTICLES_PER_PAGE = 6;
+
 function formatMonth(iso: string): string {
   const d = new Date(`${iso}T00:00:00`);
   return d.toLocaleDateString("en-US", { year: "numeric", month: "long" });
+}
+
+function formatDate(iso: string): string {
+  const d = new Date(`${iso}T00:00:00`);
+  return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
 function blurb(roundup: RoundupSummary): string {
@@ -59,6 +68,43 @@ function RoundupCard({
       <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 mt-3">
         {isUnderrated ? "See underrated" : "Read roundup"}{" "}
         <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+      </span>
+    </Link>
+  );
+}
+
+/** A hand-written article card, linking to its /blogs/<slug> detail page. Mirrors
+ *  RoundupCard's styling so articles and roundups read as one system. */
+function ArticleCard({ post }: { post: BlogPost }) {
+  return (
+    <Link
+      to={`/blogs/${post.slug}`}
+      className="group flex flex-col bg-white border border-gray-200 rounded-2xl p-4
+                 transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300
+                 hover:shadow-xl hover:shadow-black/5"
+    >
+      {post.heroImage && (
+        <div className="mb-3 overflow-hidden rounded-xl bg-gray-100 aspect-[16/9]">
+          <img
+            src={post.heroImage}
+            alt={post.heroImageAlt ?? post.title}
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+          />
+        </div>
+      )}
+      <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-gray-500">
+        <span className="font-semibold uppercase tracking-wide text-gray-700">{post.category} |</span>
+        <span>{formatDate(post.publishedAt)}</span>
+        <span aria-hidden>·</span>
+        <span>{post.readTime}</span>
+      </div>
+      <h3 className="text-base font-bold text-gray-900 mt-2 group-hover:text-red-600 transition-colors">
+        {post.title}
+      </h3>
+      <p className="text-sm text-gray-500 mt-1.5 flex-1">{post.description}</p>
+      <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 mt-3">
+        Read article <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
       </span>
     </Link>
   );
@@ -107,8 +153,26 @@ export default function Blog() {
     [sorted]
   );
 
+  // Hand-written articles (blogPosts.ts), newest first. Static content, so this is
+  // independent of the roundup query and always available.
+  const articles = useMemo(
+    () =>
+      [...blogPosts].sort(
+        (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+      ),
+    []
+  );
+
   // One shared pagination controls both columns together.
   const [page, setPage] = useState(1);
+
+  // The articles section paginates independently of the roundups.
+  const [articlePage, setArticlePage] = useState(1);
+  const articleTotalPages = Math.ceil(articles.length / ARTICLES_PER_PAGE);
+  const articlePageItems = articles.slice(
+    (articlePage - 1) * ARTICLES_PER_PAGE,
+    articlePage * ARTICLES_PER_PAGE
+  );
 
   const totalPages = Math.max(
     Math.ceil(topRoundups.length / ROUNDUPS_PER_PAGE),
@@ -134,10 +198,34 @@ export default function Blog() {
             The best blogs, ranked by readers
           </h1>
           <p className="text-base sm:text-lg text-gray-500 mt-4">
-            Every month we round up the top publications in each category — chosen by real upvotes and
-            discussion.
+            Guides and articles from the {siteName} team, plus monthly roundups of the top publications
+            in each category — chosen by real upvotes and discussion.
           </p>
         </header>
+
+        {/* Hand-written articles (blogPosts.ts). Static, always shown, above the roundups. */}
+        <section className="mb-12 sm:mb-16">
+          <h2 className="text-lg font-bold text-gray-900">Guides &amp; articles</h2>
+          <p className="text-sm text-gray-500 mt-1 mb-5">
+            Practical guides on growing your readership and getting discovered.
+          </p>
+          {articles.length > 0 ? (
+            <>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {articlePageItems.map((post) => (
+                  <ArticleCard key={post.slug} post={post} />
+                ))}
+              </div>
+              <Pagination
+                currentPage={articlePage}
+                totalPages={articleTotalPages}
+                onPageChange={setArticlePage}
+              />
+            </>
+          ) : (
+            <p className="text-sm text-gray-400 text-center">No guide or article exists at the moment.</p>
+          )}
+        </section>
 
         {isLoading && (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

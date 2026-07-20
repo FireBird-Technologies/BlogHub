@@ -46,7 +46,7 @@ async def unsubscribe_digest(token: str, db: AsyncSession = Depends(get_db)):
                    max-width:480px;margin:80px auto;text-align:center;color:#111827;">
         <h2 style="font-size:20px;margin-bottom:8px;">You've been unsubscribed</h2>
         <p style="color:#6b7280;font-size:14px;">
-          You won't receive the weekly digest anymore.
+          You won't receive these emails anymore.
         </p>
       </body>
     </html>
