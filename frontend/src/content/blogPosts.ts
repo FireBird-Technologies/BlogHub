@@ -21,7 +21,11 @@ function faq(primary: string, variant: string): FaqItem[] {
   ];
 }
 
-export const blogPosts: BlogPost[] = [
+export const blogPosts: BlogPost[] = [];
+
+// Previous hand-written posts are kept below for reference but excluded from the
+// exported array so the Guides & articles section reads as empty.
+const _archivedBlogPosts: BlogPost[] = [
   {
     slug: "how-to-get-your-blog-discovered",
     title: "How to Get Your Blog Discovered (Without Paying for Ads)",

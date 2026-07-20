@@ -204,24 +204,28 @@ export default function Blog() {
         </header>
 
         {/* Hand-written articles (blogPosts.ts). Static, always shown, above the roundups. */}
-        {articles.length > 0 && (
-          <section className="mb-12 sm:mb-16">
-            <h2 className="text-lg font-bold text-gray-900">Guides &amp; articles</h2>
-            <p className="text-sm text-gray-500 mt-1 mb-5">
-              Practical guides on growing your readership and getting discovered.
-            </p>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {articlePageItems.map((post) => (
-                <ArticleCard key={post.slug} post={post} />
-              ))}
-            </div>
-            <Pagination
-              currentPage={articlePage}
-              totalPages={articleTotalPages}
-              onPageChange={setArticlePage}
-            />
-          </section>
-        )}
+        <section className="mb-12 sm:mb-16">
+          <h2 className="text-lg font-bold text-gray-900">Guides &amp; articles</h2>
+          <p className="text-sm text-gray-500 mt-1 mb-5">
+            Practical guides on growing your readership and getting discovered.
+          </p>
+          {articles.length > 0 ? (
+            <>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {articlePageItems.map((post) => (
+                  <ArticleCard key={post.slug} post={post} />
+                ))}
+              </div>
+              <Pagination
+                currentPage={articlePage}
+                totalPages={articleTotalPages}
+                onPageChange={setArticlePage}
+              />
+            </>
+          ) : (
+            <p className="text-sm text-gray-400 text-center">No guide or article exists at the moment.</p>
+          )}
+        </section>
 
         {isLoading && (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
