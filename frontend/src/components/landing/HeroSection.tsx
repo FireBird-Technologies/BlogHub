@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowBigUp, Link2, Loader2, MessageCircle, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import GoogleSignInButton from "../ui/GoogleSignInButton";
+import GoogleSignInCustomButton from "../ui/GoogleSignInCustomButton";
 import Avatar from "../ui/Avatar";
 
 const TYPED_URL = "https://medium.com/design/typography-tips";
@@ -231,7 +231,7 @@ export default function HeroSection() {
         transition={{ duration: 0.55, delay: 0.24 }}
         className="flex flex-col items-center gap-3 mt-8"
       >
-        <GoogleSignInButton onSignedIn={() => navigate("/dashboard")} />
+        <GoogleSignInCustomButton onSignedIn={() => navigate("/dashboard")} />
         <p className="text-xs text-gray-400">
           Join thousands of writers — Get Started Now.
         </p>
