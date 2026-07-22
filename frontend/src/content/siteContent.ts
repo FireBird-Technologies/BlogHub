@@ -10,7 +10,7 @@ export const siteUrl = LEGAL.siteUrl; // "https://bloghub.app"
 export const siteName = LEGAL.siteName; // "BlogHub"
 export const organizationName = "FireBird Technologies";
 export const organizationLogo = "/assets/Bloghub-logo.png";
-export const defaultOgImage = "/assets/landing/embed-image.png";
+export const defaultOgImage = "/assets/landing/new-embed-image.jpg";
 
 /** Resolve a post by slug, or undefined if it doesn't exist. */
 export function getBlogPost(slug: string | undefined): BlogPost | undefined {

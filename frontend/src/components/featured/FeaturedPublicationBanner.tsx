@@ -29,6 +29,9 @@ interface CardContent {
   author_avatar_scale?: number | null;
   upvote_count: number;
   comment_count?: number;
+  /** When there's no image, render this letter on a red block instead of the
+   *  generic book icon. Used by the example listing. */
+  logo_letter?: string;
 }
 
 function CardBody({ pub }: { pub: CardContent }) {
@@ -44,6 +47,10 @@ function CardBody({ pub }: { pub: CardContent }) {
             scale={pub.image_scale}
             className="w-full h-full transition-transform duration-200 group-hover:scale-105"
           />
+        ) : pub.logo_letter ? (
+          <div className="w-full h-full flex items-center justify-center bg-white">
+            <span className="text-4xl sm:text-5xl font-bold text-gray-700" style={{ fontFamily: '"Times New Roman", Times, serif' }}>{pub.logo_letter}</span>
+          </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-amber-50">
             <svg className="w-6 h-6 text-amber-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -69,7 +76,19 @@ function CardBody({ pub }: { pub: CardContent }) {
         )}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-auto pt-0.5">
           <span className="flex items-center gap-1.5 min-w-0">
-            <Avatar src={pub.author_avatar} name={pub.author_name} position={pub.author_avatar_position} scale={pub.author_avatar_scale} size={18} />
+            {pub.logo_letter && !pub.author_avatar ? (
+              <span className="flex items-center justify-center w-[18px] h-[18px] flex-shrink-0 rounded-full bg-white border border-gray-200 text-[9px] font-semibold text-gray-700">
+                {(pub.author_name ?? "")
+                  .split(" ")
+                  .map((w) => w[0])
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .join("")
+                  .toUpperCase()}
+              </span>
+            ) : (
+              <Avatar src={pub.author_avatar} name={pub.author_name} position={pub.author_avatar_position} scale={pub.author_avatar_scale} size={18} />
+            )}
             <span className="text-xs text-gray-500 truncate">
               {pub.author_tag ? `@${pub.author_tag}` : pub.author_name}
             </span>
@@ -86,18 +105,18 @@ function CardBody({ pub }: { pub: CardContent }) {
 
 /** Static sample shown on the open slot so an author can see what they'd be buying.
  *
- * Blog2Video is our own product, so showcasing it here makes no claim about anyone
- * else. The numbers are illustrative of a healthy listing, not a promise about what
- * the slot delivers — the real card only ever shows counts a booking actually earned.
+ * The numbers are illustrative of a healthy listing, not a promise about what the
+ * slot delivers — the real card only ever shows counts a booking actually earned.
  */
 const EXAMPLE_PUBLICATION = {
-  title: "Blog2Video — turn any blog post into a video in minutes",
+  title: "Mental Models: The Best Way to Make Intelligent Decisions",
   description:
-    "Paste a URL and get a narrated, captioned video ready for YouTube, Shorts and LinkedIn. Reach a 4x wider audience from writing you have already published.",
-  category: "Tech",
-  image_url: "/assets/b2b.png",
-  author_name: "Blog2Video",
-  author_tag: "admin.blog2video",
+    "A latticework of mental models from Farnam Street — practical frameworks for thinking clearly, avoiding blind spots, and making better decisions.",
+  category: "Productivity",
+  image_url: null,
+  logo_letter: "F",
+  author_name: "Farnam Street",
+  author_tag: "farnamstreet",
   upvote_count: 2228,
   comment_count: 994,
 };
@@ -134,7 +153,7 @@ interface FeaturedPublicationBannerProps {
 }
 
 /** The paid featured publication, or — when the slot is open — the same card showing
- *  Blog2Video's real listing as a worked example of what the slot looks like.
+ *  an example listing as a worked example of what the slot looks like.
  *
  * While the slot is still loading we render nothing rather than flashing the CTA at
  * someone who is about to see a real feature.
