@@ -20,6 +20,7 @@ interface AuthContextValue {
   loading: boolean;
   signingIn: boolean;
   loginWithGoogle: (idToken: string) => Promise<void>;
+  loginWithGoogleAccessToken: (accessToken: string) => Promise<void>;
   logout: () => void;
   setUser: (u: User | null) => void;
   refreshUser: () => Promise<void>;
@@ -83,6 +84,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const loginWithGoogleAccessToken = useCallback(async (accessToken: string) => {
+    setSigningIn(true);
+    let issuedToken: string | null = null;
+    try {
+      const res = await api.post<AuthTokenResponse>(
+        "/auth/google/token",
+        { access_token: accessToken },
+        { skipAuthRedirect: true }
+      );
+      issuedToken = res.data.token;
+      setToken(issuedToken);
+      const me = await api.get<User>("/api/me", { skipAuthRedirect: true });
+      setUser(me.data);
+    } catch (err) {
+      if (issuedToken && isUnauthorized(err) && getToken() === issuedToken) {
+        removeToken();
+      }
+      throw err;
+    } finally {
+      setSigningIn(false);
+    }
+  }, []);
+
   const logout = useCallback(() => {
     removeToken();
     setUser(null);
@@ -102,7 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, signingIn, loginWithGoogle, logout, setUser, refreshUser, loginModalOpen, openLoginModal, closeLoginModal }}>
+    <AuthContext.Provider value={{ user, loading, signingIn, loginWithGoogle, loginWithGoogleAccessToken, logout, setUser, refreshUser, loginModalOpen, openLoginModal, closeLoginModal }}>
       {children}
     </AuthContext.Provider>
   );
