@@ -33,7 +33,9 @@ class Settings(BaseSettings):
     FEATURE_FROM_EMAIL: str = "BlogHub <featured@bloghub.app>"
     # Product-update email campaigns (DB-driven daily batches). Sent from Arslan
     # personally, not the BlogHub newsletter address.
-    UPDATE_EMAIL_FROM_EMAIL: str = "BlogHub <team@bloghub.app>"
+    UPDATE_EMAIL_FROM_EMAIL: str = "BlogHub <team@send.bloghub.app>"
+    # Replies go to team@bloghub.app, which forwards to Arslan's inbox.
+    UPDATE_EMAIL_REPLY_TO: str = "team@bloghub.app"
     # Default UTC hour (0-23) a campaign's daily batch runs when its send_hour is -1.
     UPDATE_EMAIL_SEND_HOUR: int = 9
 

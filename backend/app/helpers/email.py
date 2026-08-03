@@ -676,6 +676,7 @@ async def send_update_email(
     payload = {
         "from": settings.UPDATE_EMAIL_FROM_EMAIL,
         "to": [to_email],
+        "reply_to": settings.UPDATE_EMAIL_REPLY_TO,
         "subject": subject,
         "html": html_body,
         "text": text_body,
