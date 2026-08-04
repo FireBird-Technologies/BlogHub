@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BarChart3, Check, Mail } from "lucide-react";
+import { BarChart3, Check, Globe, Mail, MousePointerClick } from "lucide-react";
 import LegalPageLayout, { LegalSection } from "../components/legal/LegalPageLayout";
 import Button from "../components/ui/Button";
+import FeaturedReach from "../components/featured/FeaturedReach";
 import { useAuth } from "../context/AuthContext";
 import {
   type FeatureDuration,
   POST_LOGIN_PATH_KEY,
+  estimatedClicksLabel,
   featureDashboardPath,
 } from "../lib/featuredCheckout";
 import { LEGAL } from "../constants/legal";
@@ -124,6 +126,23 @@ function PricingContent() {
               </div>
               <p className="mt-3 text-3xl font-bold tracking-tight text-gray-900">{pkg.price}</p>
               <p className="mt-2 min-h-[48px] text-sm text-gray-500">{pkg.description}</p>
+
+              {/* Per-package, because "50–80 clicks a week" means something different
+                  for a 7-day run than for a 30-day one. */}
+              <div className="mt-3 rounded-xl border border-red-100 bg-red-50/60 p-2.5">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-red-700">
+                  Estimated reach
+                </p>
+                <p className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+                  <MousePointerClick size={14} className="flex-shrink-0 text-red-600" />
+                  {estimatedClicksLabel(pkg.durationDays)} clicks to your site
+                </p>
+                <p className="mt-1 flex items-center gap-1.5 text-[11px] text-gray-500">
+                  <Globe size={12} className="flex-shrink-0 text-gray-400" />
+                  70% US, 20% other developed countries
+                </p>
+              </div>
+
               <ul className="mt-4 flex flex-col gap-2 border-t border-gray-100 pt-4">
                 {pkg.advantages.map((advantage) => (
                   <li key={advantage} className="flex gap-2 text-sm text-gray-600">
@@ -143,7 +162,15 @@ function PricingContent() {
             </article>
           ))}
         </div>
+
+        <p className="mt-3 text-xs text-gray-500">
+          Click ranges scale our last advertiser&apos;s 50–80 clicks in a week to the length of each
+          run. They&apos;re estimates from past traffic, not a guaranteed number of clicks — what
+          your listing earns depends on your title, description, and cover image.
+        </p>
       </section>
+
+      <FeaturedReach />
 
       <section className="grid gap-4 sm:grid-cols-2">
         <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
@@ -170,7 +197,8 @@ function PricingContent() {
       </section>
 
       <p className="text-sm text-gray-500">
-        One payment, no subscription, no auto-renewal. Payment is handled by Stripe.
+        One payment, no subscription, no auto-renewal. Payment is handled by Stripe, and you can
+        enter a promotion code on the Stripe checkout page.
       </p>
     </div>
   );
@@ -190,10 +218,33 @@ function FaqContent() {
         </p>
       </LegalSection>
 
+      <LegalSection title="How much traffic does it get?">
+        <p>
+          {LEGAL.siteName} has seen around 3,000 visitors so far. Our last featured advertiser
+          averaged 50 to 80 clicks in a single week, directly to their site.
+        </p>
+        <p>
+          At $30 per week, that works out to a fraction of what you&apos;d pay for the same volume
+          on Meta or Google Ads, without the bidding wars or targeting overhead.
+        </p>
+        <p>
+          Our traffic is roughly 70% US and another 20% from other developed countries, so
+          you&apos;re reaching readers with real purchasing power and a habit of subscribing to
+          content they like.
+        </p>
+        <p>
+          These are past figures for the site, not a guaranteed number of clicks for your run. What
+          your listing earns depends on your title, description, and cover image.
+        </p>
+      </LegalSection>
+
       <LegalSection title="What does it cost?">
         <p>
           $30 for 7 days, $60 for 14 days, or $80 for 30 days. One payment, no subscription,
           nothing renews. When your run is up the slot opens again.
+        </p>
+        <p>
+          If you have a promotion code, there&apos;s a field for it on the Stripe checkout page.
         </p>
       </LegalSection>
 

@@ -3,12 +3,16 @@ import { useGoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../../context/AuthContext";
 import { formatApiErrorDetail } from "../../lib/api";
 import { copyLink, detectInAppBrowser, escapeToSystemBrowser } from "../../lib/inAppBrowser";
+import { googleAuthConfigured } from "../../lib/googleAuth";
 
 interface GoogleSignInCustomButtonProps {
   onSignedIn?: () => void;
   /** Button label. Defaults to the publication CTA copy. */
   label?: string;
 }
+
+const BUTTON_CLASSES = `flex items-center justify-center gap-2 rounded-full bg-red-600 px-6 py-3
+  text-sm font-semibold text-white shadow-lg shadow-red-600/20 transition-colors hover:bg-red-700`;
 
 /**
  * A fully custom (red) sign-in button. Unlike GoogleSignInButton — which
@@ -23,10 +27,32 @@ export default function GoogleSignInCustomButton({
   onSignedIn,
   label = "Add your publication — free",
 }: GoogleSignInCustomButtonProps) {
+  const inApp = useMemo(() => detectInAppBrowser(), []);
+
+  if (inApp.isInApp) {
+    return <InAppBrowserEscape app={inApp.app} isIOS={inApp.isIOS} />;
+  }
+
+  // Without a client id Google's script throws from inside its own token client, and
+  // that throw unmounts the page rather than just the button — so the popup flow is
+  // kept in a child component that is never mounted until we have one.
+  if (!googleAuthConfigured) {
+    return <SignInUnavailable label={label} />;
+  }
+
+  return <GooglePopupButton onSignedIn={onSignedIn} label={label} />;
+}
+
+/** The real button: opens Google's access-token popup and signs in with the result. */
+function GooglePopupButton({
+  onSignedIn,
+  label,
+}: {
+  onSignedIn?: () => void;
+  label: string;
+}) {
   const { loginWithGoogleAccessToken } = useAuth();
   const [error, setError] = useState("");
-
-  const inApp = useMemo(() => detectInAppBrowser(), []);
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -49,20 +75,28 @@ export default function GoogleSignInCustomButton({
     },
   });
 
-  if (inApp.isInApp) {
-    return <InAppBrowserEscape app={inApp.app} isIOS={inApp.isIOS} />;
-  }
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <button type="button" onClick={() => login()} className={BUTTON_CLASSES}>
+        {label}
+      </button>
+      {error && <p className="text-red-600 text-sm">{error}</p>}
+    </div>
+  );
+}
 
+/** Shown when no Google client id was configured for this build. */
+function SignInUnavailable({ label }: { label: string }) {
   return (
     <div className="flex flex-col items-center gap-2">
       <button
         type="button"
-        onClick={() => login()}
-        className="flex items-center justify-center gap-2 rounded-full bg-red-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-red-600/20 transition-colors hover:bg-red-700"
+        disabled
+        className={`${BUTTON_CLASSES} cursor-not-allowed opacity-60 hover:bg-red-600`}
       >
         {label}
       </button>
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+      <p className="text-sm text-gray-500">Sign-in is temporarily unavailable.</p>
     </div>
   );
 }
