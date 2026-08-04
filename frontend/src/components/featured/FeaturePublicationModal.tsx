@@ -8,6 +8,7 @@ import CustomDropdown from "../ui/CustomDropdown";
 import ImageUploadButton from "../ui/ImageUploadButton";
 import AdjustImageModal, { ImageThumbWithAdjust } from "../ui/AdjustImageModal";
 import FeatureCalendar from "./FeatureCalendar";
+import FeaturedReach from "./FeaturedReach";
 import CropImage from "../ui/CropImage";
 import { useScrape } from "../../hooks/useScrape";
 import { useAuth } from "../../context/AuthContext";
@@ -101,7 +102,11 @@ export default function FeaturePublicationModal({
   // publications, or an arbitrary link that isn't (yet) a publication at all — typed
   // in, fetched, edited inline, and saved the moment "Next" is pressed (no separate
   // confirm step of its own).
-  const [pubSource, setPubSource] = useState<"mine" | "link">("mine");
+  //
+  // The link tab is the default: most buyers arrive wanting to promote a site or
+  // landing page they haven't added to BlogHub, and someone who does own a listing
+  // still has the other tab one click away.
+  const [pubSource, setPubSource] = useState<"mine" | "link">("link");
   const [linkUrl, setLinkUrl] = useState("");
   const [linkFields, setLinkFields] = useState<LinkFields>(EMPTY_LINK_FIELDS);
   const [linkFetched, setLinkFetched] = useState(false);
@@ -128,7 +133,7 @@ export default function FeaturePublicationModal({
       setPublicationId(null);
       setDraft(null);
       setError(null);
-      setPubSource("mine");
+      setPubSource("link");
       setLinkUrl("");
       setLinkFields(EMPTY_LINK_FIELDS);
       setLinkFetched(false);
@@ -328,6 +333,8 @@ export default function FeaturePublicationModal({
 
         {availability.data && step === "dates" && (
           <>
+            <FeaturedReach variant="compact" durationDays={duration} />
+
             <p className="text-sm text-gray-500">
               Pick a duration and start date. Your publication will be the only featured post on
               BlogHub during that run. Greyed-out days are already booked.
@@ -386,16 +393,9 @@ export default function FeaturePublicationModal({
 
         {availability.data && step === "publication" && selectedStart && endDate && (
           <>
+            {/* Link tab first, since it's the default — a selected tab sitting to the
+                right of an unselected one reads as though something was clicked. */}
             <div className="flex gap-1 rounded-lg bg-gray-100 p-1 text-sm font-medium">
-              <button
-                type="button"
-                onClick={() => setPubSource("mine")}
-                className={`flex-1 rounded-md py-1.5 transition-colors ${
-                  pubSource === "mine" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
-                }`}
-              >
-                Your publications
-              </button>
               <button
                 type="button"
                 onClick={() => setPubSource("link")}
@@ -404,6 +404,15 @@ export default function FeaturePublicationModal({
                 }`}
               >
                 <Link2 size={13} /> Use a website link
+              </button>
+              <button
+                type="button"
+                onClick={() => setPubSource("mine")}
+                className={`flex-1 rounded-md py-1.5 transition-colors ${
+                  pubSource === "mine" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
+                }`}
+              >
+                Your publications
               </button>
             </div>
 

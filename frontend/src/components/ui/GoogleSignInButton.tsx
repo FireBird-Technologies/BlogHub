@@ -3,6 +3,7 @@ import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { useAuth } from "../../context/AuthContext";
 import { formatApiErrorDetail } from "../../lib/api";
 import { copyLink, detectInAppBrowser, escapeToSystemBrowser } from "../../lib/inAppBrowser";
+import { googleAuthConfigured } from "../../lib/googleAuth";
 
 interface GoogleSignInButtonProps {
   onSignedIn?: () => void;
@@ -39,6 +40,16 @@ export default function GoogleSignInButton({ onSignedIn, width }: GoogleSignInBu
 
   if (inApp.isInApp) {
     return <InAppBrowserEscape width={width} app={inApp.app} isIOS={inApp.isIOS} />;
+  }
+
+  // Google's script cannot render a button for an empty client id, so say so rather
+  // than leaving a silent gap where the sign-in pill should be.
+  if (!googleAuthConfigured) {
+    return (
+      <p className="text-sm text-gray-500" style={{ width: width ?? 320, maxWidth: "100%" }}>
+        Sign-in is temporarily unavailable.
+      </p>
+    );
   }
 
   return (

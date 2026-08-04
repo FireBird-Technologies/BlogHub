@@ -12,9 +12,9 @@ import { outboundUrl, trackFeaturedClick, trackFeaturedImpression } from "../../
 import { formatCategoryDisplay } from "../../constants/categories";
 import { publicationPath } from "../../lib/publicationUrl";
 import CropImage from "../ui/CropImage";
+import { LEGAL } from "../../constants/legal";
 
-/** The card body — identical whether it holds a paid feature or the worked example,
- *  so an author sees exactly the listing they would be buying. */
+/** The card body of a live paid feature. */
 interface CardContent {
   title: string;
   description?: string | null;
@@ -29,9 +29,6 @@ interface CardContent {
   author_avatar_scale?: number | null;
   upvote_count: number;
   comment_count?: number;
-  /** When there's no image, render this letter on a red block instead of the
-   *  generic book icon. Used by the example listing. */
-  logo_letter?: string;
 }
 
 function CardBody({ pub }: { pub: CardContent }) {
@@ -47,10 +44,6 @@ function CardBody({ pub }: { pub: CardContent }) {
             scale={pub.image_scale}
             className="w-full h-full transition-transform duration-200 group-hover:scale-105"
           />
-        ) : pub.logo_letter ? (
-          <div className="w-full h-full flex items-center justify-center bg-white">
-            <span className="text-4xl sm:text-5xl font-bold text-gray-700" style={{ fontFamily: '"Times New Roman", Times, serif' }}>{pub.logo_letter}</span>
-          </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-amber-50">
             <svg className="w-6 h-6 text-amber-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -76,19 +69,7 @@ function CardBody({ pub }: { pub: CardContent }) {
         )}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-auto pt-0.5">
           <span className="flex items-center gap-1.5 min-w-0">
-            {pub.logo_letter && !pub.author_avatar ? (
-              <span className="flex items-center justify-center w-[18px] h-[18px] flex-shrink-0 rounded-full bg-white border border-gray-200 text-[9px] font-semibold text-gray-700">
-                {(pub.author_name ?? "")
-                  .split(" ")
-                  .map((w) => w[0])
-                  .filter(Boolean)
-                  .slice(0, 2)
-                  .join("")
-                  .toUpperCase()}
-              </span>
-            ) : (
-              <Avatar src={pub.author_avatar} name={pub.author_name} position={pub.author_avatar_position} scale={pub.author_avatar_scale} size={18} />
-            )}
+            <Avatar src={pub.author_avatar} name={pub.author_name} position={pub.author_avatar_position} scale={pub.author_avatar_scale} size={18} />
             <span className="text-xs text-gray-500 truncate">
               {pub.author_tag ? `@${pub.author_tag}` : pub.author_name}
             </span>
@@ -103,23 +84,44 @@ function CardBody({ pub }: { pub: CardContent }) {
   );
 }
 
-/** Static sample shown on the open slot so an author can see what they'd be buying.
+/** The open slot: the invitation itself, in the shape of the card it would fill.
  *
- * The numbers are illustrative of a healthy listing, not a promise about what the
- * slot delivers — the real card only ever shows counts a booking actually earned.
+ * No sample publication and no sample counts — an invented listing with invented
+ * engagement numbers reads as a real feature, and as a promise about what the slot
+ * delivers. What's left is the offer, which we can stand behind.
  */
-const EXAMPLE_PUBLICATION = {
-  title: "Mental Models: The Best Way to Make Intelligent Decisions",
-  description:
-    "A latticework of mental models from Farnam Street — practical frameworks for thinking clearly, avoiding blind spots, and making better decisions.",
-  category: "Productivity",
-  image_url: null,
-  logo_letter: "F",
-  author_name: "Farnam Street",
-  author_tag: "farnamstreet",
-  upvote_count: 2228,
-  comment_count: 994,
-};
+function OpenSlotBody() {
+  return (
+    <div className="flex gap-3 mt-2">
+      <div
+        className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-white overflow-hidden
+                   border border-amber-200 flex items-center justify-center"
+      >
+        <span
+          className="text-4xl sm:text-5xl font-bold text-gray-700"
+          style={{ fontFamily: '"Times New Roman", Times, serif' }}
+        >
+          F
+        </span>
+      </div>
+
+      <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+        <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-snug">
+          Your publication here
+        </h3>
+        <p className="text-xs sm:text-sm text-gray-600 leading-snug">
+          The only featured listing at the top of the home page and dashboard, plus an
+          announcement email to {LEGAL.siteName} subscribers.
+        </p>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-auto pt-0.5">
+          <span className="text-[11px] font-semibold text-amber-700">From $30 for 7 days</span>
+          <span className="text-gray-300">|</span>
+          <span className="text-[11px] font-medium text-gray-400">~3,000 visitors so far</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /** FAQ / support links, sat above the card and right-aligned. */
 function HelpLinks({ onContact }: { onContact: () => void }) {
@@ -152,8 +154,8 @@ interface FeaturedPublicationBannerProps {
   surface: "landing" | "dashboard";
 }
 
-/** The paid featured publication, or — when the slot is open — the same card showing
- *  an example listing as a worked example of what the slot looks like.
+/** The paid featured publication, or — when the slot is open — the same card carrying
+ *  the invitation to buy it.
  *
  * While the slot is still loading we render nothing rather than flashing the CTA at
  * someone who is about to see a real feature.
@@ -209,22 +211,15 @@ export default function FeaturedPublicationBanner({
           onClick={openBooking}
           className={`${CARD_CLASSES} border-dashed border-amber-300`}
         >
+          {/* "Featured" would claim a booking that doesn't exist while the slot is
+              open, so the pill carries the invitation instead — and is the only CTA
+              here, since the whole card is already the button. */}
           <div className="flex items-center justify-between gap-3">
-            <span className={PILL_CLASSES}>Featured</span>
-            <span className="flex items-center gap-2">
-              <span className="hidden sm:inline text-[11px] font-medium text-amber-700/70">
-                Example listing
-              </span>
-              <span
-                className="flex-shrink-0 rounded-full border border-amber-400 bg-amber-500 px-3 py-1
-                           text-xs font-semibold text-white transition-colors group-hover:bg-amber-600"
-              >
-                Get featured
-              </span>
-            </span>
+            <span className={PILL_CLASSES}>Get featured</span>
+            <span className="text-[11px] font-medium text-amber-700/70">Open slot</span>
           </div>
 
-          <CardBody pub={EXAMPLE_PUBLICATION} />
+          <OpenSlotBody />
         </button>
 
         <FeaturePublicationModal isOpen={featuring} onClose={() => setFeaturing(false)} />
