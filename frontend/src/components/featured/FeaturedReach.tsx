@@ -68,29 +68,38 @@ export default function FeaturedReach({ variant = "page", durationDays }: Featur
         ))}
       </div>
 
-      <div
-        className={`flex flex-col text-gray-600 ${compact ? "mt-2.5 gap-2 text-xs" : "mt-4 gap-3 text-sm"}`}
-      >
-        <p>
-          {LEGAL.siteName} has seen around 3,000 visitors so far. Our last featured advertiser
-          averaged 50 to 80 clicks in a single week, directly to their site.
-        </p>
-        <p>
-          At $30 per week, that works out to a fraction of what you&apos;d pay for the same volume
-          on Meta or Google Ads, without the bidding wars or targeting overhead.
-        </p>
-        <p>
-          Our traffic is roughly 70% US and another 20% from other developed countries, so
-          you&apos;re reaching readers with real purchasing power and a habit of subscribing to
-          content they like.
-        </p>
-        {durationDays && (
-          <p className={compact ? "text-[11px] text-gray-500" : "text-xs text-gray-500"}>
-            The click figure scales that advertiser&apos;s week to {durationDays} days. It&apos;s an
-            estimate, not a guaranteed number of clicks.
+      {/* The full pitch belongs on the Get Featured page. Inside the booking modal the
+          buyer has already decided to buy and is picking dates, so the tiles carry the
+          numbers and only the estimate's caveat is worth the vertical space. */}
+      {compact ? (
+        durationDays ? (
+          <p className="mt-2.5 text-[11px] text-gray-500">
+            Estimated from past traffic — not a guaranteed number of clicks.
           </p>
-        )}
-      </div>
+        ) : null
+      ) : (
+        <div className="mt-4 flex flex-col gap-3 text-sm text-gray-600">
+          <p>
+            {LEGAL.siteName} has seen around 3,000 visitors so far. Our last featured advertiser
+            averaged 50 to 80 clicks in a single week, directly to their site.
+          </p>
+          <p>
+            At $30 per week, that works out to a fraction of what you&apos;d pay for the same volume
+            on Meta or Google Ads, without the bidding wars or targeting overhead.
+          </p>
+          <p>
+            Our traffic is roughly 70% US and another 20% from other developed countries, so
+            you&apos;re reaching readers with real purchasing power and a habit of subscribing to
+            content they like.
+          </p>
+          {durationDays && (
+            <p className="text-xs text-gray-500">
+              The click figure scales that advertiser&apos;s week to {durationDays} days. It&apos;s
+              an estimate, not a guaranteed number of clicks.
+            </p>
+          )}
+        </div>
+      )}
     </section>
   );
 }
