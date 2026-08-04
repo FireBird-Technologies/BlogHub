@@ -3,6 +3,7 @@ import { usePageViews } from "./hooks/usePageViews";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider } from "./context/AuthContext";
+import { GOOGLE_CLIENT_ID } from "./lib/googleAuth";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import LoginPromptModal from "./components/auth/LoginPromptModal";
 import SigningInOverlay from "./components/auth/SigningInOverlay";
@@ -30,8 +31,6 @@ const queryClient = new QueryClient({
     },
   },
 });
-
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "";
 
 /** Fires GA4 page_view events on route changes. Renders nothing. */
 function AnalyticsTracker() {

@@ -451,6 +451,10 @@ def _create_stripe_session(
         mode="payment",
         customer_email=user.email,
         line_items=[{"price": price_id, "quantity": 1}],
+        # Buyers can enter a promotion code created in the Stripe dashboard. The
+        # discount lands on the session, not on our Price, so `amount_cents` is
+        # re-read from the completed session rather than trusted from creation time.
+        allow_promotion_codes=True,
         success_url=f"{settings.FRONTEND_URL}/profile?featured=success",
         cancel_url=f"{settings.FRONTEND_URL}/profile?featured=cancelled",
         expires_at=int(hold_expires_at.timestamp()),
@@ -538,6 +542,13 @@ async def handle_checkout_completed(db: AsyncSession, session_obj) -> None:
 
     slot.status = "paid"
     slot.paid_at = datetime.now(timezone.utc)
+    # What was actually charged, which a promotion code can make lower than the amount
+    # recorded when the session was opened.
+    amount_total = session_obj.get("amount_total")
+    if amount_total is not None:
+        slot.amount_cents = amount_total
+    if session_obj.get("currency"):
+        slot.currency = session_obj["currency"]
     slot.hold_expires_at = None
     slot.stripe_payment_intent_id = session_obj.get("payment_intent")
     await db.commit()
