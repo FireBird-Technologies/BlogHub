@@ -1735,4 +1735,766 @@ export const blogPosts: BlogPost[] = [
       videoAsset("Your first 1,000 blog readers", "Motivational how-to video."),
     ],
   },
+
+  // ── Newsletters: Substack / beehiiv / Ghost ──────────────────────────────
+  // Second keyword cluster, sized with DataForSEO (US, en). The posts above own
+  // the "blog" half of the audience; these own the "newsletter" half — the same
+  // writer, different vocabulary. Volumes are noted on each primaryKeyword.
+  {
+    slug: "how-to-promote-your-newsletter",
+    title: "How to Promote Your Newsletter: 11 Channels That Work Without a Budget",
+    description:
+      "A channel-by-channel guide to promoting your newsletter for free — directories, cross-promotion, communities, search, and repurposing — whether you publish on Substack, beehiiv, or Ghost.",
+    category: "Newsletters",
+    publishedAt: "2026-08-07",
+    readTime: "9 min read",
+    heroEyebrow: "Newsletter Growth",
+    heroTitle: "How to promote your newsletter",
+    heroDescription:
+      "Writing the newsletter is the part you control. Getting it in front of people is the part most writers never plan for. Here are the eleven channels that reliably add subscribers without an ad budget.",
+    primaryKeyword: "how to promote your newsletter",
+    keywordVariant: "buying subscribers",
+    relatedPaths: [
+      "/submit-your-newsletter",
+      "/blogs/best-newsletter-directories",
+      "/blogs/how-to-grow-on-substack",
+    ],
+    sections: [
+      {
+        heading: "Start with the channels that don't need an audience",
+        paragraphs: [
+          "Most newsletter growth advice quietly assumes you already have a following — post to your audience, tell your readers to share, ask your subscribers to forward. If you're on issue three with forty subscribers, none of that does anything. You need channels that work when nobody knows who you are.",
+          "There are three of them: directories, where readers browse by category and find publications they've never heard of; communities, where you earn attention by being useful before you ever link to yourself; and search, where someone types a question and your answer is the one they land on. All three send strangers. None of them require you to already have subscribers.",
+        ],
+        bullets: [
+          "List your newsletter in directories that readers actually browse.",
+          "Answer real questions in one or two communities where your readers gather.",
+          "Publish your archive on the open web so search engines can index it.",
+          "Put a subscribe form on every page a stranger might land on.",
+        ],
+      },
+      {
+        heading: "Then add cross-promotion, the fastest channel of all",
+        paragraphs: [
+          "Once you have a few hundred subscribers, cross-promotion becomes the highest-return thing you can do. A recommendation from a newsletter in your niche converts far better than any social post, because the reader already trusts the person making it and has already proven they'll subscribe to an email newsletter.",
+          "Substack's recommendations feature and beehiiv's boosts both formalise this, but the manual version works everywhere and works better: find five newsletters roughly your size writing for roughly your reader, and offer a straight swap. The pitch is short — here's my newsletter, here's my subscriber count, want to trade a mention? Half will ignore you. The ones who don't are worth more than a month of posting to social media.",
+        ],
+        ctaPath: "/submit-your-newsletter",
+        ctaLabel: "List your newsletter on BlogHub — free",
+      },
+      {
+        heading: "Make one issue reach four audiences",
+        paragraphs: [
+          "The most common waste in newsletter publishing is writing something good, sending it once, and letting it die in an inbox. The archive is the asset. Every issue you've already written can be a blog post that ranks, a thread that circulates, and a short video on a platform where written newsletters have no presence at all.",
+          "This isn't extra content — it's extra distribution for content that already exists. A newsletter with an indexed public archive picks up search traffic for years; the same newsletter sent only to subscribers picks up none. Turn on your web archive, let it get crawled, and treat each issue as something that keeps working after send day.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: "How do I promote a newsletter with zero subscribers?",
+        answer:
+          "Use the channels that don't depend on an existing audience: submit to newsletter directories, answer questions genuinely in communities where your readers already are, and make your archive public so search engines can index it. Cross-promotion is the fastest channel, but it only starts working once you have a few hundred subscribers to trade with.",
+      },
+      {
+        question: "Should I pay for newsletter subscribers?",
+        answer:
+          "Paid acquisition works, but it's the wrong first move. Paid subscribers churn faster and open less than readers who chose you, and until you know your retention numbers you'll be buying subscribers who cost more than they're worth. Exhaust the free channels first — they also tell you which positioning actually resonates before you spend money amplifying it.",
+      },
+      {
+        question: "How long does it take to grow a newsletter?",
+        answer:
+          "Directory and cross-promotion subscribers show up within days. Search traffic takes three to six months to build as your archive ages and earns links. That gap is exactly why you stack fast channels on top of the slow one rather than waiting for search alone to deliver.",
+      },
+    ],
+    distributionPlan: [
+      {
+        channel: "site",
+        title: "How to promote your newsletter",
+        angle: "Pillar post the rest of the newsletter cluster links back to.",
+      },
+      {
+        channel: "substack",
+        title: "The eleven channels I'd work for a brand-new newsletter",
+        angle: "First-person version for an audience of writers.",
+      },
+      videoAsset(
+        "Promote your newsletter: 11 free channels",
+        "Rapid-fire channel rundown with a directory-submission demo.",
+      ),
+    ],
+  },
+  {
+    slug: "best-newsletter-directories",
+    title: "The Best Newsletter Directories to Submit Your Publication To",
+    description:
+      "A working list of newsletter directories worth submitting to — what each one is, who it's right for, and how to get listed. Plus how directory listings actually convert into subscribers.",
+    category: "Distribution",
+    publishedAt: "2026-08-07",
+    readTime: "8 min read",
+    heroEyebrow: "Discovery",
+    heroTitle: "The best newsletter directories",
+    heroDescription:
+      "Directories are the one growth channel that works identically on day one and at ten thousand subscribers. Here's which ones are worth your time, and what separates a listing that sends readers from one that just sits there.",
+    primaryKeyword: "newsletter directories",
+    keywordVariant: "submitting everywhere at once",
+    relatedPaths: [
+      "/submit-your-newsletter",
+      "/blogs/how-to-promote-your-newsletter",
+      "/blogs/best-blog-directories",
+    ],
+    sections: [
+      {
+        heading: "What a directory listing is actually worth",
+        paragraphs: [
+          "A directory listing does two separate jobs, and writers usually only count the first one. The obvious job is discovery: a reader browses a category, sees your description, and subscribes. The less obvious job is that your listing is a permanent, indexable page pointing at your publication — which matters enormously when you're a new site with no backlinks and nothing telling search engines you exist.",
+          "The second job is why directories are worth submitting to even when the immediate click-through is modest. A social post is gone in a day. A directory page gets crawled, stays up, and keeps sending the occasional reader for as long as it's live. For a publication with no link profile, those first few directory links are often the only ones you can get without asking anyone for a favour.",
+        ],
+      },
+      {
+        heading: "Directories vs aggregators — know which one you're submitting to",
+        paragraphs: [
+          "These get used interchangeably and they are not the same thing. A directory lists publications so readers can find you and subscribe on your own platform — you get the subscriber, the email address, and the relationship. An aggregator pulls the actual issues into its own inbox or feed, and readers consume your writing there.",
+          "Aggregators can be worth it for reach, but understand the trade: you're renting an audience rather than building one, and you generally don't get the email address. If you only have time to submit to a handful of places, prioritise the directories that send readers to your subscribe page over the aggregators that keep the reading on their own site.",
+        ],
+        bullets: [
+          "Directories — readers subscribe on your platform. You own the relationship.",
+          "Aggregators — readers read on theirs. Reach without the email address.",
+          "Curated newsletters — an editor features you once. High spike, no permanence.",
+          "Marketplaces — built for ad buying, not organic discovery.",
+        ],
+      },
+      {
+        heading: "How to submit so the listing actually converts",
+        paragraphs: [
+          "Most directory listings underperform for a boring reason: the description is about the newsletter instead of about the reader. \"A weekly newsletter about design\" tells a browser nothing. \"Every Tuesday, one design teardown you can steal for your own product\" tells them exactly what they get and how often. In a category page of forty listings, the description is the entire pitch.",
+          "Be specific about the niche, name the cadence, and lead with the benefit rather than the topic. Then keep the listing current — an outdated description or a dead link is worse than no listing, because it burns the one impression you get from a reader who was already interested.",
+        ],
+        ctaPath: "/submit-your-newsletter",
+        ctaLabel: "Submit your newsletter to BlogHub",
+      },
+      {
+        heading: "Submit steadily, not all at once",
+        paragraphs: [
+          "There's a temptation to find a list of eighty directories and spend a Saturday submitting to all of them. Resist it. Most of that list will be abandoned sites with no readers, and a link from a dead directory does nothing for you.",
+          "Pick the ones with visible activity — recent listings, real categories, a reason a reader would visit — and do those properly, with a description you actually wrote for each. Five good listings outperform fifty copy-pasted ones, and it takes less of your afternoon.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: "Are newsletter directories worth submitting to?",
+        answer:
+          "Yes, for two reasons: readers browsing a directory have already decided they want to subscribe to something new, which makes them a warmer audience than a social feed; and each listing is a permanent indexable page linking to your publication. For a new newsletter with no backlinks, directory links are often the only ones available without asking someone for a favour.",
+      },
+      {
+        question: "How many newsletter directories should I submit to?",
+        answer:
+          "Five to ten active ones, done properly, beats fifty done carelessly. Prioritise directories with visible recent activity and real category browsing over abandoned link farms — a listing on a directory nobody visits does nothing for discovery and very little for search.",
+      },
+      {
+        question: "Is it free to list a newsletter in a directory?",
+        answer:
+          "The good ones are. Some directories charge for expedited review or featured placement, but paying for a basic listing is rarely worth it — if a directory can't attract readers without charging publishers, it probably isn't sending you many.",
+      },
+      {
+        question: "What should I write in my directory listing description?",
+        answer:
+          "Name the reader, the cadence, and the benefit — in that order. \"Every Tuesday, one design teardown you can steal for your own product\" beats \"a weekly newsletter about design\" because a browser scanning forty listings needs to know what they get, not what your topic is.",
+      },
+    ],
+    distributionPlan: [
+      {
+        channel: "site",
+        title: "The best newsletter directories",
+        angle: "Reference post that earns links from other growth articles.",
+      },
+      {
+        channel: "medium",
+        title: "Where to submit your newsletter in 2026",
+        angle: "Listicle framing for Medium's discovery algorithm.",
+      },
+      videoAsset(
+        "Newsletter directories worth your time",
+        "Screen-recorded walkthrough of submitting a listing end to end.",
+      ),
+    ],
+  },
+  {
+    slug: "substack-vs-beehiiv",
+    title: "Substack vs beehiiv: Which Should You Publish On?",
+    description:
+      "An honest comparison of Substack and beehiiv — pricing, built-in discovery, growth tooling, monetisation, and portability — to help you pick the right platform for the newsletter you're actually writing.",
+    category: "Platforms",
+    publishedAt: "2026-08-06",
+    readTime: "10 min read",
+    heroEyebrow: "Platform Comparison",
+    heroTitle: "Substack vs beehiiv",
+    heroDescription:
+      "Both will send your email reliably. The real difference is what each one does about the hard part — getting people to subscribe in the first place — and what it costs you when it works.",
+    primaryKeyword: "substack vs beehiiv",
+    keywordVariant: "picking on vibes",
+    relatedPaths: [
+      "/blogs/best-newsletter-platforms",
+      "/blogs/how-to-grow-on-substack",
+      "/submit-your-newsletter",
+    ],
+    sections: [
+      {
+        heading: "The pricing models point in opposite directions",
+        paragraphs: [
+          "Substack is free to use and takes 10% of your paid subscription revenue. There's no monthly bill, no subscriber-count tier, and no cost at all if you never charge readers. beehiiv inverts this: you pay a monthly fee that scales with list size, and it takes no cut of your subscription revenue.",
+          "That difference decides more than it looks like it does. If you're not monetising, Substack costs nothing and beehiiv costs money — Substack wins on pure economics. If you're earning meaningfully from paid subscriptions, 10% of revenue forever eventually dwarfs a monthly platform fee, and beehiiv wins. The crossover point is lower than most writers expect, which is why so many established paid newsletters have migrated.",
+        ],
+        bullets: [
+          "Not monetising yet — Substack is free, beehiiv is not.",
+          "Earning from paid subscriptions — beehiiv's flat fee beats a 10% revenue share.",
+          "Monetising through ads and sponsorships — beehiiv's ad network is built for it.",
+          "Unsure — start where it's free, and know that migration is possible.",
+        ],
+      },
+      {
+        heading: "Discovery is Substack's real product",
+        paragraphs: [
+          "Substack's genuine advantage isn't the editor — it's the network. Recommendations, Notes, and the app put your publication in front of readers who are already reading something adjacent, and for a newsletter starting from zero that's a meaningful source of subscribers you'd otherwise have to go find yourself.",
+          "beehiiv's answer is more mechanical and, in its way, more honest: boosts let you pay other publishers per subscriber, and the recommendation network is something you configure rather than something the platform does to you. Substack's discovery feels like free growth; it's really the thing you're paying that 10% for. beehiiv's is a growth channel you buy explicitly. Neither is wrong — but know which one you're choosing.",
+        ],
+      },
+      {
+        heading: "Growth tooling and analytics",
+        paragraphs: [
+          "beehiiv is unambiguously the more serious growth tool. Segmentation, A/B tested subject lines, referral programmes, polls, landing-page builders, and an ad network are all built in. If you think of your newsletter as a media business you're operating, that toolkit is the difference between guessing and knowing.",
+          "Substack deliberately doesn't have most of that, and for a lot of writers that's the appeal rather than a shortcoming. If you want to write an essay and press send, Substack's near-total lack of knobs is a feature. If you find yourself wanting to test a subject line or segment your list by engagement and the platform simply won't let you, that's the signal you've outgrown it.",
+        ],
+      },
+      {
+        heading: "The thing that actually matters: neither one grows you",
+        paragraphs: [
+          "It's easy to spend a week on this decision and then discover the platform wasn't the bottleneck. Both send email reliably. Both handle payments. Both have a serviceable editor. The publications that grow on either platform are the ones whose writers do the distribution work — showing up in communities, trading recommendations with peers, listing in directories, and building an archive that search engines can index.",
+          "Pick on the economics, because that part genuinely differs. Then spend the time you saved on the channels that add subscribers, which look identical regardless of which of the two you chose.",
+        ],
+        ctaPath: "/submit-your-newsletter",
+        ctaLabel: "List your newsletter, whichever platform you're on",
+      },
+    ],
+    faq: [
+      {
+        question: "Is beehiiv better than Substack?",
+        answer:
+          "Not universally — they optimise for different writers. beehiiv is better if you're monetising through ads or paid subscriptions, or if you want segmentation, referral programmes, and A/B testing. Substack is better if you're writing essays, aren't monetising yet, or value its built-in reader network over growth tooling.",
+      },
+      {
+        question: "Can I move my newsletter from Substack to beehiiv?",
+        answer:
+          "Yes. Both let you export your subscriber list as a CSV, and beehiiv has an import flow built specifically for Substack migrations that carries over posts as well as subscribers. What doesn't transfer is your Substack recommendation network and any inbound traffic from the Substack app, which is a real cost worth weighing before you move.",
+      },
+      {
+        question: "Is Substack really free?",
+        answer:
+          "Free until you charge readers, then 10% of your subscription revenue indefinitely. For a free newsletter it genuinely costs nothing. For a paid newsletter earning a few thousand a month, that 10% is substantially more than beehiiv's monthly fee for the same list size.",
+      },
+      {
+        question: "Which platform is better for growing from zero?",
+        answer:
+          "Substack, marginally, because its recommendation network and app surface new publications to existing readers without you doing anything. But the effect is smaller than its reputation suggests — most newsletters that grow on Substack grow because their writers work external channels, not because the network delivered.",
+      },
+    ],
+    distributionPlan: [
+      {
+        channel: "site",
+        title: "Substack vs beehiiv",
+        angle: "Comparison post targeting the highest-volume term in the cluster.",
+      },
+      {
+        channel: "substack",
+        title: "I compared Substack and beehiiv properly. Here's the honest answer.",
+        angle: "Opinionated take that works natively on Substack itself.",
+      },
+      videoAsset(
+        "Substack vs beehiiv in 90 seconds",
+        "Side-by-side comparison table as a fast explainer.",
+      ),
+    ],
+  },
+  {
+    slug: "substack-alternatives",
+    title: "9 Substack Alternatives Worth Considering (and Who Each Is For)",
+    description:
+      "The best Substack alternatives compared — beehiiv, Ghost, Kit, Buttondown, and more — with the pricing model, ownership trade-off, and ideal writer for each.",
+    category: "Platforms",
+    publishedAt: "2026-08-06",
+    readTime: "9 min read",
+    heroEyebrow: "Platform Comparison",
+    heroTitle: "Substack alternatives",
+    heroDescription:
+      "Most writers looking for a Substack alternative want one of three things: to stop paying 10%, to own their platform outright, or to get growth tooling Substack won't build. Here's who solves which.",
+    primaryKeyword: "substack alternatives",
+    keywordVariant: "switching without a reason",
+    relatedPaths: [
+      "/blogs/substack-vs-beehiiv",
+      "/blogs/best-newsletter-platforms",
+      "/submit-your-newsletter",
+    ],
+    sections: [
+      {
+        heading: "First, work out why you're actually leaving",
+        paragraphs: [
+          "\"Substack alternative\" covers at least three completely different complaints, and the right answer depends entirely on which one is yours. If the issue is the 10% revenue share, you want a flat-fee platform. If it's ownership — the domain, the design, the fact that your publication lives inside someone else's brand — you want something self-hostable. If it's the missing growth tooling, you want a platform built for operators.",
+          "Writers who skip this step tend to migrate to whichever platform they saw recommended most recently, discover it solves a problem they didn't have, and lose their recommendation network in the process. Name the complaint before you shop.",
+        ],
+        bullets: [
+          "Paying 10% on real revenue — look at flat-fee platforms.",
+          "Want to own the domain, design, and data — look at self-hosted.",
+          "Need segmentation, tests, and referrals — look at operator tooling.",
+          "Just want simpler and cheaper — look at minimal, developer-friendly tools.",
+        ],
+      },
+      {
+        heading: "The flat-fee alternatives",
+        paragraphs: [
+          "beehiiv is the most direct competitor and the most common destination for newsletters with real paid revenue. You pay monthly by list size and keep 100% of subscription income, plus you get referral programmes, segmentation, A/B testing, and an ad network aimed at sponsorship revenue. It has a purpose-built Substack import that carries over both posts and subscribers.",
+          "Kit — formerly ConvertKit — approaches the same problem from the creator-business direction rather than the publishing one. Its automation and tagging are stronger than anything in this category, which matters if your newsletter sells a course or product rather than subscriptions. Buttondown sits at the opposite end: deliberately minimal, genuinely cheap, markdown-first, and ideal if you want an email tool rather than a media platform.",
+        ],
+      },
+      {
+        heading: "The ownership alternatives",
+        paragraphs: [
+          "Ghost is the serious answer for writers who want to own the whole thing. It's open source, runs on your own domain, handles memberships and paid subscriptions natively, and takes no cut — you pay for hosting, either to Ghost Pro or to whatever server you run it on yourself. The archive is a proper website you control, which is a meaningful SEO advantage over a publication living on a subdomain of someone else's platform.",
+          "Self-hosting has an honest cost: you're now responsible for deliverability, updates, and the parts Substack quietly did for you. If that trade sounds fine, Ghost is the strongest option in this list. If it sounds like a second job, it isn't.",
+        ],
+        ctaPath: "/submit-your-newsletter",
+        ctaLabel: "List your publication — any platform",
+      },
+      {
+        heading: "What you lose when you leave",
+        paragraphs: [
+          "Every migration guide covers exporting your subscribers, which is the easy part — every platform here supports a CSV import. What they skip is what doesn't come with you: your Substack recommendation network, inbound traffic from the app, and whatever discovery the platform was quietly doing on your behalf.",
+          "For a newsletter earning nothing, that's often most of your growth, and leaving costs more than the 10% you're avoiding. For a newsletter with real revenue and a distribution habit of its own, it's a rounding error. Be honest about which one you are — and if you're leaving a network behind, replace it deliberately with directories, cross-promotion, and search before you move rather than after.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: "What is the best Substack alternative?",
+        answer:
+          "beehiiv for newsletters with paid subscribers or ad revenue, because a flat fee beats a 10% revenue share once you're earning. Ghost if you want to own your platform, domain, and archive outright. Buttondown if you want something minimal and cheap. There's no single best — it depends on whether your complaint is the fee, the ownership, or the missing tooling.",
+      },
+      {
+        question: "Is there a free alternative to Substack?",
+        answer:
+          "beehiiv and Buttondown both have free tiers with subscriber caps, and Ghost is free if you self-host and only pay for your own server. But nothing else matches Substack's specific deal of costing literally nothing at any list size until you start charging readers.",
+      },
+      {
+        question: "Will I lose subscribers if I move off Substack?",
+        answer:
+          "Your list transfers intact via CSV, so you don't lose the subscribers themselves. What you lose is the ongoing acquisition — recommendations, Notes, and app discovery stop feeding you new readers the moment you leave. Have a replacement growth channel in place before you migrate, not after.",
+      },
+      {
+        question: "Is Ghost better than Substack for SEO?",
+        answer:
+          "Generally yes, because Ghost runs on your own domain, so every post builds authority for a site you own rather than for a subdomain of a platform. You also get full control of metadata, structured data, and site structure. It's a real advantage, but it's only worth the migration if you're actually going to publish for search.",
+      },
+    ],
+    distributionPlan: [
+      {
+        channel: "site",
+        title: "Substack alternatives",
+        angle: "High-intent commercial post for writers already considering a move.",
+      },
+      {
+        channel: "medium",
+        title: "I looked at every Substack alternative. Here's who each is for.",
+        angle: "Comparison framing that travels well off-site.",
+      },
+      videoAsset(
+        "Substack alternatives, ranked by why you're leaving",
+        "Decision-tree explainer keyed to the three complaints.",
+      ),
+    ],
+  },
+  {
+    slug: "best-newsletter-platforms",
+    title: "The Best Newsletter Platforms in 2026 (Compared by What You're Building)",
+    description:
+      "A comparison of the best newsletter platforms — Substack, beehiiv, Ghost, Kit, Buttondown, and Mailchimp — by pricing model, growth tooling, ownership, and the kind of publication each actually suits.",
+    category: "Platforms",
+    publishedAt: "2026-08-05",
+    readTime: "10 min read",
+    heroEyebrow: "Platform Comparison",
+    heroTitle: "The best newsletter platforms",
+    heroDescription:
+      "Every platform on this list will deliver your email. They differ on who pays, who owns the audience, and how much the tool helps you grow — which is what you should actually be choosing on.",
+    primaryKeyword: "best newsletter platforms",
+    keywordVariant: "choosing on features you'll never use",
+    relatedPaths: [
+      "/blogs/substack-vs-beehiiv",
+      "/blogs/substack-alternatives",
+      "/submit-your-newsletter",
+    ],
+    sections: [
+      {
+        heading: "Three questions that decide it",
+        paragraphs: [
+          "Newsletter platform comparisons usually turn into feature tables nobody can act on. In practice the decision comes down to three questions, and once you've answered them the shortlist is obvious.",
+          "First: how will this make money — subscriptions, sponsorships, or as a funnel for something else you sell? Second: do you need to own the domain and archive, or are you fine publishing inside someone else's platform? Third: are you a writer who wants to press send, or an operator who wants to segment, test, and measure? Everything else is detail.",
+        ],
+        bullets: [
+          "Monetising by subscription — the platform's revenue cut is the whole decision.",
+          "Monetising by sponsorship — you need an ad network and real analytics.",
+          "Selling a product — you need automation and tagging, not publishing tools.",
+          "Not monetising — pick whatever is free and start writing.",
+        ],
+      },
+      {
+        heading: "The platforms, and who each is genuinely for",
+        paragraphs: [
+          "Substack is for writers who want zero friction and zero cost until they charge — essayists, columnists, anyone whose product is the writing itself. It's free forever if you never monetise, takes 10% when you do, and its recommendation network is a real if overstated source of early subscribers.",
+          "beehiiv is for operators building a media business: flat monthly pricing, no revenue cut, and the deepest growth toolkit in the category — referrals, segmentation, A/B tests, and a built-in ad network. Ghost is for writers who want to own everything: open source, your own domain, no revenue cut, native memberships, and the best SEO position of any option here because the archive is a real site you control.",
+          "Kit is for creators whose newsletter supports a product, where automation and tagging matter more than publishing polish. Buttondown is for people who want a plain, cheap, markdown-first email tool with no media-platform ambitions. Mailchimp is for businesses sending marketing email who happen to also send a newsletter — it's a marketing suite first, and it shows.",
+        ],
+      },
+      {
+        heading: "The trap: choosing on features you'll never use",
+        paragraphs: [
+          "It's easy to pick the platform with the longest feature list and feel like you've made the safe choice. But segmentation you never configure and A/B tests you never run are worth exactly nothing, and you'll have paid a monthly fee for them since issue one.",
+          "If you're at zero subscribers, the honest answer is that platform choice barely matters and the cheapest option that lets you start today is the right one. The features become worth paying for at the point where you can name the specific thing you want to do and your current tool won't let you. Until then they're a way of feeling productive without publishing.",
+        ],
+        ctaPath: "/submit-your-newsletter",
+        ctaLabel: "Whatever you pick, get it listed",
+      },
+      {
+        heading: "Make sure your archive is a public website",
+        paragraphs: [
+          "One thing genuinely worth checking before you commit: does the platform publish your issues to a crawlable web archive, and can you point your own domain at it? A newsletter whose archive is indexed picks up search traffic for years after each issue sends. One that only exists in inboxes picks up none.",
+          "All the platforms here can do this, but the defaults differ and some make it awkward. Turn it on, put it on a domain you own if you can, and treat every issue as a page that will still be earning readers long after send day.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: "What is the best newsletter platform for beginners?",
+        answer:
+          "Substack, in most cases — it's free until you monetise, there's nothing to configure, and its recommendation network gives new publications a small amount of discovery for free. Buttondown is a good alternative if you'd rather have a plain email tool than a media platform.",
+      },
+      {
+        question: "What is the best newsletter platform for making money?",
+        answer:
+          "beehiiv if you're monetising through sponsorships or paid subscriptions, because it takes no cut of your revenue and has an ad network built in. Ghost if you want paid memberships with no platform fee at all and are willing to handle hosting. Substack's 10% is the simplest arrangement but the most expensive one at scale.",
+      },
+      {
+        question: "Which newsletter platform is best for SEO?",
+        answer:
+          "Ghost, because your archive runs on your own domain, so every post builds authority for a site you own and you control the metadata and structure. Any platform that lets you use a custom domain and publishes a crawlable archive will work — what you want to avoid is an archive locked to a subdomain you don't control.",
+      },
+      {
+        question: "Can I switch newsletter platforms later?",
+        answer:
+          "Yes. Every platform here exports subscribers as a CSV, and most have import flows for the common migrations. What doesn't transfer is any platform-native discovery you were relying on, so build growth channels you own — directories, cross-promotion, search — and switching stays cheap.",
+      },
+    ],
+    distributionPlan: [
+      {
+        channel: "site",
+        title: "The best newsletter platforms",
+        angle: "Top-of-funnel comparison that feeds the rest of the platform cluster.",
+      },
+      {
+        channel: "medium",
+        title: "Stop comparing newsletter platforms on features",
+        angle: "Contrarian angle on the same research.",
+      },
+      videoAsset(
+        "Pick a newsletter platform in 60 seconds",
+        "Three-question decision tree as a short video.",
+      ),
+    ],
+  },
+  {
+    slug: "how-to-grow-on-substack",
+    title: "How to Grow on Substack When You're Starting From Zero",
+    description:
+      "A practical guide to growing a Substack from no subscribers — recommendations, Notes, cross-promotion, directories, and SEO — without waiting for the algorithm to find you.",
+    category: "Newsletters",
+    publishedAt: "2026-08-05",
+    readTime: "9 min read",
+    heroEyebrow: "Newsletter Growth",
+    heroTitle: "How to grow on Substack",
+    heroDescription:
+      "Substack's network will help you — but only once you've given it something to work with. Here's what to do in the months before the recommendation flywheel starts turning.",
+    primaryKeyword: "how to grow on substack",
+    keywordVariant: "waiting for the algorithm",
+    relatedPaths: [
+      "/blogs/how-to-get-substack-subscribers",
+      "/blogs/how-to-promote-your-newsletter",
+      "/submit-your-newsletter",
+    ],
+    sections: [
+      {
+        heading: "Understand what Substack's network will and won't do",
+        paragraphs: [
+          "Substack's discovery is real, and it's also conditional. Recommendations, Notes, and the app surface publications to readers — but overwhelmingly to publications that already have subscribers, engagement, and other writers willing to recommend them. The network amplifies momentum; it does not create it.",
+          "This is the single most useful thing to internalise early, because it reframes the first few months. You are not waiting to be discovered. You are assembling the minimum viable evidence — a real niche, a consistent cadence, a few hundred subscribers — that makes the network willing to amplify you. Everything below is about getting to that point faster.",
+        ],
+      },
+      {
+        heading: "Recommendations are the highest-return thing you can do",
+        paragraphs: [
+          "Substack recommendations convert extraordinarily well because they're shown at the moment someone has just subscribed to something — they've already proven they'll hand over an email address, and they trust the writer doing the recommending. Nothing else on the platform converts like it.",
+          "Getting them is unglamorous and mostly manual. Find ten Substacks writing for roughly your reader at roughly your size, read them properly, and reach out with a specific note about their work and an offer to recommend each other. Most won't reply. The ones who do compound: each recommendation exposes you to every new subscriber that publication gets, indefinitely.",
+        ],
+        bullets: [
+          "Target publications adjacent to yours, not identical to them.",
+          "Read a few issues before you write — generic pitches get ignored.",
+          "Offer first. Recommend them, then ask.",
+          "Revisit as you grow; larger publications say yes at larger sizes.",
+        ],
+      },
+      {
+        heading: "Use Notes as a discovery surface, not a social feed",
+        paragraphs: [
+          "Notes is where Substack shows your writing to people who don't subscribe to you, which makes it the closest thing the platform has to organic reach. The mistake is treating it like a social network — posting links to your latest issue and hoping. Links out of a feed perform badly on every platform, and Notes is no exception.",
+          "What works is posting the substance itself: a self-contained observation, a short excerpt that stands on its own, a genuinely useful answer to something in your niche. Readers who find that valuable go and look at who wrote it. The subscribe happens on your publication page, not from a link in the post.",
+        ],
+      },
+      {
+        heading: "Don't leave Substack's borders unworked",
+        paragraphs: [
+          "The publications that grow fastest on Substack are rarely doing anything clever inside Substack. They're bringing readers in from outside it — from directories where readers browse by category, from communities where the writer is a genuine participant, and from search, because their archive is public and indexed and answers questions people type into Google.",
+          "Substack gives you a public archive by default, which is a real asset most writers ignore. Write at least some issues that answer a specific question someone would search for, and those pages will keep delivering subscribers long after the send. Combined with a few directory listings and steady cross-promotion, that's what gets you to the point where the network starts helping.",
+        ],
+        ctaPath: "/submit-your-newsletter",
+        ctaLabel: "Get your Substack listed on BlogHub",
+      },
+    ],
+    faq: [
+      {
+        question: "How do you grow a Substack with no subscribers?",
+        answer:
+          "Work the channels that don't require an existing audience: list your publication in newsletter directories, participate genuinely in communities where your readers already are, and write issues that answer specific searchable questions so your public archive picks up search traffic. Then add cross-promotion once you have a few hundred subscribers to trade with.",
+      },
+      {
+        question: "Do Substack recommendations actually work?",
+        answer:
+          "They're the highest-converting channel on the platform, because they appear right when someone has just subscribed to something else and has already proven they'll subscribe. The hard part isn't the feature, it's getting other writers to recommend you — which is manual outreach, not something the platform arranges.",
+      },
+      {
+        question: "How often should I publish on Substack?",
+        answer:
+          "Consistently enough that readers remember subscribing. Weekly is the common default and it works, but a genuinely good monthly issue beats a weekly one you resent writing. What kills growth is irregularity — readers who can't predict you unsubscribe, and Substack's network favours publications with steady engagement.",
+      },
+      {
+        question: "Does Substack help with SEO?",
+        answer:
+          "Somewhat. Your archive is public and indexable, which is more than most email platforms do by default, and Substack's domain has real authority. The limitation is that you're building that authority on a subdomain you don't own — useful while you're there, but it doesn't come with you if you leave.",
+      },
+    ],
+    distributionPlan: [
+      {
+        channel: "site",
+        title: "How to grow on Substack",
+        angle: "Core growth post for the Substack half of the cluster.",
+      },
+      {
+        channel: "substack",
+        title: "What I'd do differently growing a Substack from zero",
+        angle: "Native-format essay for the platform it's about.",
+      },
+      videoAsset(
+        "Growing a Substack from zero",
+        "Walk through the recommendation outreach process on screen.",
+      ),
+    ],
+  },
+  {
+    slug: "how-to-get-substack-subscribers",
+    title: "How to Get Substack Subscribers: 8 Tactics That Actually Convert",
+    description:
+      "Eight concrete tactics for getting more Substack subscribers — from recommendation swaps and welcome-page fixes to directory listings and searchable archive posts.",
+    category: "Newsletters",
+    publishedAt: "2026-08-04",
+    readTime: "8 min read",
+    heroEyebrow: "Newsletter Growth",
+    heroTitle: "How to get Substack subscribers",
+    heroDescription:
+      "Traffic isn't usually the problem — conversion is. Here are the eight changes that move the number, roughly in order of how much they return for the effort.",
+    primaryKeyword: "how to get substack subscribers",
+    keywordVariant: "buying a subscriber list",
+    relatedPaths: [
+      "/blogs/how-to-grow-on-substack",
+      "/blogs/substack-vs-beehiiv",
+      "/submit-your-newsletter",
+    ],
+    sections: [
+      {
+        heading: "Fix the page people actually land on",
+        paragraphs: [
+          "Before you chase more traffic, look at what a stranger sees when they arrive. Most Substack homepages open with the publication name, a vague one-liner, and the latest post — which asks a first-time visitor to work out for themselves whether this is for them.",
+          "Your description should name the reader, the cadence, and the payoff in one sentence: who this is for, how often it arrives, what they get. Then make sure the top post is your best one rather than your most recent one — pin something that demonstrates the value rather than something that assumes it. This costs twenty minutes and lifts the conversion rate on every visitor you've already earned.",
+        ],
+        bullets: [
+          "One-line description: who it's for, how often, what they get.",
+          "Pin your strongest post, not your newest.",
+          "Cut the sign-up friction — no explanation of what a newsletter is.",
+          "Make the About page answer \"why you\", briefly.",
+        ],
+      },
+      {
+        heading: "Trade recommendations deliberately",
+        paragraphs: [
+          "Recommendations are the highest-converting subscriber source on Substack, and they're distributed almost entirely by manual outreach. Every publication that recommends you shows your name to every new subscriber they get, permanently — it compounds in a way that no single post ever does.",
+          "Build a list of fifteen publications adjacent to your niche at a similar size, read them, and write short specific notes offering to recommend each other. Expect most not to reply. The handful that do will outperform months of posting. Then repeat the exercise every time you double in size, because publications that said no at two hundred subscribers say yes at two thousand.",
+        ],
+      },
+      {
+        heading: "Write for searches, not just for subscribers",
+        paragraphs: [
+          "Your Substack archive is public and indexed, which means some fraction of your issues can be doing subscriber acquisition permanently rather than for the twenty-four hours after send. The catch is that most newsletter issues answer no searchable question — they're timely, personal, and reference-free.",
+          "Once every few issues, deliberately write something evergreen that answers a question someone types into Google in your niche. Put the question in the title, answer it completely, and let it accumulate. These posts do nothing on send day and quietly become your most reliable source of new subscribers over the following year.",
+        ],
+      },
+      {
+        heading: "Be findable outside Substack",
+        paragraphs: [
+          "The last several tactics are about existing where readers are already looking for something new to subscribe to. Newsletter directories are the obvious one — readers browsing them have already decided they want a new subscription, which makes them the warmest audience you'll find anywhere. List your publication, write the description for the reader rather than about yourself, and keep it current.",
+          "Beyond that: answer questions properly in the two or three communities where your readers congregate, put your subscribe link somewhere permanent in every profile you own, and turn issues into short video where written newsletters have essentially no competition. None of these are clever. All of them work, and almost nobody does them consistently.",
+        ],
+        ctaPath: "/submit-your-newsletter",
+        ctaLabel: "List your Substack where readers browse",
+      },
+    ],
+    faq: [
+      {
+        question: "How do I get my first 100 Substack subscribers?",
+        answer:
+          "Personal outreach for the first twenty or so — genuinely ask people who'd find it useful. Then list in newsletter directories, participate in two communities where your readers already are, and fix your publication page so the visitors you do get actually convert. The first hundred come from effort, not from distribution mechanics.",
+      },
+      {
+        question: "Why is my Substack not getting subscribers?",
+        answer:
+          "Usually one of two things: nobody is landing on your page, or people land and don't convert. Check your visitor numbers first. If traffic is near zero it's a distribution problem — directories, cross-promotion, search. If traffic is fine but subscriptions aren't, it's your description and pinned post failing to explain who the publication is for.",
+      },
+      {
+        question: "Should I make my Substack paid to get more subscribers?",
+        answer:
+          "No — paywalling reduces subscribers by definition. Paid conversion is a separate problem you solve after you have a free audience big enough to convert a small percentage of. Growing the free list is the prerequisite, not the alternative.",
+      },
+      {
+        question: "How many Substack subscribers is good?",
+        answer:
+          "It depends entirely on the niche and what you want from it. A few hundred genuinely engaged readers in a narrow professional niche is worth more than ten thousand passive ones. Track open rate and replies rather than the raw number — those tell you whether the list is real.",
+      },
+    ],
+    distributionPlan: [
+      {
+        channel: "site",
+        title: "How to get Substack subscribers",
+        angle: "Tactical companion to the broader Substack growth post.",
+      },
+      {
+        channel: "substack",
+        title: "Eight things that actually moved my subscriber count",
+        angle: "First-person tactic list.",
+      },
+      videoAsset(
+        "8 ways to get more Substack subscribers",
+        "Fast tactical list with on-screen examples of good publication pages.",
+      ),
+    ],
+  },
+  {
+    slug: "how-to-start-a-newsletter",
+    title: "How to Start a Newsletter: A Practical Guide From Idea to First 100 Readers",
+    description:
+      "How to start a newsletter that people actually read — picking a niche, choosing a platform, setting a cadence you can keep, and getting your first hundred subscribers.",
+    category: "Newsletters",
+    publishedAt: "2026-08-04",
+    readTime: "9 min read",
+    heroEyebrow: "Getting Started",
+    heroTitle: "How to start a newsletter",
+    heroDescription:
+      "The technical part takes an afternoon. The parts that decide whether it works — the niche, the cadence, and the first hundred readers — are what this guide is about.",
+    primaryKeyword: "how to start a newsletter",
+    keywordVariant: "starting with the platform",
+    relatedPaths: [
+      "/blogs/best-newsletter-platforms",
+      "/blogs/how-to-promote-your-newsletter",
+      "/submit-your-newsletter",
+    ],
+    sections: [
+      {
+        heading: "Pick a niche narrow enough to be obvious",
+        paragraphs: [
+          "The most common reason a newsletter fails is that nobody can tell who it's for. \"A newsletter about technology\" competes with everything and belongs to nobody. \"A weekly teardown of one B2B onboarding flow\" is instantly legible — a reader knows in three seconds whether it's for them, and the ones who say yes are the ones who stay.",
+          "Narrow feels like it limits your audience. It doesn't; it makes you findable. You can broaden later once people know what you are, and every established newsletter you admire started far more specific than it is now.",
+        ],
+        bullets: [
+          "Name the reader, not the topic.",
+          "Promise a specific recurring thing, not general coverage.",
+          "Pick something you can still write about in six months.",
+          "If you can't describe it in one sentence, it's too broad.",
+        ],
+      },
+      {
+        heading: "Choose a platform in ten minutes, not ten days",
+        paragraphs: [
+          "Platform choice absorbs an enormous amount of time that would be better spent writing. At zero subscribers the honest answer is that it barely matters: Substack is free until you monetise and requires no configuration, which makes it the sensible default for most people starting out.",
+          "The two things genuinely worth checking are whether you can point your own domain at it later, and whether it publishes a public, crawlable archive. Both keep future options open. Everything else — segmentation, A/B testing, referral programmes — is worth paying for at the point where you can name what you'd do with it, which is not today.",
+        ],
+      },
+      {
+        heading: "Set a cadence you can hold on a bad week",
+        paragraphs: [
+          "Pick the frequency you could sustain during your busiest month, then commit to it publicly. Weekly is the default and works well, but a good monthly issue beats a weekly one you come to resent — and irregularity is what actually loses readers, because people who can't predict you stop expecting you.",
+          "Write three issues before you launch. It gives you a buffer for the first bad week, and more usefully it tells you whether the idea has legs before you've announced it to anyone. A surprising number of newsletter ideas die at issue two, and it's much better to find that out privately.",
+        ],
+      },
+      {
+        heading: "Get the first hundred readers deliberately",
+        paragraphs: [
+          "Nobody arrives by accident at the start. The first twenty subscribers come from asking people directly — not a broadcast announcement, but individual messages to people who'd genuinely find it useful. It feels awkward and it's the highest-converting outreach you will ever do.",
+          "After that, use the channels that work without an audience: submit to newsletter directories where readers browse by category, participate properly in the one or two communities where your readers already gather, and make sure your archive is public so search can start working in the background. A hundred readers is not a vanity milestone — it's the point at which cross-promotion becomes available to you, and that's what unlocks everything after.",
+        ],
+        ctaPath: "/submit-your-newsletter",
+        ctaLabel: "List your new newsletter on BlogHub",
+      },
+    ],
+    faq: [
+      {
+        question: "How do I start a newsletter for free?",
+        answer:
+          "Substack and Buttondown both let you publish and send at no cost, and beehiiv has a free tier with a subscriber cap. Substack stays free at any list size until you start charging readers, which makes it the simplest starting point if you're not monetising yet.",
+      },
+      {
+        question: "How many subscribers do I need before launching?",
+        answer:
+          "None. Launch at zero and grow in public — waiting for an audience before you start is the most common way a newsletter never happens. What's worth having before you launch is three written issues, so you have a buffer and proof to yourself that the idea sustains.",
+      },
+      {
+        question: "How often should I send a newsletter?",
+        answer:
+          "Whatever you can hold during your busiest month. Weekly is the common default, but consistency matters far more than frequency — a reliable monthly issue builds a better list than an erratic weekly one, because readers who can't predict you stop opening.",
+      },
+      {
+        question: "What should my first newsletter issue be about?",
+        answer:
+          "Make it the clearest demonstration of the recurring thing you're promising. Don't spend issue one introducing yourself — new subscribers care whether the format is worth their inbox, so show them the format working. Save the introduction for a permanent About page.",
+      },
+    ],
+    distributionPlan: [
+      {
+        channel: "site",
+        title: "How to start a newsletter",
+        angle: "Top-of-funnel entry point into the whole newsletter cluster.",
+      },
+      {
+        channel: "substack",
+        title: "What I'd tell someone starting a newsletter tomorrow",
+        angle: "Advice-essay version for a writer audience.",
+      },
+      videoAsset(
+        "Start a newsletter: idea to first 100 readers",
+        "End-to-end getting-started explainer.",
+      ),
+    ],
+  },
 ];

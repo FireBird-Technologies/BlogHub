@@ -12,6 +12,9 @@ export default function Footer() {
           </span>
         </div>
         <div className="flex flex-col items-center sm:items-start gap-1.5 text-center sm:text-left">
+          <Link to="/submit-your-newsletter" className="hover:text-gray-700 transition-colors">
+            Submit your newsletter
+          </Link>
           <Link to="/blogs" className="hover:text-gray-700 transition-colors">
             Blogs
           </Link>

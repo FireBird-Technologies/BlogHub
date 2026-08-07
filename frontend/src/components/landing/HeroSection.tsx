@@ -210,7 +210,7 @@ export default function HeroSection() {
         transition={{ duration: 0.55, delay: 0.08 }}
         className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.15] lg:leading-[1.2] tracking-tight text-gray-900"
       >
-        Product Hunt for publications
+        Promote your blog or newsletter
         <br />
         <span className="text-red-600">real readers, zero cost</span>
       </motion.h1>
@@ -221,8 +221,9 @@ export default function HeroSection() {
         transition={{ duration: 0.55, delay: 0.16 }}
         className="text-lg text-gray-500 leading-relaxed max-w-2xl"
       >
-        Launch your blog or newsletter to thousands of readers,
-        completely free. Real traffic, SEO backlinks.
+        BlogHub is a free directory where readers discover publications worth
+        subscribing to — it&apos;s Product Hunt for blogs, newsletters, and Substacks.
+        Submit yours in a minute and get real traffic and an SEO backlink, at no cost.
       </motion.p>
 
       <motion.div
