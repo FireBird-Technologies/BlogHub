@@ -12,6 +12,13 @@ import { dirname, resolve } from "node:path";
 
 const SITE_URL = "https://bloghub.app";
 
+// Static, crawlable frontend routes that aren't blog posts. The backend sitemap at
+// api.bloghub.app/sitemap.xml covers publication pages; anything hand-built in
+// src/pages that we want indexed belongs here.
+const STATIC_PAGES = [
+  { path: "/submit-your-newsletter", changefreq: "monthly", priority: "0.9" },
+];
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dataFile = resolve(__dirname, "../src/content/blogPosts.ts");
 const outFile = resolve(__dirname, "../public/blog-sitemap.xml");
@@ -47,9 +54,19 @@ const urlEntry = ({ slug, lastmod }) => {
   return lines.join("\n");
 };
 
+const staticEntry = ({ path, changefreq, priority }) =>
+  [
+    "  <url>",
+    `    <loc>${SITE_URL}${path}</loc>`,
+    `    <changefreq>${changefreq}</changefreq>`,
+    `    <priority>${priority}</priority>`,
+    "  </url>",
+  ].join("\n");
+
 const xml = [
   '<?xml version="1.0" encoding="UTF-8"?>',
   '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+  ...STATIC_PAGES.map(staticEntry),
   // The blog index page itself.
   "  <url>",
   `    <loc>${SITE_URL}/blogs</loc>`,
@@ -62,4 +79,6 @@ const xml = [
 ].join("\n");
 
 writeFileSync(outFile, xml, "utf8");
-console.log(`[gen-blog-sitemap] Wrote ${posts.length} post(s) to public/blog-sitemap.xml`);
+console.log(
+  `[gen-blog-sitemap] Wrote ${STATIC_PAGES.length} static page(s) and ${posts.length} post(s) to public/blog-sitemap.xml`,
+);

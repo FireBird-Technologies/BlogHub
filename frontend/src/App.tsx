@@ -14,6 +14,7 @@ import RankingPage from "./pages/RankingPage";
 import Profile from "./pages/Profile";
 import PublicationDetail from "./pages/PublicationDetail";
 import Blog from "./pages/Blog";
+import SubmitNewsletter from "./pages/SubmitNewsletter";
 import BlogPostPage from "./pages/BlogPostPage";
 import UnderratedRoundupPage from "./pages/UnderratedRoundupPage";
 import AdminApproveClaim from "./pages/AdminApproveClaim";
@@ -58,6 +59,7 @@ export default function App() {
                 }
               />
               <Route path="/publications/:id" element={<PublicationDetail />} />
+              <Route path="/submit-your-newsletter" element={<SubmitNewsletter />} />
               <Route path="/blogs" element={<Blog />} />
               <Route path="/blogs/:slug/underrated" element={<UnderratedRoundupPage />} />
               <Route path="/blogs/:slug" element={<BlogPostPage />} />
