@@ -18,9 +18,13 @@ export function getBlogPost(slug: string | undefined): BlogPost | undefined {
   return blogPosts.find((post) => post.slug === slug);
 }
 
-/** All public, crawlable paths (the blog index + every post). */
+/** All public, crawlable paths (static landing pages + the blog index + every post). */
 export function getPublicPaths(): string[] {
-  return ["/blogs", ...blogPosts.map((post) => `/blogs/${post.slug}`)];
+  return [
+    "/submit-your-newsletter",
+    "/blogs",
+    ...blogPosts.map((post) => `/blogs/${post.slug}`),
+  ];
 }
 
 export interface PublicLinkDetail {
@@ -33,6 +37,11 @@ export interface PublicLinkDetail {
 // Seeded with BlogHub's real routes; blog posts are resolved dynamically below.
 const PUBLIC_LINK_DETAILS: PublicLinkDetail[] = [
   { path: "/", label: "BlogHub Home", description: "Discover great publications, curated by the community." },
+  {
+    path: "/submit-your-newsletter",
+    label: "Submit Your Newsletter",
+    description: "List a blog, newsletter, or Substack in BlogHub's free directory.",
+  },
   { path: "/dashboard", label: "Browse Publications", description: "The full directory, ranked by community upvotes." },
   { path: "/blogs", label: "BlogHub Blog", description: "Playbooks on growing a readership and building a publication." },
   { path: "/category/Tech", label: "Tech Publications", description: "Top-ranked technology publications on BlogHub." },

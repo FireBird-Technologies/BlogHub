@@ -99,6 +99,12 @@ export default function LandingNavbar() {
           <div className="flex-shrink-0 flex items-center gap-3">
             <div className="flex items-center gap-7">
               <Link
+                to="/submit-your-newsletter"
+                className="text-sm font-semibold text-gray-600 hover:text-red-600 transition-colors"
+              >
+                Submit
+              </Link>
+              <Link
                 to="/featured-faq"
                 className="text-sm font-semibold text-gray-600 hover:text-red-600 transition-colors"
               >
@@ -242,6 +248,13 @@ export default function LandingNavbar() {
                       <div className="my-1 h-px bg-gray-100" />
                     </>
                   )}
+                  <Link
+                    to="/submit-your-newsletter"
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors"
+                  >
+                    Submit your newsletter
+                  </Link>
                   <Link
                     to="/featured-faq"
                     onClick={() => setMenuOpen(false)}
