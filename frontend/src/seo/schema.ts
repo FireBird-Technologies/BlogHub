@@ -14,6 +14,12 @@ import { SUBMIT_NEWSLETTER } from "../content/submitNewsletter";
 const absolute = (path: string) =>
   path.startsWith("http") ? path : `${siteUrl}${path.startsWith("/") ? "" : "/"}${path}`;
 
+// Sibling properties from the same organisation, declared so a search engine
+// resolves bloghub.app, blog2video.app, and pdf2vid.com to one entity rather
+// than three domains that happen to link to each other. The reciprocal links
+// live in each site's footer — see ../lib/blog2video.ts.
+const siblingSites = ["https://blog2video.app", "https://pdf2vid.com"];
+
 const publisher = {
   "@type": "Organization",
   name: organizationName,
@@ -21,6 +27,7 @@ const publisher = {
     "@type": "ImageObject",
     url: absolute(organizationLogo),
   },
+  sameAs: siblingSites,
 };
 
 /** Schema for the /blogs index page: @type Blog + breadcrumb. */
