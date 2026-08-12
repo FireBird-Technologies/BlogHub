@@ -4,8 +4,9 @@ import type { BlogPost, DistributionAsset } from "./seoTypes";
 // /blogs (index) and /blogs/<slug> (post) automatically — no CMS, no markdown parsing,
 // and NO backend change required.
 //
-// On `npm run build`, scripts/gen-blog-sitemap.mjs reads this file and regenerates
-// public/blog-sitemap.xml, so new posts are crawlable automatically.
+// On `npm run build` (or `npm run blog-sitemap`), scripts/gen-blog-sitemap.mjs
+// regenerates public/blog-sitemap.xml and backend/app/data/manual_blog_posts.json
+// so the API sitemap at /sitemap.xml lists every post automatically.
 //
 // The posts below target keyword gaps surfaced with the DataForSEO API — low-
 // difficulty, high-intent search terms that BlogHub's readers (writers growing a
