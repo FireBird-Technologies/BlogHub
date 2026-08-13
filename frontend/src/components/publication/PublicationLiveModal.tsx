@@ -173,8 +173,9 @@ export default function PublicationLiveModal({ isOpen, onClose, publication }: P
             Invite people to your publication
           </p>
           <p className="text-xs text-gray-500">
-            Type an email and press <kbd className="font-sans font-medium text-gray-600">Enter</kbd>{" "}
-            to add it to the list. Add up to {MAX_EMAILS}, then send them all at once.
+            Invite them through email. Press{" "}
+            <kbd className="font-sans font-medium text-gray-600">Enter</kbd> to add it in the list
+            and add more than one (up to {MAX_EMAILS}).
           </p>
 
           {/* Input stays put at the top; each address added drops into the list below
@@ -251,7 +252,7 @@ export default function PublicationLiveModal({ isOpen, onClose, publication }: P
               <span className="font-medium text-gray-700">
                 {outgoingCount > 1 ? `Send ${outgoingCount} invites` : "Send invite"}
               </span>{" "}
-              to email them the link.
+              to send them the email.
             </p>
           )}
 
