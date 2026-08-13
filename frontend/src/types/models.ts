@@ -135,6 +135,28 @@ export interface FeaturedAvailability {
   max_start_date: string;
 }
 
+/** Everything the renewal modal opens with, from a "your slot ends today" email link. */
+export interface RenewalContext {
+  publication_id: string;
+  publication_title: string;
+  publication_image_url: string | null;
+  previous_start_date: string;
+  previous_end_date: string;
+  previous_duration_days: number;
+  click_count: number;
+  impression_count: number;
+  /** The announcement from the previous run, for the author to reuse and edit. */
+  email_subject: string;
+  email_body: string;
+  email_button_text: string;
+  /** duration_days -> earliest fully-free start date, or null if nothing fits.
+   *  Keyed as a string over the wire, like `prices`. */
+  next_available: Record<string, string | null>;
+  prices: Record<string, number>;
+  min_start_date: string;
+  max_start_date: string;
+}
+
 export interface ActiveFeature {
   /** Specific featured booking currently being shown. */
   slot_id: string;

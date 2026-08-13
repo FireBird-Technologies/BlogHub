@@ -67,6 +67,12 @@ BOOKING_HORIZON_DAYS = 180
 # review and approve it before the run is meant to begin.
 MIN_LEAD_DAYS = 2
 
+# Renewals only need to clear tomorrow. The publication has already been through
+# review for the run that is ending, so the extra approval day the normal lead time
+# buys us is not needed — and insisting on it would strand a renewing author with a
+# dead day between their current run and the next one.
+RENEWAL_MIN_LEAD_DAYS = 1
+
 CURRENCY = "usd"
 
 # Statuses that reserve their dates. `expired`/`cancelled` rows never block.
@@ -142,6 +148,45 @@ async def _range_is_taken(db: AsyncSession, start: date, end: date) -> bool:
         )
     )
     return result.first() is not None
+
+
+async def next_available_start(
+    db: AsyncSession, duration_days: int, *, lead_days: int = MIN_LEAD_DAYS
+) -> date | None:
+    """Earliest start date whose whole run is free, honouring the given lead time.
+
+    The renewal flow passes RENEWAL_MIN_LEAD_DAYS so an author extending a run that
+    ends today is offered tomorrow — picking up exactly where the current run leaves
+    off, rather than being shown a gap they didn't ask for.
+
+    Returns None when nothing fits inside the booking horizon.
+    """
+    today = date.today()
+    earliest = today + timedelta(days=lead_days)
+    horizon = today + timedelta(days=BOOKING_HORIZON_DAYS)
+
+    # Pull the blocking ranges once and scan them in memory: walking day by day with a
+    # query each would be up to 180 round-trips to answer one question.
+    result = await db.execute(
+        select(FeaturedSlot.start_date, FeaturedSlot.end_date)
+        .where(and_(_blocking_clause(), FeaturedSlot.end_date >= earliest))
+        .order_by(FeaturedSlot.start_date)
+    )
+    booked = result.all()
+
+    start = earliest
+    while True:
+        end = slot_end_date(start, duration_days)
+        if end > horizon:
+            return None
+        # The first booking that overlaps [start, end] tells us where to jump to: the
+        # day after it ends. Nothing earlier can fit.
+        clash_end = next(
+            (b.end_date for b in booked if b.start_date <= end and b.end_date >= start), None
+        )
+        if clash_end is None:
+            return start
+        start = clash_end + timedelta(days=1)
 
 
 async def _range_is_taken_by_other(
@@ -259,6 +304,7 @@ async def create_checkout(
     email_button_text: str,
     email_scheduled_at: datetime,
     email_timezone: str,
+    renewal_of_slot_id: uuid.UUID | None = None,
 ) -> FeatureCheckoutOut:
     """Reserve the range with a 30-minute hold and open a Stripe Checkout session.
 
@@ -292,11 +338,25 @@ async def create_checkout(
         )
 
     today = date.today()
-    min_start = today + timedelta(days=MIN_LEAD_DAYS)
+    # A renewal of the caller's own already-approved booking earns the shorter lead
+    # time. Verified here rather than trusted from the client, so the reduced lead
+    # time cannot be claimed by passing an arbitrary slot id.
+    lead_days = MIN_LEAD_DAYS
+    if renewal_of_slot_id is not None:
+        previous = await db.get(FeaturedSlot, renewal_of_slot_id)
+        if (
+            previous is not None
+            and previous.user_id == user.id
+            and previous.approval_status == "approved"
+            and previous.status in ("paid", "expired")
+        ):
+            lead_days = RENEWAL_MIN_LEAD_DAYS
+
+    min_start = today + timedelta(days=lead_days)
     if start_date < min_start:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Start date must be at least {MIN_LEAD_DAYS} days from today.",
+            detail=f"Start date must be at least {lead_days} day(s) from today.",
         )
     if start_date > today + timedelta(days=BOOKING_HORIZON_DAYS):
         raise HTTPException(

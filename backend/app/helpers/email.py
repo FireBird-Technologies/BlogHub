@@ -541,6 +541,157 @@ async def send_feature_rejected_notification(
         logger.warning("Resend feature-rejected email error: %s", exc)
 
 
+async def send_feature_expiring_notification(
+    *,
+    to_email: str | None,
+    author_name: str | None,
+    publication,
+    slot,
+    renew_url: str,
+) -> None:
+    """Tell the author, on the morning of the last day, that their run ends today.
+
+    Leads with what the placement actually earned them — those two numbers are the
+    honest argument for booking again, and they are the one thing the author can't
+    look up once the run is over and the card is gone.
+
+    Sent from the update-email address rather than the featured one, so replies land
+    with the team that handles product mail.
+    """
+    if not settings.RESEND_API_KEY or not to_email:
+        return
+
+    pub_title = html.escape(publication.title or "your publication")
+    greeting = f"Hi {html.escape(author_name)}," if author_name and author_name.strip() else "Hi,"
+    dates = html.escape(f"{slot.start_date.isoformat()} → {slot.end_date.isoformat()}")
+    safe_renew_url = html.escape(renew_url)
+
+    stats_html = _row("Run dates", dates) + _row("Readers reached", f"{slot.impression_count:,}") + _row(
+        "Clicks to your publication", f"{slot.click_count:,}"
+    )
+
+    body = f"""
+    <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;">
+      <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 8px;">{greeting}</p>
+      <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
+        Your featured run for <strong>{pub_title}</strong> ends <strong>today</strong>. After
+        tonight it comes off the top of the BlogHub home page and dashboard.
+      </p>
+      <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 8px;">
+        Here&#39;s what the slot did for you so far:
+      </p>
+      <table style="font-size:14px;border-collapse:collapse;margin:0 0 20px;">
+        {stats_html}
+      </table>
+      <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
+        Want to keep going? Extend your feature slot by booking another one now. You can
+        reserve the earliest available slot, and schedule another announcement email as well.
+      </p>
+      <div style="margin-top:24px;text-align:center;">
+        <a href="{safe_renew_url}"
+           style="display:inline-block;background:#dc2626;color:#ffffff;font-size:14px;
+                  font-weight:600;text-decoration:none;padding:12px 28px;border-radius:8px;">
+          Extend your feature
+        </a>
+      </div>
+    </div>
+    """
+
+    payload = {
+        "from": settings.FEATURE_FROM_EMAIL,
+        "to": [to_email],
+        "reply_to": settings.UPDATE_EMAIL_REPLY_TO,
+        "subject": f"Your BlogHub feature ends today: {publication.title}",
+        "html": body,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                RESEND_ENDPOINT,
+                headers={"Authorization": f"Bearer {settings.RESEND_API_KEY}"},
+                json=payload,
+            )
+        if resp.status_code >= 400:
+            logger.warning("Resend feature-expiring email failed (%s): %s", resp.status_code, resp.text)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Resend feature-expiring email error: %s", exc)
+
+
+async def send_publication_invite(
+    *,
+    to_email: str,
+    sender_name: str | None,
+    publication,
+) -> bool:
+    """Invite one person to a publication on BlogHub. Returns True if it went out.
+
+    Goes to an address someone typed into a share box, so it is deliberately plain:
+    who sent it, what they're recommending, one button, and a line about what BlogHub
+    is. Reports success because the sender is waiting to be told whether it worked.
+
+    Sent from the invite address on our own authenticated domain, never as the
+    inviter — we send on their behalf, so nothing here depends on their mail setup or
+    risks failing SPF/DKIM for their domain. Replies go to the team inbox.
+    """
+    if not settings.RESEND_API_KEY or not to_email:
+        logger.warning("Publication invite skipped: RESEND_API_KEY or recipient missing.")
+        return False
+
+    pub_title = html.escape(publication.title or "a publication")
+    pub_url = html.escape(_with_update_email_utm(_publication_detail_url(publication)))
+    who = html.escape((sender_name or "").strip()) or "Someone"
+    description = html.escape((publication.description or "").strip())
+    description_html = (
+        f'<p style="color:#6b7280;font-size:13px;line-height:1.6;margin:0 0 20px;">{description}</p>'
+        if description
+        else ""
+    )
+
+    body = f"""
+    <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;">
+      <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
+        <strong>{who}</strong> thought you&#39;d enjoy <strong>{pub_title}</strong> on BlogHub.
+      </p>
+      {description_html}
+      <div style="margin:0 0 24px;">
+        <a href="{pub_url}"
+           style="display:inline-block;background:#dc2626;color:#ffffff;font-size:14px;
+                  font-weight:600;text-decoration:none;padding:12px 28px;border-radius:8px;">
+          Read {pub_title}
+        </a>
+      </div>
+      <p style="color:#6b7280;font-size:13px;line-height:1.6;margin:0;">
+        BlogHub is a directory of independent publications. Join to upvote the ones you like
+        and keep up with new publications as they&#39;re published.
+      </p>
+    </div>
+    """
+
+    payload = {
+        "from": settings.INVITE_NOTIFY_EMAIL,
+        "to": [to_email],
+        "reply_to": settings.UPDATE_EMAIL_REPLY_TO,
+        "subject": f"{who} shared {publication.title} with you",
+        "html": body,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                RESEND_ENDPOINT,
+                headers={"Authorization": f"Bearer {settings.RESEND_API_KEY}"},
+                json=payload,
+            )
+        if resp.status_code >= 400:
+            logger.warning("Resend publication invite failed (%s): %s", resp.status_code, resp.text)
+            return False
+        return True
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Resend publication invite error: %s", exc)
+        return False
+
+
 async def send_featured_marketing_email(
     *,
     to_email: str,

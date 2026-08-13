@@ -1,5 +1,11 @@
 export const POST_LOGIN_PATH_KEY = "bloghub_post_login_path";
 export const FEATURE_DURATION_PARAM = "feature";
+/** Carries the booking id from the "your slot ends today" email into the renewal modal. */
+export const RENEW_SLOT_PARAM = "renew";
+
+export function renewDashboardPath(slotId: string): string {
+  return `/dashboard?${RENEW_SLOT_PARAM}=${slotId}`;
+}
 
 export const FEATURE_DURATIONS = [7, 14, 30] as const;
 export type FeatureDuration = (typeof FEATURE_DURATIONS)[number];

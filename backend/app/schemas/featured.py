@@ -43,6 +43,36 @@ class ComposeEmailOut(BaseModel):
     suggested_send_at: datetime
 
 
+class RenewalContextOut(BaseModel):
+    """Everything the renewal modal opens with, in one round-trip.
+
+    Reached from the "your slot ends today" email, so it carries both what the
+    previous run was and what the author sent about it — the renewal reuses that
+    announcement rather than drafting a fresh one.
+    """
+
+    publication_id: uuid.UUID
+    publication_title: str
+    publication_image_url: str | None = None
+    #: The run being renewed, for "your last run was…" context.
+    previous_start_date: date
+    previous_end_date: date
+    previous_duration_days: int
+    click_count: int
+    impression_count: int
+    #: The announcement from the previous run, for the author to reuse and edit.
+    #: Falls back to a freshly built draft when that run had no announcement.
+    email_subject: str
+    email_body: str
+    email_button_text: str
+    #: duration_days -> earliest start date whose whole run is free. A duration maps
+    #: to None when nothing fits inside the booking horizon.
+    next_available: dict[int, date | None]
+    prices: dict[int, int]  # duration_days -> price in cents
+    min_start_date: date
+    max_start_date: date
+
+
 class FeatureCheckoutIn(BaseModel):
     publication_id: uuid.UUID
     start_date: date
@@ -56,6 +86,9 @@ class FeatureCheckoutIn(BaseModel):
     email_scheduled_at: datetime
     #: The IANA zone that instant was chosen in, e.g. "Asia/Karachi".
     email_timezone: str = Field(min_length=1, max_length=64)
+    #: Set when extending an existing run. The booking it names is verified server-side
+    #: (same owner, already approved) before the shorter renewal lead time is allowed.
+    renewal_of_slot_id: uuid.UUID | None = None
 
 
 class FeatureCheckoutOut(BaseModel):
