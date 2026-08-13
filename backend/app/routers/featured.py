@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -6,12 +8,15 @@ from app.deps import get_current_user, get_optional_user
 import uuid
 
 from app.helpers.featured import (
+    FEATURE_PRICES_CENTS,
+    RENEWAL_MIN_LEAD_DAYS,
     approve_slot,
     create_checkout,
     get_active_feature,
     get_availability,
     get_my_bookings,
     get_slot_for_review,
+    next_available_start,
     record_click,
     record_impression,
     reconcile_slots,
@@ -25,6 +30,7 @@ from app.helpers.featured_email import (
     suggested_send_at,
     update_draft,
 )
+from app.models.featured_slot import FeaturedSlot
 from app.models.publication import Publication
 from app.helpers.email import send_support_request
 from app.schemas.featured import (
@@ -43,6 +49,7 @@ from app.schemas.featured import (
     FeaturedImpressionIn,
     MyBookingOut,
     ReconcileOut,
+    RenewalContextOut,
     SupportRequestIn,
 )
 from app.settings import settings
@@ -102,6 +109,74 @@ async def compose_featured_email(
     )
 
 
+@router.get("/featured/renewal/{slot_id}", response_model=RenewalContextOut)
+async def featured_renewal_context(
+    slot_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Context for renewing a finished (or finishing) booking.
+
+    Reached from the "your featured slot ends today" email. That link carries no
+    credentials of its own — anyone can hold it — so ownership is enforced here, the
+    same way `/featured/compose` does it.
+    """
+    slot = await db.get(FeaturedSlot, slot_id)
+    if slot is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found")
+    if slot.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only renew your own booking.",
+        )
+
+    pub = await db.get(Publication, slot.publication_id)
+    if pub is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Publication no longer exists"
+        )
+
+    # Reuse what the author actually sent last time. Bookings made before the
+    # announcement step existed (or whose email was never drafted) fall back to a
+    # fresh draft, so the modal always has something to show.
+    previous = await get_email_for_slot(db, slot.id)
+    if previous is not None:
+        subject, body, button_text = previous.subject, previous.body, previous.button_text or ""
+    else:
+        subject, body, button_text = build_draft(pub)
+    if not button_text:
+        _, _, button_text = build_draft(pub)
+
+    availability = await get_availability(db, current_user.id)
+    # Renewals clear tomorrow rather than the usual two days, so an author extending a
+    # run that ends today is offered the very next day.
+    next_available = {
+        days: await next_available_start(db, days, lead_days=RENEWAL_MIN_LEAD_DAYS)
+        for days in sorted(FEATURE_PRICES_CENTS)
+    }
+    renewal_min_start = date.today() + timedelta(days=RENEWAL_MIN_LEAD_DAYS)
+
+    return RenewalContextOut(
+        publication_id=pub.id,
+        publication_title=pub.title,
+        publication_image_url=pub.image_url,
+        previous_start_date=slot.start_date,
+        previous_end_date=slot.end_date,
+        previous_duration_days=slot.duration_days,
+        click_count=slot.click_count,
+        impression_count=slot.impression_count,
+        email_subject=subject,
+        email_body=body,
+        email_button_text=button_text,
+        next_available=next_available,
+        prices=availability.prices,
+        # The renewal calendar must allow the same earlier day the defaults use,
+        # otherwise the auto-selected start would render as an unselectable day.
+        min_start_date=renewal_min_start,
+        max_start_date=availability.max_start_date,
+    )
+
+
 @router.post("/featured/checkout", response_model=FeatureCheckoutOut)
 async def featured_checkout(
     payload: FeatureCheckoutIn,
@@ -121,6 +196,7 @@ async def featured_checkout(
         email_subject=payload.email_subject.strip(),
         email_body=payload.email_body.strip(),
         email_button_text=payload.email_button_text.strip(),
+        renewal_of_slot_id=payload.renewal_of_slot_id,
         email_scheduled_at=payload.email_scheduled_at,
         email_timezone=payload.email_timezone.strip(),
     )

@@ -16,6 +16,7 @@ import logging
 from app.database import AsyncSessionLocal
 from app.helpers.featured import reconcile_slots
 from app.helpers.featured_email import send_due_emails
+from app.helpers.featured_reminder import send_expiry_reminders
 from app.helpers.update_email import run_due_update_emails
 
 logger = logging.getLogger(__name__)
@@ -33,9 +34,10 @@ INITIAL_DELAY_SECONDS = 60
 
 async def _reconcile_once() -> None:
     """One tick: reconcile the slots, send any featured marketing email that is due,
-    then run any product-update campaign batch that is due.
+    run any product-update campaign batch that is due, then remind the authors whose
+    featured run ends today.
 
-    The three are independent, so each gets its own try/except — a failure in one must
+    The four are independent, so each gets its own try/except — a failure in one must
     not stop the others from running.
 
     Note the send is only as punctual as the tick: an email scheduled for T+24h
@@ -71,6 +73,15 @@ async def _reconcile_once() -> None:
                 logger.info("Update emails: %s campaign batch(es) run", due["batches_run"])
         except Exception:  # noqa: BLE001
             logger.exception("Update email batch send failed")
+
+        try:
+            reminders = await send_expiry_reminders(db)
+            if reminders["reminders_sent"]:
+                logger.info(
+                    "Featured expiry reminders: %s author(s) notified", reminders["reminders_sent"]
+                )
+        except Exception:  # noqa: BLE001
+            logger.exception("Featured expiry reminder send failed")
 
 
 async def _reconcile_loop() -> None:

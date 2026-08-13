@@ -38,6 +38,12 @@ class Settings(BaseSettings):
     UPDATE_EMAIL_REPLY_TO: str = "team@bloghub.app"
     # Default UTC hour (0-23) a campaign's daily batch runs when its send_hour is -1.
     UPDATE_EMAIL_SEND_HOUR: int = 9
+    # "Someone shared a publication with you" invites, sent from the share modal to
+    # addresses a user typed. Its own sender so these are separable from product-update
+    # mail in Resend's logs and in any future domain-reputation triage — an invite goes
+    # to people who never signed up, so it carries more spam-complaint risk than mail
+    # to existing users. Replies go to the same place as update email.
+    INVITE_NOTIFY_EMAIL: str = "BlogHub <invites@send.bloghub.app>"
 
     class Config:
         env_file = ".env"

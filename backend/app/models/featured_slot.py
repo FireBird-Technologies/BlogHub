@@ -78,6 +78,12 @@ class FeaturedSlot(Base):
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True
     )
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Set the first time the "your slot ends today" reminder goes out. The scheduler
+    # ticks hourly, so this is what stops the author being emailed once an hour for
+    # the whole of their last day — the send and this stamp commit together.
+    expiry_reminder_sent_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     publication: Mapped["Publication"] = relationship("Publication")  # noqa: F821
     user: Mapped["User"] = relationship("User")  # noqa: F821

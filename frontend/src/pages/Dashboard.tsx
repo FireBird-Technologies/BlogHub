@@ -7,6 +7,7 @@ import { datePresetToRange, type DatePreset } from "../components/filters/DateFi
 import DashboardPublicationList from "../components/publication/DashboardPublicationList";
 import FeaturedPublicationBanner from "../components/featured/FeaturedPublicationBanner";
 import FeaturePublicationModal from "../components/featured/FeaturePublicationModal";
+import RenewFeatureModal from "../components/featured/RenewFeatureModal";
 import SubmitModal from "../components/submit/SubmitModal";
 import Pagination from "../components/ui/Pagination";
 import Button from "../components/ui/Button";
@@ -16,8 +17,10 @@ import { useAuth } from "../context/AuthContext";
 import {
   FEATURE_DURATION_PARAM,
   POST_LOGIN_PATH_KEY,
+  RENEW_SLOT_PARAM,
   featureDashboardPath,
   parseFeatureDuration,
+  renewDashboardPath,
 } from "../lib/featuredCheckout";
 
 const PAGE_SIZE = 10;
@@ -32,6 +35,8 @@ export default function Dashboard() {
   const [modalOpen, setModalOpen] = useState(false);
   const [featureModalOpen, setFeatureModalOpen] = useState(false);
   const [featureDuration, setFeatureDuration] = useState<number | undefined>();
+  const [renewModalOpen, setRenewModalOpen] = useState(false);
+  const [renewSlotId, setRenewSlotId] = useState<string | null>(null);
   const [searchResetKey, setSearchResetKey] = useState(0);
   const [currentPage, setCurrentPage] = useState(() => {
     const p = Number(searchParams.get("page"));
@@ -116,6 +121,38 @@ export default function Dashboard() {
 
     setFeatureDuration(days);
     setFeatureModalOpen(true);
+  }, [searchParams, user, authLoading, openLoginModal, setSearchParams]);
+
+  // Open the renewal modal when arriving from the "your featured slot ends today"
+  // email (e.g. /dashboard?renew=<slot_id>). Same shape as the ?feature= flow above:
+  // the link carries no credentials, so a signed-out visitor is sent through login and
+  // back here, and the renewal endpoint checks ownership server-side.
+  useEffect(() => {
+    if (authLoading) return;
+    const slotId = searchParams.get(RENEW_SLOT_PARAM);
+    if (!slotId) return;
+
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete(RENEW_SLOT_PARAM);
+        return next;
+      },
+      { replace: true },
+    );
+
+    if (!user) {
+      try {
+        sessionStorage.setItem(POST_LOGIN_PATH_KEY, renewDashboardPath(slotId));
+      } catch {
+        /* private mode */
+      }
+      openLoginModal();
+      return;
+    }
+
+    setRenewSlotId(slotId);
+    setRenewModalOpen(true);
   }, [searchParams, user, authLoading, openLoginModal, setSearchParams]);
 
   const queryKey = [
@@ -212,6 +249,11 @@ export default function Dashboard() {
         isOpen={featureModalOpen}
         onClose={() => setFeatureModalOpen(false)}
         initialDurationDays={featureDuration}
+      />
+      <RenewFeatureModal
+        isOpen={renewModalOpen}
+        onClose={() => setRenewModalOpen(false)}
+        slotId={renewSlotId}
       />
     </div>
   );
