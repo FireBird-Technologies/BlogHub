@@ -2,7 +2,7 @@ import html
 import logging
 import re
 from datetime import timezone
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -616,6 +616,88 @@ async def send_feature_expiring_notification(
             logger.warning("Resend feature-expiring email failed (%s): %s", resp.status_code, resp.text)
     except Exception as exc:  # noqa: BLE001
         logger.warning("Resend feature-expiring email error: %s", exc)
+
+
+async def send_publication_resubmit_reminder(
+    *,
+    to_email: str | None,
+    author_name: str | None,
+    publication,
+) -> bool:
+    """Four weeks after a publication was submitted, ask the author to refresh it.
+
+    A listing goes stale quietly: the description describes an older version of the
+    blog, the image is out of date, and nothing prompts the author to look at it
+    again. This is that prompt, sent once per publication and never repeated.
+
+    Sent from the update-email address — this is product mail, not featured mail, so
+    replies should land with the team that handles it.
+
+    Returns True only if Resend accepted the message. The caller stamps the row on a
+    True return, so a network error or a 4xx/5xx leaves the publication unstamped and
+    the next tick retries it rather than silently dropping the reminder forever.
+    """
+    if not settings.RESEND_API_KEY or not to_email:
+        return False
+
+    pub_title = html.escape(publication.title or "your publication")
+    greeting = f"Hi {html.escape(author_name)}," if author_name and author_name.strip() else "Hi,"
+    detail_url = html.escape(_with_update_email_utm(_publication_detail_url(publication)))
+    # Deep link into the submit modal with the URL pre-filled — the actual resubmit
+    # path. Carries no auth of its own: the dashboard sends a signed-out visitor
+    # through login and back, and the submit endpoint checks ownership server-side.
+    resubmit_url = html.escape(
+        _with_update_email_utm(
+            f"{settings.FRONTEND_URL}/dashboard?resubmit={quote(publication.url, safe='')}"
+        )
+    )
+
+    body = f"""
+    <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;">
+      <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 8px;">{greeting}</p>
+      <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
+        It&#39;s been about a month since you submitted
+        <a href="{detail_url}" style="color:#dc2626;text-decoration:none;font-weight:600;">{pub_title}</a>
+        to BlogHub. A lot can change in four weeks.
+      </p>
+      <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
+        Take a minute to resubmit it with fresh details — an up-to-date description,
+        a current cover image, and the tags that match what you&#39;re writing about
+        now. Resubmitting also moves your listing back to the top of the feed, so
+        readers who missed it the first time get another look.
+      </p>
+      <div style="margin-top:24px;text-align:center;">
+        <a href="{resubmit_url}"
+           style="display:inline-block;background:#dc2626;color:#ffffff;font-size:14px;
+                  font-weight:600;text-decoration:none;padding:12px 28px;border-radius:8px;">
+          Update your publication
+        </a>
+      </div>
+    </div>
+    """
+
+    payload = {
+        "from": settings.UPDATE_EMAIL_FROM_EMAIL,
+        "to": [to_email],
+        "reply_to": settings.UPDATE_EMAIL_REPLY_TO,
+        "subject": f"Time to refresh your BlogHub listing: {publication.title}",
+        "html": body,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                RESEND_ENDPOINT,
+                headers={"Authorization": f"Bearer {settings.RESEND_API_KEY}"},
+                json=payload,
+            )
+        if resp.status_code >= 400:
+            logger.warning("Resend resubmit-reminder email failed (%s): %s", resp.status_code, resp.text)
+            return False
+        return True
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Resend resubmit-reminder email error: %s", exc)
+        return False
 
 
 async def send_publication_invite(

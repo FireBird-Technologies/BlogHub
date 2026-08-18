@@ -15,6 +15,9 @@ interface UrlPhaseProps {
   /** Prompt copy — defaults to the publication-submission wording. */
   prompt?: string;
   hint?: string;
+  /** Pre-fills the input, e.g. when arriving from the "refresh your listing" email
+   *  with the publication's URL already known. The author still presses Fetch. */
+  initialUrl?: string;
 }
 
 export default function UrlPhase({
@@ -22,8 +25,9 @@ export default function UrlPhase({
   normalizeUrl = normalizePublicationUrl,
   prompt = "Enter the main website URL of the publication you want to share.",
   hint = "Use the homepage URL (e.g. https://firebirdtech.com).",
+  initialUrl = "",
 }: UrlPhaseProps) {
-  const [url, setUrl] = useState("");
+  const [url, setUrl] = useState(initialUrl);
   const [error, setError] = useState("");
   const { mutate, isPending } = useScrape();
 

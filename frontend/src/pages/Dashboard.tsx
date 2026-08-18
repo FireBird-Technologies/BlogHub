@@ -18,9 +18,11 @@ import {
   FEATURE_DURATION_PARAM,
   POST_LOGIN_PATH_KEY,
   RENEW_SLOT_PARAM,
+  RESUBMIT_URL_PARAM,
   featureDashboardPath,
   parseFeatureDuration,
   renewDashboardPath,
+  resubmitDashboardPath,
 } from "../lib/featuredCheckout";
 
 const PAGE_SIZE = 10;
@@ -33,6 +35,7 @@ export default function Dashboard() {
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [datePreset, setDatePreset] = useState<DatePreset>("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [submitInitialUrl, setSubmitInitialUrl] = useState<string | undefined>();
   const [featureModalOpen, setFeatureModalOpen] = useState(false);
   const [featureDuration, setFeatureDuration] = useState<number | undefined>();
   const [renewModalOpen, setRenewModalOpen] = useState(false);
@@ -155,6 +158,39 @@ export default function Dashboard() {
     setRenewModalOpen(true);
   }, [searchParams, user, authLoading, openLoginModal, setSearchParams]);
 
+  // Open the submit modal pre-filled when arriving from the "refresh your listing"
+  // email (e.g. /dashboard?resubmit=<url>). Same shape as the ?renew= flow above: the
+  // link carries no credentials, so a signed-out visitor goes through login and back.
+  // Resubmitting an existing URL is handled by the submit endpoint, which overwrites
+  // in place for a verified owner and otherwise routes into the claim step.
+  useEffect(() => {
+    if (authLoading) return;
+    const url = searchParams.get(RESUBMIT_URL_PARAM);
+    if (!url) return;
+
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete(RESUBMIT_URL_PARAM);
+        return next;
+      },
+      { replace: true },
+    );
+
+    if (!user) {
+      try {
+        sessionStorage.setItem(POST_LOGIN_PATH_KEY, resubmitDashboardPath(url));
+      } catch {
+        /* private mode */
+      }
+      openLoginModal();
+      return;
+    }
+
+    setSubmitInitialUrl(url);
+    setModalOpen(true);
+  }, [searchParams, user, authLoading, openLoginModal, setSearchParams]);
+
   const queryKey = [
     "publications",
     { category, search, sort, limit: PAGE_SIZE, dateFrom, dateTo },
@@ -244,7 +280,14 @@ export default function Dashboard() {
         />
       </main>
 
-      <SubmitModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+      <SubmitModal
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setSubmitInitialUrl(undefined);
+        }}
+        initialUrl={submitInitialUrl}
+      />
       <FeaturePublicationModal
         isOpen={featureModalOpen}
         onClose={() => setFeatureModalOpen(false)}

@@ -7,6 +7,14 @@ export function renewDashboardPath(slotId: string): string {
   return `/dashboard?${RENEW_SLOT_PARAM}=${slotId}`;
 }
 
+/** Carries the publication URL from the "refresh your listing" email into the submit
+ *  modal, so the author lands on the resubmit flow with the URL already filled in. */
+export const RESUBMIT_URL_PARAM = "resubmit";
+
+export function resubmitDashboardPath(url: string): string {
+  return `/dashboard?${RESUBMIT_URL_PARAM}=${encodeURIComponent(url)}`;
+}
+
 export const FEATURE_DURATIONS = [7, 14, 30] as const;
 export type FeatureDuration = (typeof FEATURE_DURATIONS)[number];
 
