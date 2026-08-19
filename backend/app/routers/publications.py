@@ -209,6 +209,8 @@ async def create_publication(
             existing.additional_links = [str(u) for u in data.additional_links]
             existing.social_links = [sl.model_dump(mode="json") for sl in data.social_links]
             existing.created_at = datetime.now(timezone.utc)
+            # resubmit_reminder_sent_at is deliberately left alone: the nudge is a
+            # one-time prompt per publication, so resubmitting must not re-arm it.
             await db.commit()
             response.status_code = status.HTTP_200_OK
             updated = await get_publication_by_id(db, existing.id, current_user.id)
@@ -360,6 +362,8 @@ async def update_publication(
     pub.social_links = [sl.model_dump(mode="json") for sl in data.social_links]
     # An owner edit resurfaces the publication to today's ranking.
     pub.created_at = datetime.now(timezone.utc)
+    # resubmit_reminder_sent_at is deliberately left alone: the nudge is a one-time
+    # prompt per publication, so an edit must not re-arm it.
 
     await db.commit()
 
@@ -580,6 +584,8 @@ async def resubmit_and_claim(
     # Resubmitting refreshes the publish date so the post resurfaces in rankings,
     # mirroring what claim verification does.
     pub.created_at = datetime.now(timezone.utc)
+    # resubmit_reminder_sent_at is deliberately left alone: the nudge is a one-time
+    # prompt per publication, so resubmitting must not re-arm it.
 
     # Create or re-open a claim for this user
     claim_social_links = [sl.model_dump(mode="json") for sl in data.claim_social_links]

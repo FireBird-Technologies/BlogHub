@@ -7,6 +7,39 @@ export function renewDashboardPath(slotId: string): string {
   return `/dashboard?${RENEW_SLOT_PARAM}=${slotId}`;
 }
 
+/** Carries the publication URL from the "refresh your listing" email into the submit
+ *  modal, so the author lands on the resubmit flow with the URL already filled in. */
+export const RESUBMIT_URL_PARAM = "resubmit";
+
+/** Id of the account the reminder email was addressed to. Carried as a reference so
+ *  the dashboard can detect "you followed this link on a different account" without a
+ *  round trip. Not a credential — every write is still authorized server-side. */
+export const RESUBMIT_OWNER_PARAM = "owner";
+
+export function resubmitDashboardPath(url: string, ownerId?: string | null): string {
+  const base = `/dashboard?${RESUBMIT_URL_PARAM}=${encodeURIComponent(url)}`;
+  return ownerId ? `${base}&${RESUBMIT_OWNER_PARAM}=${encodeURIComponent(ownerId)}` : base;
+}
+
+/** Sign out and come back to the same resubmit link, so an author who followed the
+ *  reminder email on the wrong Google account can switch without losing the intent.
+ *
+ *  The path is stashed under POST_LOGIN_PATH_KEY — the same key the signed-out branch
+ *  of the deep link uses — so login returns here and re-runs the ownership check
+ *  against the newly chosen account. */
+export function switchAccountForResubmit(
+  url: string,
+  logout: () => void,
+  ownerId?: string | null,
+): void {
+  try {
+    sessionStorage.setItem(POST_LOGIN_PATH_KEY, resubmitDashboardPath(url, ownerId));
+  } catch {
+    /* private mode: they land on the dashboard and can resubmit manually */
+  }
+  logout();
+}
+
 export const FEATURE_DURATIONS = [7, 14, 30] as const;
 export type FeatureDuration = (typeof FEATURE_DURATIONS)[number];
 
