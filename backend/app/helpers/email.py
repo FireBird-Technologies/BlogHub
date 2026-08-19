@@ -2,7 +2,7 @@ import html
 import logging
 import re
 from datetime import timezone
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -616,6 +616,97 @@ async def send_feature_expiring_notification(
             logger.warning("Resend feature-expiring email failed (%s): %s", resp.status_code, resp.text)
     except Exception as exc:  # noqa: BLE001
         logger.warning("Resend feature-expiring email error: %s", exc)
+
+
+async def send_publication_resubmit_reminder(
+    *,
+    to_email: str | None,
+    author_name: str | None,
+    publication,
+) -> bool:
+    """Four weeks after a publication was submitted, ask the author to resubmit it.
+
+    The feed ranks by submission date, so a month-old listing has drifted well down
+    it. Resubmitting moves it back to the top — that is the whole point of the email,
+    so the copy leads with it rather than with tidying up the listing's details.
+
+    Sent once per publication and never repeated.
+
+    Sent from the update-email address — this is product mail, not featured mail, so
+    replies should land with the team that handles it.
+
+    Returns True only if Resend accepted the message. The caller stamps the row on a
+    True return, so a network error or a 4xx/5xx leaves the publication unstamped and
+    the next tick retries it rather than silently dropping the reminder forever.
+    """
+    if not settings.RESEND_API_KEY or not to_email:
+        return False
+
+    pub_title = html.escape(publication.title or "your publication")
+    greeting = f"Hi {html.escape(author_name)}," if author_name and author_name.strip() else "Hi,"
+    detail_url = html.escape(_with_update_email_utm(_publication_detail_url(publication)))
+    # Deep link into the submit modal with the URL pre-filled — the actual resubmit
+    # path. Carries no auth of its own: the dashboard sends a signed-out visitor
+    # through login and back, and the submit endpoint checks ownership server-side.
+    #
+    # `owner` is the id of the account this email was addressed to, carried purely as
+    # a reference so the dashboard can compare it against whoever is signed in and say
+    # "wrong account, switch" before showing a form they cannot submit. It grants
+    # nothing — an id in a URL is not a credential, and every write still checks
+    # ownership server-side against the bearer token.
+    resubmit_url = html.escape(
+        _with_update_email_utm(
+            f"{settings.FRONTEND_URL}/dashboard"
+            f"?resubmit={quote(publication.url, safe='')}"
+            f"&owner={quote(str(publication.user_id), safe='')}"
+        )
+    )
+
+    body = f"""
+    <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;">
+      <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 8px;">{greeting}</p>
+      <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
+        It&#39;s been a month since you submitted
+        <a href="{detail_url}" style="color:#dc2626;text-decoration:none;font-weight:600;">{pub_title}</a>
+        to BlogHub, and newer posts have pushed it down the feed.
+      </p>
+      <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
+        Resubmit it to bring it back to the top, in front of readers who missed it
+        the first time. It takes a minute, and you can update the details while
+        you&#39;re there.
+      </p>
+      <div style="margin-top:24px;text-align:center;">
+        <a href="{resubmit_url}"
+           style="display:inline-block;background:#dc2626;color:#ffffff;font-size:14px;
+                  font-weight:600;text-decoration:none;padding:12px 28px;border-radius:8px;">
+          Resubmit and get back on top
+        </a>
+      </div>
+    </div>
+    """
+
+    payload = {
+        "from": settings.UPDATE_EMAIL_FROM_EMAIL,
+        "to": [to_email],
+        "reply_to": settings.UPDATE_EMAIL_REPLY_TO,
+        "subject": f"Resubmit {publication.title} to get back on top",
+        "html": body,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                RESEND_ENDPOINT,
+                headers={"Authorization": f"Bearer {settings.RESEND_API_KEY}"},
+                json=payload,
+            )
+        if resp.status_code >= 400:
+            logger.warning("Resend resubmit-reminder email failed (%s): %s", resp.status_code, resp.text)
+            return False
+        return True
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Resend resubmit-reminder email error: %s", exc)
+        return False
 
 
 async def send_publication_invite(

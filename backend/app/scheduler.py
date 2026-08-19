@@ -17,6 +17,7 @@ from app.database import AsyncSessionLocal
 from app.helpers.featured import reconcile_slots
 from app.helpers.featured_email import send_due_emails
 from app.helpers.featured_reminder import send_expiry_reminders
+from app.helpers.resubmit_reminder import send_resubmit_reminders
 from app.helpers.update_email import run_due_update_emails
 
 logger = logging.getLogger(__name__)
@@ -34,10 +35,11 @@ INITIAL_DELAY_SECONDS = 60
 
 async def _reconcile_once() -> None:
     """One tick: reconcile the slots, send any featured marketing email that is due,
-    run any product-update campaign batch that is due, then remind the authors whose
-    featured run ends today.
+    run any product-update campaign batch that is due, remind the authors whose
+    featured run ends today, then nudge the authors whose publication just turned
+    four weeks old.
 
-    The four are independent, so each gets its own try/except — a failure in one must
+    The five are independent, so each gets its own try/except — a failure in one must
     not stop the others from running.
 
     Note the send is only as punctual as the tick: an email scheduled for T+24h
@@ -82,6 +84,17 @@ async def _reconcile_once() -> None:
                 )
         except Exception:  # noqa: BLE001
             logger.exception("Featured expiry reminder send failed")
+
+        try:
+            resubmits = await send_resubmit_reminders(db)
+            if resubmits["reminders_sent"] or resubmits["send_failures"]:
+                logger.info(
+                    "Publication resubmit reminders: %s author(s) notified, %s failed (will retry)",
+                    resubmits["reminders_sent"],
+                    resubmits["send_failures"],
+                )
+        except Exception:  # noqa: BLE001
+            logger.exception("Publication resubmit reminder send failed")
 
 
 async def _reconcile_loop() -> None:
