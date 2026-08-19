@@ -624,11 +624,13 @@ async def send_publication_resubmit_reminder(
     author_name: str | None,
     publication,
 ) -> bool:
-    """Four weeks after a publication was submitted, ask the author to refresh it.
+    """Four weeks after a publication was submitted, ask the author to resubmit it.
 
-    A listing goes stale quietly: the description describes an older version of the
-    blog, the image is out of date, and nothing prompts the author to look at it
-    again. This is that prompt, sent once per publication and never repeated.
+    The feed ranks by submission date, so a month-old listing has drifted well down
+    it. Resubmitting moves it back to the top — that is the whole point of the email,
+    so the copy leads with it rather than with tidying up the listing's details.
+
+    Sent once per publication and never repeated.
 
     Sent from the update-email address — this is product mail, not featured mail, so
     replies should land with the team that handles it.
@@ -646,9 +648,17 @@ async def send_publication_resubmit_reminder(
     # Deep link into the submit modal with the URL pre-filled — the actual resubmit
     # path. Carries no auth of its own: the dashboard sends a signed-out visitor
     # through login and back, and the submit endpoint checks ownership server-side.
+    #
+    # `owner` is the id of the account this email was addressed to, carried purely as
+    # a reference so the dashboard can compare it against whoever is signed in and say
+    # "wrong account, switch" before showing a form they cannot submit. It grants
+    # nothing — an id in a URL is not a credential, and every write still checks
+    # ownership server-side against the bearer token.
     resubmit_url = html.escape(
         _with_update_email_utm(
-            f"{settings.FRONTEND_URL}/dashboard?resubmit={quote(publication.url, safe='')}"
+            f"{settings.FRONTEND_URL}/dashboard"
+            f"?resubmit={quote(publication.url, safe='')}"
+            f"&owner={quote(str(publication.user_id), safe='')}"
         )
     )
 
@@ -656,21 +666,20 @@ async def send_publication_resubmit_reminder(
     <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;">
       <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 8px;">{greeting}</p>
       <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
-        It&#39;s been about a month since you submitted
+        It&#39;s been a month since you submitted
         <a href="{detail_url}" style="color:#dc2626;text-decoration:none;font-weight:600;">{pub_title}</a>
-        to BlogHub. A lot can change in four weeks.
+        to BlogHub, and newer posts have pushed it down the feed.
       </p>
       <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px;">
-        Take a minute to resubmit it with fresh details — an up-to-date description,
-        a current cover image, and the tags that match what you&#39;re writing about
-        now. Resubmitting also moves your listing back to the top of the feed, so
-        readers who missed it the first time get another look.
+        Resubmit it to bring it back to the top, in front of readers who missed it
+        the first time. It takes a minute, and you can update the details while
+        you&#39;re there.
       </p>
       <div style="margin-top:24px;text-align:center;">
         <a href="{resubmit_url}"
            style="display:inline-block;background:#dc2626;color:#ffffff;font-size:14px;
                   font-weight:600;text-decoration:none;padding:12px 28px;border-radius:8px;">
-          Update your publication
+          Resubmit and get back on top
         </a>
       </div>
     </div>
@@ -680,7 +689,7 @@ async def send_publication_resubmit_reminder(
         "from": settings.UPDATE_EMAIL_FROM_EMAIL,
         "to": [to_email],
         "reply_to": settings.UPDATE_EMAIL_REPLY_TO,
-        "subject": f"Time to refresh your BlogHub listing: {publication.title}",
+        "subject": f"Resubmit {publication.title} to get back on top",
         "html": body,
     }
 

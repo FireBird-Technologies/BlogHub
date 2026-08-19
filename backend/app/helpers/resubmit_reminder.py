@@ -1,23 +1,28 @@
-"""The "your listing is a month old, refresh it" reminder.
+"""The "resubmit to get back on top" reminder.
 
-Run from the scheduler's hourly tick. Four weeks after a publication was last
-submitted or edited we email its author, asking them to refresh it.
+Run from the scheduler's hourly tick. Four weeks after a publication was submitted we
+email its author once, asking them to resubmit it so it returns to the top of the feed.
+
+Exactly one email per publication, ever. `Publication.resubmit_reminder_sent_at` is
+the durable marker: non-NULL means done, and nothing clears it — not an edit, not a
+resubmit. Resetting it on resubmit would make the nudge loop, mailing the author again
+four weeks after every action they take in response to it. It is committed per row
+immediately after that row's send, so a crash midway through a batch never re-mails the
+authors already reached.
+
+Only publications submitted after the feature shipped are eligible: migration 0033
+backfills every pre-existing row with a timestamp, so the back catalogue is excluded
+permanently and nobody is nudged about a listing they submitted long before this
+existed.
 
 Unlike the featured expiry reminder there is no send-hour gate: that email is about
 a run ending *today*, so a 2am arrival wastes the day it is asking you to act on.
 This one carries no deadline, so it goes out on the first tick past the four-week
 mark whatever the hour, rather than holding for a "nice" local time.
 
-Idempotency works the same way as `featured_reminder`: the tick fires every hour, so
-`Publication.resubmit_reminder_sent_at` is the durable marker, committed per row
-immediately after that row's send. A crash midway through a batch never re-mails the
-authors already reached.
-
-The one difference from the featured reminder is backlog. Every publication older
-than four weeks is due the moment this ships, so the query is capped at BATCH_LIMIT
-rows per tick — with no send-hour gate that is up to 100/hour around the clock, so
-the backlog drains steadily instead of firing thousands of sends (and tripping
-Resend's rate limit) in one pass.
+BATCH_LIMIT caps each tick's work. With the back catalogue excluded there is no
+backlog to drain, so it is a safety rail against an unexpected surge of due rows
+tripping Resend's rate limit, not a throughput target.
 """
 
 import logging
@@ -35,15 +40,15 @@ logger = logging.getLogger(__name__)
 # How long after submission the nudge goes out.
 REMINDER_AFTER = timedelta(weeks=4)
 
-# Max sends per tick. Caps the initial backlog burst (see module docstring) and keeps
-# any single tick's work bounded.
+# Max sends per tick. Keeps any single tick's work bounded (see module docstring).
 BATCH_LIMIT = 100
 
 
 async def send_resubmit_reminders(db: AsyncSession) -> dict:
     """Email the author of every publication that turned four weeks old.
 
-    Sends on the first tick past the mark, at any hour of the day.
+    Sends on the first tick past the mark, at any hour of the day, once per
+    publication and never again.
 
     Unlisted publications are skipped: they exist only to back a paid featured slot,
     were never really "submitted" by their owner, and have no listing to refresh.

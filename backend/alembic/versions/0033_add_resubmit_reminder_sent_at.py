@@ -17,13 +17,16 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Nullable, no backfill — but note every publication older than four weeks is
-    # already "due" the moment this ships, so the reminder job caps how many it will
-    # send per tick rather than mailing the whole back catalogue at once.
     op.add_column(
         "publications",
         sa.Column("resubmit_reminder_sent_at", sa.DateTime(timezone=True), nullable=True),
     )
+    # Backfill every existing row as already-reminded. The reminder is for
+    # publications submitted from here on: without this, the whole back catalogue is
+    # "due" the moment this ships and every existing author gets a nudge about a
+    # listing they may have submitted years ago. Stamping now excludes them
+    # permanently — the job only ever picks up rows created after this migration.
+    op.execute("UPDATE publications SET resubmit_reminder_sent_at = NOW()")
 
 
 def downgrade() -> None:
