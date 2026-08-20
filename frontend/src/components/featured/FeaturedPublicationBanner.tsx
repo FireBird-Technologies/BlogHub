@@ -256,16 +256,47 @@ export default function FeaturedPublicationBanner({
     return () => observer.disconnect();
   }, [data]);
 
-  // An errored lookup is not the same as an empty slot: inviting someone to buy a
-  // slot we couldn't read is worse than showing nothing.
-  if (isLoading || isError) return null;
-
   const openBooking = () => {
     if (user) setFeaturing(true);
     else openLoginModal();
   };
 
-  if (slotIsOpen) {
+  // Placeholder rather than nothing, so the card doesn't pop in and shove the page
+  // down once the lookup lands — and so the slot never silently disappears on a slow
+  // connection. Skipping straight to the invitation here would flash the sales pitch
+  // before swapping to whoever is actually featured.
+  if (isLoading) {
+    return (
+      <div className={className}>
+        <HelpLinks onContact={() => setContacting(true)} />
+
+        <div className={`${CARD_CLASSES} border-dashed border-amber-200`} aria-hidden="true">
+          <div className="flex items-center justify-between gap-3">
+            <span className="h-[22px] w-24 rounded-full bg-amber-100 animate-pulse" />
+            <span className="h-3 w-16 rounded bg-amber-50 animate-pulse" />
+          </div>
+          <div className="flex gap-3 mt-2">
+            <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-amber-50 animate-pulse" />
+            <div className="flex-1 min-w-0 flex flex-col justify-center gap-2">
+              <div className="h-4 w-2/5 rounded bg-amber-50 animate-pulse" />
+              <div className="h-3 w-4/5 rounded bg-amber-50 animate-pulse" />
+              <div className="h-3 w-1/3 rounded bg-amber-50 animate-pulse" />
+            </div>
+          </div>
+        </div>
+
+        <ContactSupportModal isOpen={contacting} onClose={() => setContacting(false)} />
+      </div>
+    );
+  }
+
+  // A lookup that failed is not the same as a slot we know is free — but hiding the
+  // card also hides the only route to buying one, which costs a sale every time the
+  // request errors. So the invitation renders either way; what we drop is the "Open
+  // slot" claim, since that is the part we can't stand behind without a reading.
+  // Nothing is committed here regardless: the modal fetches live availability, and
+  // the server re-validates the range before checkout.
+  if (slotIsOpen || isError) {
     return (
       <div className={className}>
         <HelpLinks onContact={() => setContacting(true)} />
@@ -280,7 +311,9 @@ export default function FeaturedPublicationBanner({
               here, since the whole card is already the button. */}
           <div className="flex items-center justify-between gap-3">
             <span className={PILL_CLASSES}>Get featured</span>
-            <span className="text-[11px] font-medium text-amber-700/70">Open slot</span>
+            {slotIsOpen && (
+              <span className="text-[11px] font-medium text-amber-700/70">Open slot</span>
+            )}
           </div>
 
           <OpenSlotBody />
