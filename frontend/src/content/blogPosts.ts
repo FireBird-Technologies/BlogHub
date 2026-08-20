@@ -462,7 +462,13 @@ export const blogPosts: BlogPost[] = [
       "A good directory puts your blog in front of readers who are actively browsing your topic. Here's how to tell the good ones from the dead ones — and how to stand out once you're in.",
     primaryKeyword: "best blog directories",
     keywordVariant: "spammy link lists",
-    relatedPaths: ["/dashboard", "/blogs/how-to-submit-your-blog-to-directories", "/blogs/blog-promotion-sites"],
+    relatedPaths: [
+      "/dashboard",
+      "/blogs/how-to-submit-your-blog-to-directories",
+      "/blogs/why-bloghub-is-the-best-blog-directory",
+      "/blogs/article-submission-sites",
+      "/blogs/blog-promotion-sites",
+    ],
     sections: [
       {
         heading: "What makes a directory worth your time",
@@ -534,7 +540,13 @@ export const blogPosts: BlogPost[] = [
       "Submitting to a directory takes minutes, but a few small choices decide whether it sends you readers or gathers dust. Here's the process that works.",
     primaryKeyword: "how to submit your blog to directories",
     keywordVariant: "mass link submission",
-    relatedPaths: ["/dashboard", "/blogs/best-blog-directories", "/blogs/blog-promotion-sites"],
+    relatedPaths: [
+      "/dashboard",
+      "/blogs/best-blog-directories",
+      "/blogs/article-submission-sites",
+      "/blogs/why-bloghub-is-the-best-blog-directory",
+      "/blogs/blog-promotion-sites",
+    ],
     sections: [
       {
         heading: "Choose the right directory and category first",
@@ -1840,6 +1852,8 @@ export const blogPosts: BlogPost[] = [
     keywordVariant: "submitting everywhere at once",
     relatedPaths: [
       "/submit-your-newsletter",
+      "/blogs/why-bloghub-is-the-best-blog-directory",
+      "/blogs/article-submission-sites",
       "/blogs/how-to-promote-your-newsletter",
       "/blogs/best-blog-directories",
     ],
@@ -2494,6 +2508,394 @@ export const blogPosts: BlogPost[] = [
       videoAsset(
         "Start a newsletter: idea to first 100 readers",
         "End-to-end getting-started explainer.",
+      ),
+    ],
+  },
+
+  // ── Video ────────────────────────────────────────────────────────────────
+  {
+    slug: "ai-video-generators-that-arent-slop",
+    title: "AI Video Generators That Aren't Slop: A Writer's Filter",
+    description:
+      "Video is the fastest way to reach readers who'll never find your writing — and the fastest way to embarrass yourself if the tool makes slop. Two questions that sort the category.",
+    category: "Video",
+    publishedAt: "2026-08-19",
+    readTime: "7 min read",
+    heroEyebrow: "AI Video",
+    heroTitle: "AI video generators that aren't slop",
+    heroDescription:
+      "Your name goes on the video, which makes this a reputation decision rather than a tooling one. Two questions sort the tools worth using from the ones that will cost you readers.",
+    primaryKeyword: "ai slop",
+    keywordVariant: "generic AI video",
+    relatedPaths: [
+      "/blogs/how-to-turn-a-blog-post-into-a-video",
+      "/blogs/how-to-repurpose-blog-content",
+      "/blogs/repurpose-blog-posts-into-social-media",
+      "/dashboard",
+    ],
+    sections: [
+      {
+        heading: "The stakes are different for a publisher",
+        paragraphs: [
+          "For most people, a bad AI video is a wasted afternoon. For someone who publishes under their own name, it's worse than that: readers who meet you through a hollow, generic clip form a view of your writing before they ever read a sentence of it. The video is the audition.",
+          "That's the real reason to be picky here. Not snobbery about AI — repurposing is one of the highest-leverage things a small publication can do — but the fact that the first impression is the one you're spending.",
+        ],
+      },
+      {
+        heading: "Slop is a production method, not a look",
+        paragraphs: [
+          "It helps to be precise about what people are objecting to. Slop isn't a visual style you can fix with a better model or a higher resolution. It's the result of a video being generated about a topic rather than built from a source.",
+          "Ask a prompt-driven tool for a video about your essay and it returns pixels that have never touched your essay. It doesn't know your argument, your example, or the specific number you spent an afternoon verifying. So it produces something adjacent and plausible. Readers rarely think 'a machine made this' — they think 'this doesn't know anything', which is the more damaging conclusion.",
+        ],
+      },
+      {
+        heading: "Question one: does it start from my writing?",
+        paragraphs: [
+          "A tool that takes a URL, a post, or a document as its input has something to be faithful to. A tool that takes a prompt does not. Everything downstream follows from that difference.",
+          "In practice this shows up as specificity. Does your headline appear on screen as your headline? Does the figure you cited show up as that figure? Can a viewer who reads the post afterwards recognise it as the same piece? If a sample video could be swapped between two unrelated articles without anyone noticing, the tool isn't reading anything.",
+          "This is also where the term programmatic video comes in, and it's less technical than it sounds. It means the video is assembled by code: layouts are components with defined slots, and the content pulled from your post is the data that fills them. Same post in, same video out, every time — which is why nothing on screen arrives by chance, and why fixing a typo re-renders one word rather than producing a different video.",
+        ],
+        bullets: [
+          "The source is a URL, post, or file — not a prompt.",
+          "Your headings, quotes, and numbers survive into the video intact.",
+          "You can edit a single scene instead of regenerating everything.",
+          "Two videos from your publication look like they came from one publication.",
+        ],
+      },
+      {
+        heading: "Question two: did a human design what it looks like?",
+        paragraphs: [
+          "Faithfulness gets you accuracy, not watchability. A video can be entirely correct and still unwatchable, so taste has to enter the process somewhere — and the honest answer is that it enters through a designer, long before you open the tool.",
+          "That's what a human-designed template is: someone chose the type scale, tuned how long a point holds on screen, decided what moves and what stays still, and then that judgement gets applied to every video you make. It's the same reason a good newsletter template beats a blank page — the decisions were made once, by someone paying attention.",
+          "The alternative is a model choosing the layout, colour, and pacing fresh each time, which produces the average of every video it has seen. The average of everything is exactly what slop looks like. Nobody designed it, so it belongs to nobody.",
+        ],
+      },
+      {
+        heading: "Two tools that pass the filter",
+        paragraphs: [
+          "Blog2Video is built for written publishing. You give it a post, a newsletter issue, or a URL, and it follows your actual structure into designed templates rather than generating something adjacent to your topic. It's the one to use if your content lives as writing on the web — and it carries a longer version of this argument about what separates the category.",
+          "A disclosure worth making plainly: BlogHub and Blog2Video come from the same team, so treat this as a recommendation from an interested party and run the two questions above on it yourself.",
+        ],
+        ctaPath: "https://blog2video.app",
+        ctaLabel: "Turn a post into video with Blog2Video",
+      },
+      {
+        heading: "If your content is a document rather than a post",
+        paragraphs: [
+          "Plenty of publishers work in files rather than posts — a research summary, a report, a deck, a set of lecture notes. Documents are actually the harder test for this category, because a document contains facts a reader can go and verify, so anything the tool invented becomes obvious.",
+          "PDF2Vid is the version pointed at that case: same programmatic rendering and designed templates, but the source is a file instead of a URL.",
+        ],
+        ctaPath: "https://pdf2vid.com",
+        ctaLabel: "Turn a document into video with PDF2Vid",
+      },
+      {
+        heading: "Then make sure the video is findable",
+        paragraphs: [
+          "A good video that nobody encounters is the same as no video. The point of repurposing is reach — publishing to YouTube, TikTok, Instagram, or LinkedIn puts your ideas in front of people who will never stumble onto your archive, and routes the interested ones back to the writing.",
+          "That's the same job BlogHub does on the discovery side: a profile for your publication that both search engines and readers can find, with real links back to your posts. The video widens the top of the funnel, the listing makes sure there's somewhere for it to lead.",
+        ],
+        ctaPath: "/dashboard",
+        ctaLabel: "List your publication on BlogHub",
+      },
+    ],
+    faq: [
+      {
+        question: "What does 'AI slop' actually mean?",
+        answer:
+          "For a publisher, the useful definition is output that has no relationship to anything you actually wrote — footage and narration assembled around your topic rather than from your post. The tell isn't that it looks artificial. It's that a reader who knows your work can't recognise it in the video.",
+      },
+      {
+        question: "Is using an AI video tool bad for my reputation as a writer?",
+        answer:
+          "Not inherently. Readers judge whether the video is worth their attention, not how it was produced. What damages you is publishing something generic under your name — which is a function of the tool's method, not of AI being involved.",
+      },
+      {
+        question: "What is programmatic video?",
+        answer:
+          "Video assembled by code rather than sampled by a model. Layouts are components, your content is the data filling them, and rendering is deterministic — the same post always produces the same video. It's why a number on screen can be traced back to the sentence it came from.",
+      },
+      {
+        question: "Do I need to appear on camera?",
+        answer:
+          "No. The strongest format for repurposed writing is text and visuals on screen with a narrator, which delivers the idea without turning you into a video presenter. The point is the argument, not your face.",
+      },
+    ],
+    distributionPlan: [
+      {
+        channel: "site",
+        title: "AI video generators that aren't slop",
+        angle: "Evaluation piece for publishers considering video repurposing.",
+      },
+      {
+        channel: "substack",
+        title: "Slop is a production method, not a look",
+        angle: "Essay version for a writer audience, leading with the reputation stakes.",
+      },
+      videoAsset(
+        "How to spot AI video slop before you publish it",
+        "Run the two questions over real sample galleries on screen.",
+      ),
+    ],
+  },
+
+  // ── Directory positioning ────────────────────────────────────────────────
+  {
+    slug: "why-bloghub-is-the-best-blog-directory",
+    title: "Why BlogHub Is the Best Free Blog and Newsletter Directory",
+    description:
+      "Most blog directories are dead links behind a paywall. Here is what BlogHub does differently — free listings, real dofollow backlinks, a weekly email to every subscriber, and a ranked page for your subject.",
+    category: "Distribution",
+    publishedAt: "2026-08-20",
+    readTime: "7 min read",
+    heroEyebrow: "Directories",
+    heroTitle: "Why BlogHub is the best free blog directory",
+    heroDescription:
+      "Nearly every directory a writer is told to submit to fails in one of three ways: it charges, it strips the link, or nobody visits it. BlogHub was built by ruling out all three. Here is exactly what a listing gets you.",
+    primaryKeyword: "free blog directory",
+    keywordVariant: "paying for a directory listing",
+    relatedPaths: [
+      "/dashboard",
+      "/submit-your-newsletter",
+      "/blogs/best-blog-directories",
+      "/blogs/best-newsletter-directories",
+    ],
+    sections: [
+      {
+        heading: "The three ways a directory wastes your afternoon",
+        paragraphs: [
+          "If you have ever worked through a list of eighty directory submission sites, you already know the pattern. A third of them are parked domains or 500 errors. Another third want between fifteen and two hundred dollars for a listing on a page that no reader has opened since 2019. The survivors put a nofollow attribute on your link, which means the one durable benefit — telling search engines your publication exists — quietly evaporates.",
+          "This is why directory submission has such a bad reputation among writers who have actually tried it. The channel is not broken; the implementations are. A directory only works if a real person browses it, the link it gives you is a real link, and getting listed does not cost more than the traffic is worth.",
+          "BlogHub is what you get when you hold those three constraints at once and refuse to trade any of them away.",
+        ],
+        bullets: [
+          "Dead directories — indexed once, abandoned since, worth nothing to anyone.",
+          "Paid directories — a listing fee for a page with no browsing audience.",
+          "Nofollow directories — visible to readers, invisible to search engines.",
+        ],
+      },
+      {
+        heading: "Free, in the way that actually matters",
+        paragraphs: [
+          "Listing a blog, newsletter, or Substack on BlogHub costs nothing. Not a trial, not a free tier that caps you at one post, not a listing that expires in thirty days unless you upgrade. You submit the publication and it is live.",
+          "There is exactly one paid thing on the site — an optional featured slot that puts a single publication site-wide for a week or a month — and it is entirely separate from being listed. Your listing, your profile page, your backlinks, your category ranking, and your inclusion in the weekly email all happen on the free path. The paid slot buys placement you could not otherwise get; it does not buy anything the free listing already gives you.",
+          "That distinction is worth being pedantic about, because most directories blur it deliberately. The free tier exists to make the paid tier look necessary. Here the free tier is the product.",
+        ],
+      },
+      {
+        heading: "A real backlink — to your publication and to individual posts",
+        paragraphs: [
+          "Every publication on BlogHub gets its own indexable profile page, and the links on it are ordinary followed links. There is no nofollow attribute anywhere on the site. When you list a blog, you get a crawlable page pointing at your domain, and the posts you add each get their own followed link too.",
+          "For an established site this is a rounding error. For a publication in its first year it is often the difference between having a link profile and having none at all — and the first few links are the ones that are hardest to get, because nobody links to a site they have not heard of. That is the specific problem a directory is supposed to solve, and it can only solve it if the link is real.",
+          "The profile page is also structured for the thing that increasingly matters more than rankings: being quotable by an answer engine. A page that states plainly what your publication is about, who it is for, and how often it goes out is a page a model can actually cite when someone asks it for good writing on your subject.",
+        ],
+        ctaPath: "/dashboard",
+        ctaLabel: "List your publication free",
+      },
+      {
+        heading: "Your listing goes out by email — even if it is not popular",
+        paragraphs: [
+          "This is the part that has no equivalent on other directories. BlogHub sends its subscribers a weekly digest of the five highest-voted publications of the week. That is standard enough. What is not standard is the second email: a weekly hidden-gems digest of five publications from that week with the fewest votes, which explicitly excludes anything that appeared in the top five.",
+          "Read that again, because it inverts how every ranked platform works. On Product Hunt, Hacker News, or any upvote-driven site, being unpopular means being invisible — the ranking is the distribution, so a slow start is a dead start. On BlogHub, a listing that has not caught on gets emailed to the entire subscriber list precisely because it has not caught on.",
+          "The practical effect for a new publication is that submitting is not a lottery. You are not hoping to crack a top five against writers with existing audiences. There is a path to the inbox that runs through the bottom of the ranking as well as the top, and both of them are free.",
+        ],
+        bullets: [
+          "Top 5 this week — the highest-voted publications, emailed to every subscriber.",
+          "5 hidden gems this week — the lowest-voted ones, emailed to the same list.",
+          "The two never overlap, so no publication takes both slots from someone else.",
+        ],
+      },
+      {
+        heading: "A ranked page for your subject, not just a category tag",
+        paragraphs: [
+          "Most directories treat categories as a filter — a dropdown that narrows a list. BlogHub treats each subject as its own page: a standing, publicly crawlable ranking of the publications in that category, ordered by community score and updated daily. Tech, Design, Science, Business, Culture, Finance, Philosophy, History, Self Improvement, and the rest each have one.",
+          "The reason this matters is that a category page ranks for the query a reader actually types. Nobody searches for a directory homepage; they search for good newsletters about a subject. A page whose entire job is answering that for one subject has a far better chance of being the result — and of being the source an AI answer pulls from — than a generic index of everything.",
+          "So a listing puts you in two places at once: on your own profile page, and on the standing page for your subject. The first is the backlink. The second is where the reader who does not know your name yet is going to find you.",
+        ],
+        ctaPath: "/submit-your-newsletter",
+        ctaLabel: "Add your newsletter to a category",
+      },
+      {
+        heading: "The honest limitations",
+        paragraphs: [
+          "BlogHub is young, and the subscriber list is a real list rather than a large one. If you are looking for a channel that will send ten thousand readers this week, this is not it, and any directory that tells you otherwise is lying to you about a channel that has never worked that way for anyone.",
+          "What a listing reliably gives you is a permanent followed link from an indexable page, a standing position on the ranked page for your subject, and a genuine chance of landing in a weekly email regardless of how many votes you start with. Those compound quietly. They are also, notably, the exact three things the eighty-directory lists promise and almost never deliver.",
+          "Submit once, write a description that tells a browsing reader what they get and how often, and let it sit there working. It costs an afternoon at most, and unlike a social post, it does not disappear tomorrow.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: "Is BlogHub really free to list on?",
+        answer:
+          "Yes. Submitting a blog, newsletter, or Substack costs nothing, and the listing does not expire. The only paid option is an optional featured slot that puts one publication site-wide for a week or a month — it is separate from listing, and it does not unlock anything the free listing already includes.",
+      },
+      {
+        question: "Do I get a dofollow backlink from BlogHub?",
+        answer:
+          "Yes. Every publication gets an indexable profile page, and there is no nofollow attribute on the site — the link to your domain and the links to your individual posts are ordinary followed links.",
+      },
+      {
+        question: "Do I need an existing audience to get anything out of it?",
+        answer:
+          "No, and this is the main design difference. Alongside the weekly top-five digest, BlogHub emails subscribers a weekly hidden-gems digest drawn from the least-voted publications of that week. A publication with no votes is eligible for that email specifically because it has no votes.",
+      },
+      {
+        question: "How is this different from a general web directory submission site?",
+        answer:
+          "General directory submission sites list any website in any industry, which is why their pages have no browsing audience and their links carry so little weight. BlogHub only lists publications — blogs, newsletters, and Substacks — so each category page is a genuine reading list rather than a phone book.",
+      },
+      {
+        question: "What should I write in my listing description?",
+        answer:
+          "Lead with what the reader gets and how often, not what the publication is about. A line like 'every Tuesday, one design teardown you can steal for your own product' outperforms 'a weekly newsletter about design' on every category page, because the browsing reader is scanning for a reason to click.",
+      },
+    ],
+    distributionPlan: [
+      {
+        channel: "site",
+        title: "Why BlogHub is the best free blog directory",
+        angle: "Positioning piece for writers comparing directory options.",
+      },
+      {
+        channel: "substack",
+        title: "The directory that emails the posts nobody voted for",
+        angle: "Lead with the hidden-gems digest — it inverts how ranked platforms work.",
+      },
+      videoAsset(
+        "Free blog directory with real backlinks",
+        "Walk through a listing on screen: profile page, followed link, category ranking, digest.",
+      ),
+    ],
+  },
+  {
+    slug: "article-submission-sites",
+    title: "5 Places to Submit Your Article, Blog, or Newsletter in 2026",
+    description:
+      "A short, honest list of article submission sites that still work — what each one is for, what it costs you, and what you realistically get back. No eighty-link directory dumps.",
+    category: "Distribution",
+    publishedAt: "2026-08-20",
+    readTime: "8 min read",
+    heroEyebrow: "Distribution",
+    heroTitle: "5 places to submit your article",
+    heroDescription:
+      "Every list of article submission sites is either eighty dead links or a pitch for a submission service. This is five places that are actually alive in 2026, and what each one is genuinely good for.",
+    primaryKeyword: "article submission sites",
+    keywordVariant: "mass-submitting to eighty directories",
+    relatedPaths: [
+      "/dashboard",
+      "/blogs/why-bloghub-is-the-best-blog-directory",
+      "/blogs/how-to-submit-your-blog-to-directories",
+      "/blogs/best-newsletter-directories",
+    ],
+    sections: [
+      {
+        heading: "First, why the eighty-site lists do not work any more",
+        paragraphs: [
+          "Article submission was a real SEO tactic once. You wrote a 500-word piece, pushed it to a few hundred article directories with a keyword-stuffed author bio, and collected the links. Google's Panda update in 2011 ended that, and the follow-up penalties finished off the directories themselves. The lists survived; the sites on them did not.",
+          "So when you find a post promising 100+ free article submission sites, what you are looking at is a list that has been copied forward for a decade without anyone opening the links. Most are dead. The live ones are usually link farms, and submitting to a link farm is not neutral — it associates your domain with a bad neighbourhood.",
+          "The tactic that replaced it is smaller and slower: a handful of places where a real audience browses, each one submitted to properly. Five done well beats eighty pasted. Here are the five that are worth the afternoon.",
+        ],
+      },
+      {
+        heading: "1. A publication directory — for the permanent link",
+        paragraphs: [
+          "The closest modern equivalent to the old article directory is a directory of publications rather than of individual articles. You list the blog, newsletter, or Substack once, and it keeps working: an indexable profile page, a followed link to your domain, and a standing position on a ranked page for your subject.",
+          "This is the highest-leverage item on the list because it is the only one that is permanent and unattended. A community post is gone in a day and a republished article needs writing. A directory listing is submitted once and continues to be crawled, browsed, and linked for as long as it is up.",
+          "BlogHub is the one we build, so treat this as the disclosure it is — but the criteria are the ones to judge any directory by. Is listing free, is the outbound link followed rather than nofollowed, does a real reader ever browse the category page, and is there any route to distribution that does not require you to already be popular?",
+        ],
+        bullets: [
+          "Free to list, with no expiring listing or upgrade gate.",
+          "Followed links to your domain and to individual posts.",
+          "A ranked, crawlable page for your subject — not just a dropdown filter.",
+          "A weekly email that includes low-vote publications, not only the top five.",
+        ],
+        ctaPath: "/dashboard",
+        ctaLabel: "Submit your publication free",
+      },
+      {
+        heading: "2. Newsletter directories and aggregators — if you send email",
+        paragraphs: [
+          "If what you publish arrives in an inbox, there is a second category open to you that pure bloggers do not get: the newsletter directories and aggregators. Letterlist, Newsletter Hunt, The Sample, and the handful of others that are still maintained all take submissions, and most are free.",
+          "Know which of the two you are submitting to, because the trade is different. A directory lists you so readers subscribe on your own platform — you get the subscriber and the email address. An aggregator pulls your issues into its own feed or inbox, so readers consume you there and you generally do not get the address. Reach without the relationship is still worth something, but it is not the same thing, and if your time is limited the directories come first.",
+          "The practical warning is that this category has heavy churn. Half the names on any list from two years ago are gone. Open each one before you spend time on a submission form, and skip anything whose most recent listing is from last year.",
+        ],
+      },
+      {
+        heading: "3. Medium and dev.to — republishing, with the canonical tag set",
+        paragraphs: [
+          "Republishing a post you already own onto a large platform is the closest thing to genuine article submission that still functions. Medium reaches a general audience, dev.to reaches a technical one, and both have distribution you cannot build yourself in year one.",
+          "The one non-negotiable is the canonical tag. Both platforms support importing a post with a canonical URL pointing back at your original, which tells search engines your version is the source. Skip that and you are competing with yourself, usually losing, because the platform outranks you on your own words.",
+          "Set the canonical, publish the full piece rather than a teaser, and treat any traffic as a bonus on top of the link. The mistake is treating these as a substitute for having your own site. They are a second front door, not the house.",
+        ],
+      },
+      {
+        heading: "4. Niche communities — high value, and the easiest to get wrong",
+        paragraphs: [
+          "Hacker News, Lobsters, Indie Hackers, and tightly-moderated subreddits send the most engaged readers of anything on this list. They are also the fastest way to lose an account. Most of these communities treat a link to your own work as self-promotion regardless of your history, and enforcement is not proportional — a single post can end an eight-year-old account with no warning and no meaningful appeal.",
+          "The version that works is slow. Be a genuine participant for weeks before you ever link out, read the specific rules of the specific community rather than assuming, and post the thing that is most useful to that audience rather than the thing you most want traffic to.",
+          "Judge this channel as a place you are a guest in, not a distribution channel you operate. When it works it is the best traffic you will get all month. It is simply not something you can schedule.",
+        ],
+      },
+      {
+        heading: "5. Video platforms — where the article becomes the submission",
+        paragraphs: [
+          "YouTube Shorts, TikTok, and Instagram Reels are the largest discovery surfaces left on the consumer internet, and none of them will do anything with a paragraph. Screenshots of text underperform, quote carousels plateau, and a link in bio converts badly enough that it rarely justifies the effort on its own.",
+          "That does not mean writers are locked out. It means the submission format has to change: the article becomes a short narrated video, and the video earns the reach the paragraph never could. This is the only channel on the list where the ceiling is genuinely high for someone starting from zero, because the algorithms there still show new accounts to strangers.",
+          "The obvious objection is that producing video is a second job. It is — unless the video is generated from the post you already wrote rather than shot from scratch. That is the specific gap Blog2Video was built for: the writing is done, and turning it into a short should not cost you a production day.",
+        ],
+        ctaPath: "https://blog2video.app/blog-to-shorts",
+        ctaLabel: "Turn a post into shorts",
+      },
+      {
+        heading: "How to actually work through the list",
+        paragraphs: [
+          "Do them in order of permanence, not excitement. The directory listing takes twenty minutes and then works forever, so it goes first. Newsletter directories are next if you send email. Republishing is an hour per post and worth doing for your best three or four pieces, not everything.",
+          "Communities and video are ongoing rather than one-off, so start them only once the permanent items are done. The failure mode for most writers is spending three months on the two channels that require constant feeding while the two that would have worked unattended sit unsubmitted.",
+          "And resist the completionist urge. There is no version of this where submitting to the eighty-site list beats doing these five properly — the eighty-site list is how the tactic got its reputation in the first place.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: "Do article submission sites still work for SEO in 2026?",
+        answer:
+          "Mass article directory submission has not worked since Google's Panda update in 2011, and the surviving sites are mostly link farms that can actively hurt you. What still works is a small number of curated, genuinely browsed directories and platforms — quality and relevance rather than volume.",
+      },
+      {
+        question: "Where can I submit an article for free?",
+        answer:
+          "A publication directory such as BlogHub, the maintained newsletter directories if you send email, and republishing platforms like Medium and dev.to are all free. Between them they cover the permanent backlink, reader discovery, and borrowed distribution.",
+      },
+      {
+        question: "Will submitting my article to directories hurt my rankings?",
+        answer:
+          "It can, if the directories are link farms or mass-submission services — those patterns are exactly what the algorithm updates were built to catch. A handful of listings on curated, relevant sites is safe and helpful. The test is whether a real person would ever browse the page your link sits on.",
+      },
+      {
+        question: "Should I republish my whole article or just a summary?",
+        answer:
+          "Republish the whole thing, with a canonical tag pointing back to your original. Teasers convert poorly because readers on those platforms want to read there, and without the canonical tag the platform's copy competes with yours in search — usually winning.",
+      },
+      {
+        question: "How many places should I submit each article to?",
+        answer:
+          "Per article, one or two republishing destinations at most. The directory listing is per publication rather than per article, so it is done once. Beyond that you hit diminishing returns fast, and duplicate copies without canonical tags start working against you.",
+      },
+    ],
+    distributionPlan: [
+      {
+        channel: "site",
+        title: "5 places to submit your article, blog, or newsletter",
+        angle: "Evergreen list post targeting writers researching article submission sites.",
+      },
+      {
+        channel: "substack",
+        title: "The eighty-directory list is why nobody trusts directories",
+        angle: "Open with the Panda history, then the five that survived.",
+      },
+      videoAsset(
+        "5 places to submit your article in 2026",
+        "One card per destination with the cost, the effort, and what you get back.",
       ),
     ],
   },
