@@ -85,6 +85,65 @@ function CardBody({ pub }: { pub: CardContent }) {
   );
 }
 
+/** What the slot is pitched as, cycled through by <RotatingNoun />.
+ *
+ * Deliberately wider than "publication": the slot is bought by people who don't think
+ * of themselves as publishers, and naming their thing is what makes the offer land.
+ */
+const FEATURE_NOUNS = ["business", "Substack", "services"] as const;
+
+/** The longest noun sets the width, so the line never reflows mid-rotation. */
+const WIDEST_NOUN = FEATURE_NOUNS.reduce((a, b) => (b.length > a.length ? b : a));
+
+const ROTATE_MS = 2400;
+
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(
+    () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    if (!mq) return;
+    const onChange = () => setReduced(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return reduced;
+}
+
+/** Cycles through FEATURE_NOUNS in place.
+ *
+ * Grid-stacked over an invisible sizer set to the widest noun, so every word renders
+ * in the same cell and the surrounding text stays put. Purely decorative — the real
+ * heading text is on the h3's aria-label, since a word that changes every couple of
+ * seconds is noise to a screen reader.
+ */
+function RotatingNoun() {
+  const [index, setIndex] = useState(0);
+  const reduced = usePrefersReducedMotion();
+
+  useEffect(() => {
+    if (reduced) return;
+    const id = setInterval(() => setIndex((i) => (i + 1) % FEATURE_NOUNS.length), ROTATE_MS);
+    return () => clearInterval(id);
+  }, [reduced]);
+
+  return (
+    <span className="relative inline-grid overflow-hidden align-bottom">
+      <span className="col-start-1 row-start-1 invisible" aria-hidden="true">
+        {WIDEST_NOUN}
+      </span>
+      <span
+        // Remounts on every change so the entry animation re-fires.
+        key={index}
+        className="col-start-1 row-start-1 text-left text-amber-700 animate-word-in motion-reduce:animate-none"
+      >
+        {FEATURE_NOUNS[index]}
+      </span>
+    </span>
+  );
+}
+
 /** The open slot: the invitation itself, in the shape of the card it would fill.
  *
  * No sample publication and no sample counts — an invented listing with invented
@@ -107,8 +166,13 @@ function OpenSlotBody() {
       </div>
 
       <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-        <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-snug">
-          Your publication here
+        <h3
+          className="text-sm sm:text-base font-bold text-gray-900 leading-snug"
+          aria-label={`Feature your ${FEATURE_NOUNS.join(", ")} here`}
+        >
+          <span aria-hidden="true">
+            Feature your <RotatingNoun /> here
+          </span>
         </h3>
         <p className="text-xs sm:text-sm text-gray-600 leading-snug">
           The only featured listing at the top of the home page and dashboard, plus an
@@ -194,10 +258,6 @@ export default function FeaturedPublicationBanner({
     return () => observer.disconnect();
   }, [data]);
 
-  // An errored lookup is not the same as an empty slot: inviting someone to buy a
-  // slot we couldn't read is worse than showing nothing.
-  if (isLoading || isError) return null;
-
   const openBooking = () => {
     if (user) setFeaturing(true);
     else openLoginModal();
@@ -212,7 +272,42 @@ export default function FeaturedPublicationBanner({
     else openLoginModal();
   };
 
-  if (slotIsOpen) {
+  // Placeholder rather than nothing, so the card doesn't pop in and shove the page
+  // down once the lookup lands — and so the slot never silently disappears on a slow
+  // connection. Skipping straight to the invitation here would flash the sales pitch
+  // before swapping to whoever is actually featured.
+  if (isLoading) {
+    return (
+      <div className={className}>
+        <HelpLinks onContact={() => setContacting(true)} />
+
+        <div className={`${CARD_CLASSES} border-dashed border-amber-200`} aria-hidden="true">
+          <div className="flex items-center justify-between gap-3">
+            <span className="h-[22px] w-24 rounded-full bg-amber-100 animate-pulse" />
+            <span className="h-3 w-16 rounded bg-amber-50 animate-pulse" />
+          </div>
+          <div className="flex gap-3 mt-2">
+            <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-amber-50 animate-pulse" />
+            <div className="flex-1 min-w-0 flex flex-col justify-center gap-2">
+              <div className="h-4 w-2/5 rounded bg-amber-50 animate-pulse" />
+              <div className="h-3 w-4/5 rounded bg-amber-50 animate-pulse" />
+              <div className="h-3 w-1/3 rounded bg-amber-50 animate-pulse" />
+            </div>
+          </div>
+        </div>
+
+        <ContactSupportModal isOpen={contacting} onClose={() => setContacting(false)} />
+      </div>
+    );
+  }
+
+  // A lookup that failed is not the same as a slot we know is free — but hiding the
+  // card also hides the only route to buying one, which costs a sale every time the
+  // request errors. So the invitation renders either way; what we drop is the "Open
+  // slot" claim, since that is the part we can't stand behind without a reading.
+  // Nothing is committed here regardless: the modal fetches live availability, and
+  // the server re-validates the range before checkout.
+  if (slotIsOpen || isError) {
     return (
       <div className={className}>
         <HelpLinks onContact={() => setContacting(true)} />
@@ -227,7 +322,9 @@ export default function FeaturedPublicationBanner({
               here, since the whole card is already the button. */}
           <div className="flex items-center justify-between gap-3">
             <span className={PILL_CLASSES}>Get featured</span>
-            <span className="text-[11px] font-medium text-amber-700/70">Open slot</span>
+            {slotIsOpen && (
+              <span className="text-[11px] font-medium text-amber-700/70">Open slot</span>
+            )}
           </div>
 
           <OpenSlotBody />
