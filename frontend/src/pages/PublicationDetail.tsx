@@ -14,7 +14,7 @@ import ClaimPublicationModal from "../components/publication/ClaimPublicationMod
 import CommentsSection from "../components/publication/CommentsSection";
 import SidebarPublications from "../components/publication/SidebarPublications";
 import EditPublicationFieldModal, { type EditableField } from "../components/publication/EditPublicationFieldModal";
-import ConvertToVideoModal from "../components/publication/ConvertToVideoModal";
+import PublicationLiveModal from "../components/publication/PublicationLiveModal";
 import NotFound from "./NotFound";
 import { usePublication, getClientTimezone } from "../hooks/usePublications";
 import { useAuth } from "../context/AuthContext";
@@ -751,7 +751,11 @@ export default function PublicationDetail() {
         onClose={() => setEditField(null)}
       />
 
-      <ConvertToVideoModal isOpen={videoModalOpen} onClose={() => setVideoModalOpen(false)} />
+      <PublicationLiveModal
+        publication={pub}
+        isOpen={videoModalOpen}
+        onClose={() => setVideoModalOpen(false)}
+      />
 
       {pub && (
         <ClaimPublicationModal

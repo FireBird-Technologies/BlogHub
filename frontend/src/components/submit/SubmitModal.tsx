@@ -112,9 +112,12 @@ const inputCls =
 interface SubmitModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Pre-fills the URL step. Set when the modal is opened from the "refresh your
+   *  listing" email deep link (/dashboard?resubmit=<url>). */
+  initialUrl?: string;
 }
 
-export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
+export default function SubmitModal({ isOpen, onClose, initialUrl }: SubmitModalProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -298,7 +301,7 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title={title} maxWidth={phase === "verified-conflict" ? "max-w-sm" : "max-w-2xl"}>
       <div className="flex flex-col gap-5">
-        {phase === "url" && <UrlPhase onScraped={handleScraped} />}
+        {phase === "url" && <UrlPhase onScraped={handleScraped} initialUrl={initialUrl} />}
 
         {phase === "details" && draft && (
           <>

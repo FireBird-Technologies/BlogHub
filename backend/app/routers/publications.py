@@ -19,17 +19,24 @@ from app.helpers.publications import (
 from app.helpers.url_normalize import normalize_link_url, normalize_publication_url
 from app.models.publication import Publication
 from app.models.publication_claim import PublicationClaim
+from app.models.publication_invite import PublicationInvite
 from app.schemas.claim import ApproveClaimRequest, ClaimCreate, ClaimOut, ResubmitAndClaimCreate
 from app.schemas.publication import (
     PaginatedPublications,
     PublicationCreate,
     PublicationFromLinkCreate,
+    PublicationInviteIn,
+    PublicationInviteOut,
     PublicationOut,
     PublicationUpdate,
     ResubmitRequiredResponse,
     UpvoteResponse,
 )
-from app.helpers.email import send_claim_approved_notification, send_claim_notification
+from app.helpers.email import (
+    send_claim_approved_notification,
+    send_claim_notification,
+    send_publication_invite,
+)
 from app.settings import settings
 
 router = APIRouter(tags=["publications"])
@@ -202,6 +209,8 @@ async def create_publication(
             existing.additional_links = [str(u) for u in data.additional_links]
             existing.social_links = [sl.model_dump(mode="json") for sl in data.social_links]
             existing.created_at = datetime.now(timezone.utc)
+            # resubmit_reminder_sent_at is deliberately left alone: the nudge is a
+            # one-time prompt per publication, so resubmitting must not re-arm it.
             await db.commit()
             response.status_code = status.HTTP_200_OK
             updated = await get_publication_by_id(db, existing.id, current_user.id)
@@ -353,6 +362,8 @@ async def update_publication(
     pub.social_links = [sl.model_dump(mode="json") for sl in data.social_links]
     # An owner edit resurfaces the publication to today's ranking.
     pub.created_at = datetime.now(timezone.utc)
+    # resubmit_reminder_sent_at is deliberately left alone: the nudge is a one-time
+    # prompt per publication, so an edit must not re-arm it.
 
     await db.commit()
 
@@ -396,6 +407,50 @@ async def upvote_publication(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
 
     return await toggle_upvote(db, user_id=current_user.id, publication_id=publication_id)
+
+
+@router.post("/publications/{publication_id}/invite", response_model=PublicationInviteOut)
+async def invite_to_publication(
+    publication_id: uuid.UUID,
+    payload: PublicationInviteIn,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Email people a link to a publication, inviting them to read and join BlogHub.
+
+    Anyone signed in may invite anyone to any publication — sharing is not restricted
+    to the author. Every attempt is recorded in `publication_invites`, successful or
+    not, so both sides of the send are auditable.
+
+    Reports per-address outcomes rather than failing the whole request: one bad
+    address must not discard the invites that did go out.
+    """
+    pub = await db.get(Publication, publication_id)
+    if pub is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Publication not found")
+
+    sent: list[str] = []
+    failed: list[str] = []
+
+    for address in payload.emails:
+        ok = await send_publication_invite(
+            to_email=address,
+            sender_name=current_user.name,
+            publication=pub,
+        )
+        db.add(
+            PublicationInvite(
+                publication_id=pub.id,
+                sender_id=current_user.id,
+                sender_email=current_user.email,
+                recipient_email=address,
+                status="sent" if ok else "failed",
+            )
+        )
+        (sent if ok else failed).append(address)
+
+    await db.commit()
+    return PublicationInviteOut(sent=sent, failed=failed)
 
 
 @router.post(
@@ -529,6 +584,8 @@ async def resubmit_and_claim(
     # Resubmitting refreshes the publish date so the post resurfaces in rankings,
     # mirroring what claim verification does.
     pub.created_at = datetime.now(timezone.utc)
+    # resubmit_reminder_sent_at is deliberately left alone: the nudge is a one-time
+    # prompt per publication, so resubmitting must not re-arm it.
 
     # Create or re-open a claim for this user
     claim_social_links = [sl.model_dump(mode="json") for sl in data.claim_social_links]

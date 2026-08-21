@@ -6,7 +6,7 @@ type IconComponent = ComponentType<LucideProps>;
 
 type CustomIconProps = SVGProps<SVGSVGElement> & { size?: number };
 
-function IconX({ size = 20, className = "", ...rest }: CustomIconProps) {
+export function IconX({ size = 20, className = "", ...rest }: CustomIconProps) {
   return (
     <svg
       width={size}

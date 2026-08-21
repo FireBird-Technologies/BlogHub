@@ -7,6 +7,7 @@ import type {
   FeaturedAvailability,
   Publication,
   PublicationFromLinkPayload,
+  RenewalContext,
 } from "../types/models";
 
 /** The publication currently in the paid featured slot, or `null` if none is booked.
@@ -36,6 +37,24 @@ export function useFeatureAvailability(enabled: boolean) {
   });
 }
 
+/** Context for renewing a past booking: the publication, what that run earned, the
+ *  announcement the author sent, and the earliest free start per duration.
+ *
+ * Always refetched on mount — `next_available` is only true as of the moment it was
+ * computed, and someone else may have booked those days since.
+ */
+export function useRenewalContext(slotId: string | null) {
+  return useQuery<RenewalContext, Error>({
+    queryKey: ["featured", "renewal", slotId],
+    queryFn: () =>
+      api.get<RenewalContext>(`/api/featured/renewal/${slotId}`).then((r) => r.data),
+    enabled: Boolean(slotId),
+    refetchOnMount: "always",
+    staleTime: 0,
+    retry: false, // a 403/404 here is definitive, not worth retrying
+  });
+}
+
 /** Draft the announcement so the author can read and edit it before paying. */
 export function useComposeEmail() {
   return useMutation<
@@ -58,6 +77,9 @@ interface CheckoutVars {
   /** A UTC instant (ISO). The browser converts from the author's local date + hour. */
   email_scheduled_at: string;
   email_timezone: string;
+  /** Set when extending a run — unlocks the shorter renewal lead time, after the
+   *  backend verifies the caller owns that booking and it was approved. */
+  renewal_of_slot_id?: string;
 }
 
 /** Holds the dates and hands back a Stripe Checkout URL; the caller redirects to it. */

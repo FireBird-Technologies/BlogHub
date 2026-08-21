@@ -7,7 +7,9 @@ import { datePresetToRange, type DatePreset } from "../components/filters/DateFi
 import DashboardPublicationList from "../components/publication/DashboardPublicationList";
 import FeaturedPublicationBanner from "../components/featured/FeaturedPublicationBanner";
 import FeaturePublicationModal from "../components/featured/FeaturePublicationModal";
+import RenewFeatureModal from "../components/featured/RenewFeatureModal";
 import SubmitModal from "../components/submit/SubmitModal";
+import ResubmitWrongAccountModal from "../components/submit/ResubmitWrongAccountModal";
 import Pagination from "../components/ui/Pagination";
 import Button from "../components/ui/Button";
 import { usePublications } from "../hooks/usePublications";
@@ -16,8 +18,13 @@ import { useAuth } from "../context/AuthContext";
 import {
   FEATURE_DURATION_PARAM,
   POST_LOGIN_PATH_KEY,
+  RENEW_SLOT_PARAM,
+  RESUBMIT_OWNER_PARAM,
+  RESUBMIT_URL_PARAM,
   featureDashboardPath,
   parseFeatureDuration,
+  renewDashboardPath,
+  resubmitDashboardPath,
 } from "../lib/featuredCheckout";
 
 const PAGE_SIZE = 10;
@@ -30,8 +37,17 @@ export default function Dashboard() {
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [datePreset, setDatePreset] = useState<DatePreset>("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [submitInitialUrl, setSubmitInitialUrl] = useState<string | undefined>();
+  // Set when the resubmit link's owner id doesn't match the signed-in user, so we can
+  // show the "switch accounts" prompt instead of the submit form.
+  const [resubmitWrongAccount, setResubmitWrongAccount] = useState<{
+    url: string;
+    ownerId: string;
+  } | null>(null);
   const [featureModalOpen, setFeatureModalOpen] = useState(false);
   const [featureDuration, setFeatureDuration] = useState<number | undefined>();
+  const [renewModalOpen, setRenewModalOpen] = useState(false);
+  const [renewSlotId, setRenewSlotId] = useState<string | null>(null);
   const [searchResetKey, setSearchResetKey] = useState(0);
   const [currentPage, setCurrentPage] = useState(() => {
     const p = Number(searchParams.get("page"));
@@ -116,6 +132,84 @@ export default function Dashboard() {
 
     setFeatureDuration(days);
     setFeatureModalOpen(true);
+  }, [searchParams, user, authLoading, openLoginModal, setSearchParams]);
+
+  // Open the renewal modal when arriving from the "your featured slot ends today"
+  // email (e.g. /dashboard?renew=<slot_id>). Same shape as the ?feature= flow above:
+  // the link carries no credentials, so a signed-out visitor is sent through login and
+  // back here, and the renewal endpoint checks ownership server-side.
+  useEffect(() => {
+    if (authLoading) return;
+    const slotId = searchParams.get(RENEW_SLOT_PARAM);
+    if (!slotId) return;
+
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete(RENEW_SLOT_PARAM);
+        return next;
+      },
+      { replace: true },
+    );
+
+    if (!user) {
+      try {
+        sessionStorage.setItem(POST_LOGIN_PATH_KEY, renewDashboardPath(slotId));
+      } catch {
+        /* private mode */
+      }
+      openLoginModal();
+      return;
+    }
+
+    setRenewSlotId(slotId);
+    setRenewModalOpen(true);
+  }, [searchParams, user, authLoading, openLoginModal, setSearchParams]);
+
+  // Open the submit modal pre-filled when arriving from the resubmit reminder email
+  // (e.g. /dashboard?resubmit=<url>&owner=<user id>). Same shape as the ?renew= flow
+  // above: the link carries no credentials, so a signed-out visitor goes through login
+  // and back.
+  //
+  // The email carries the id of the account it was addressed to. Comparing it against
+  // the signed-in user catches the common case — the author followed the link on a
+  // different Google account — before we show a form the submit endpoint would only
+  // reject at the very end, after they re-entered every field.
+  useEffect(() => {
+    if (authLoading) return;
+    const url = searchParams.get(RESUBMIT_URL_PARAM);
+    if (!url) return;
+    const ownerId = searchParams.get(RESUBMIT_OWNER_PARAM);
+
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete(RESUBMIT_URL_PARAM);
+        next.delete(RESUBMIT_OWNER_PARAM);
+        return next;
+      },
+      { replace: true },
+    );
+
+    if (!user) {
+      try {
+        sessionStorage.setItem(POST_LOGIN_PATH_KEY, resubmitDashboardPath(url, ownerId));
+      } catch {
+        /* private mode */
+      }
+      openLoginModal();
+      return;
+    }
+
+    setResubmitWrongAccount(null);
+    if (ownerId && ownerId !== user.id) {
+      // Signed in as someone else. Don't open a form they can't submit.
+      setResubmitWrongAccount({ url, ownerId });
+      return;
+    }
+
+    setSubmitInitialUrl(url);
+    setModalOpen(true);
   }, [searchParams, user, authLoading, openLoginModal, setSearchParams]);
 
   const queryKey = [
@@ -207,11 +301,29 @@ export default function Dashboard() {
         />
       </main>
 
-      <SubmitModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+      <SubmitModal
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setSubmitInitialUrl(undefined);
+        }}
+        initialUrl={submitInitialUrl}
+      />
+      <ResubmitWrongAccountModal
+        isOpen={resubmitWrongAccount !== null}
+        onClose={() => setResubmitWrongAccount(null)}
+        url={resubmitWrongAccount?.url ?? ""}
+        ownerId={resubmitWrongAccount?.ownerId ?? null}
+      />
       <FeaturePublicationModal
         isOpen={featureModalOpen}
         onClose={() => setFeatureModalOpen(false)}
         initialDurationDays={featureDuration}
+      />
+      <RenewFeatureModal
+        isOpen={renewModalOpen}
+        onClose={() => setRenewModalOpen(false)}
+        slotId={renewSlotId}
       />
     </div>
   );

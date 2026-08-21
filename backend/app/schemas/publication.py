@@ -1,11 +1,18 @@
+import re
 import uuid
 from datetime import datetime
 
-from pydantic import AnyHttpUrl, BaseModel, ConfigDict, field_validator
+from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field, field_validator
 
 from app.helpers.url_normalize import normalize_link_url, normalize_publication_url
 from app.schemas.user import UserOut
 from app.models.publication import normalize_category
+
+_INVITE_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+# How many addresses one submission may carry. Not an abuse control — it keeps a
+# single request (and the sequential sends behind it) bounded.
+MAX_INVITE_EMAILS = 10
 
 MAX_ADDITIONAL_LINKS = 5
 MAX_SOCIAL_LINKS = 8
@@ -229,3 +236,34 @@ class UpvoteResponse(BaseModel):
 class ResubmitRequiredResponse(BaseModel):
     requires_claim: bool = True
     publication_id: uuid.UUID
+
+
+class PublicationInviteIn(BaseModel):
+    """Addresses to invite to a publication, from the share modal."""
+
+    emails: list[str] = Field(min_length=1, max_length=MAX_INVITE_EMAILS)
+
+    @field_validator("emails")
+    @classmethod
+    def valid_emails(cls, v: list[str]) -> list[str]:
+        cleaned: list[str] = []
+        seen: set[str] = set()
+        for raw in v:
+            s = (raw or "").strip().lower()
+            if not s:
+                continue
+            if len(s) > 254 or not _INVITE_EMAIL_RE.match(s):
+                raise ValueError(f"'{raw}' is not a valid email address")
+            # Typing the same address twice should send once, not twice.
+            if s in seen:
+                continue
+            seen.add(s)
+            cleaned.append(s)
+        if not cleaned:
+            raise ValueError("at least one email address is required")
+        return cleaned
+
+
+class PublicationInviteOut(BaseModel):
+    sent: list[str]
+    failed: list[str]

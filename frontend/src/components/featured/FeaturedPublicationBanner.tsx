@@ -4,6 +4,7 @@ import { ArrowRight, MessageCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useActiveFeature } from "../../hooks/useFeatured";
 import FeaturePublicationModal from "./FeaturePublicationModal";
+import RenewFeatureModal from "./RenewFeatureModal";
 import ContactSupportModal from "./ContactSupportModal";
 import CommentsModal from "../publication/CommentsModal";
 import UpvoteButton from "../publication/UpvoteButton";
@@ -232,6 +233,7 @@ export default function FeaturedPublicationBanner({
   const navigate = useNavigate();
   const { data, isLoading, isError } = useActiveFeature();
   const [featuring, setFeaturing] = useState(false);
+  const [extending, setExtending] = useState(false);
   const [contacting, setContacting] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const articleRef = useRef<HTMLElement | null>(null);
@@ -258,6 +260,15 @@ export default function FeaturedPublicationBanner({
 
   const openBooking = () => {
     if (user) setFeaturing(true);
+    else openLoginModal();
+  };
+
+  // The author of the run currently on screen is the one person for whom "Get featured"
+  // is the wrong offer — they already have the slot. Point them at extending it instead.
+  const isOwnFeature = Boolean(user && data && data.publication.author?.id === user.id);
+
+  const openExtend = () => {
+    if (user) setExtending(true);
     else openLoginModal();
   };
 
@@ -382,13 +393,14 @@ export default function FeaturedPublicationBanner({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              openBooking();
+              if (isOwnFeature) openExtend();
+              else openBooking();
             }}
             className="flex-shrink-0 rounded-full border border-amber-300 bg-white/80 px-3 py-1
                        text-xs font-semibold text-amber-700 transition-colors
                        hover:border-amber-500 hover:bg-white hover:text-amber-800"
           >
-            Get featured
+            {isOwnFeature ? "Extend" : "Get featured"}
           </button>
         </div>
 
@@ -451,6 +463,11 @@ export default function FeaturedPublicationBanner({
       </article>
 
       <FeaturePublicationModal isOpen={featuring} onClose={() => setFeaturing(false)} />
+      <RenewFeatureModal
+        isOpen={extending}
+        onClose={() => setExtending(false)}
+        slotId={data!.slot_id}
+      />
       <CommentsModal isOpen={commentsOpen} onClose={() => setCommentsOpen(false)} publication={pub} />
       <ContactSupportModal isOpen={contacting} onClose={() => setContacting(false)} />
     </div>
