@@ -1,0 +1,156 @@
+{
+  "staticPages": [
+    {
+      "path": "/submit-your-newsletter",
+      "changefreq": "monthly",
+      "priority": "0.9"
+    },
+    {
+      "path": "/blogs",
+      "changefreq": "weekly",
+      "priority": "0.6"
+    }
+  ],
+  "posts": [
+    {
+      "slug": "how-to-get-traffic-to-your-blog",
+      "publishedAt": "2026-06-15"
+    },
+    {
+      "slug": "how-to-promote-your-blog-for-free",
+      "publishedAt": "2026-06-17"
+    },
+    {
+      "slug": "how-to-grow-your-blog-audience",
+      "publishedAt": "2026-06-19"
+    },
+    {
+      "slug": "how-to-get-more-blog-readers",
+      "publishedAt": "2026-06-21"
+    },
+    {
+      "slug": "why-is-my-blog-not-getting-traffic",
+      "publishedAt": "2026-06-23"
+    },
+    {
+      "slug": "how-to-get-your-blog-noticed",
+      "publishedAt": "2026-06-25"
+    },
+    {
+      "slug": "best-blog-directories",
+      "publishedAt": "2026-06-27"
+    },
+    {
+      "slug": "how-to-submit-your-blog-to-directories",
+      "publishedAt": "2026-06-29"
+    },
+    {
+      "slug": "blog-promotion-sites",
+      "publishedAt": "2026-07-01"
+    },
+    {
+      "slug": "where-to-share-your-blog-posts",
+      "publishedAt": "2026-07-03"
+    },
+    {
+      "slug": "how-to-repurpose-blog-content",
+      "publishedAt": "2026-07-05"
+    },
+    {
+      "slug": "how-to-turn-a-blog-post-into-a-video",
+      "publishedAt": "2026-07-07"
+    },
+    {
+      "slug": "content-repurposing-strategy",
+      "publishedAt": "2026-07-09"
+    },
+    {
+      "slug": "repurpose-blog-posts-into-social-media",
+      "publishedAt": "2026-07-11"
+    },
+    {
+      "slug": "how-to-write-a-blog-post-that-ranks",
+      "publishedAt": "2026-07-12"
+    },
+    {
+      "slug": "blog-seo-for-beginners",
+      "publishedAt": "2026-07-14"
+    },
+    {
+      "slug": "how-to-come-up-with-blog-post-ideas",
+      "publishedAt": "2026-07-15"
+    },
+    {
+      "slug": "how-to-write-a-catchy-blog-title",
+      "publishedAt": "2026-07-16"
+    },
+    {
+      "slug": "how-long-should-a-blog-post-be",
+      "publishedAt": "2026-07-17"
+    },
+    {
+      "slug": "how-to-structure-a-blog-post",
+      "publishedAt": "2026-07-18"
+    },
+    {
+      "slug": "how-to-start-a-blog-for-beginners",
+      "publishedAt": "2026-07-19"
+    },
+    {
+      "slug": "best-blogging-platforms",
+      "publishedAt": "2026-07-20"
+    },
+    {
+      "slug": "build-email-list-from-your-blog",
+      "publishedAt": "2026-07-21"
+    },
+    {
+      "slug": "how-to-get-your-first-1000-blog-readers",
+      "publishedAt": "2026-07-21"
+    },
+    {
+      "slug": "how-to-promote-your-newsletter",
+      "publishedAt": "2026-08-07"
+    },
+    {
+      "slug": "best-newsletter-directories",
+      "publishedAt": "2026-08-07"
+    },
+    {
+      "slug": "substack-vs-beehiiv",
+      "publishedAt": "2026-08-06"
+    },
+    {
+      "slug": "substack-alternatives",
+      "publishedAt": "2026-08-06"
+    },
+    {
+      "slug": "best-newsletter-platforms",
+      "publishedAt": "2026-08-05"
+    },
+    {
+      "slug": "how-to-grow-on-substack",
+      "publishedAt": "2026-08-05"
+    },
+    {
+      "slug": "how-to-get-substack-subscribers",
+      "publishedAt": "2026-08-04"
+    },
+    {
+      "slug": "how-to-start-a-newsletter",
+      "publishedAt": "2026-08-04"
+    },
+    {
+      "slug": "ai-video-generators-that-arent-slop",
+      "publishedAt": "2026-08-19"
+    },
+    {
+      "slug": "why-bloghub-is-the-best-blog-directory",
+      "publishedAt": "2026-08-20"
+    },
+    {
+      "slug": "article-submission-sites",
+      "publishedAt": "2026-08-20"
+    }
+  ]
+}

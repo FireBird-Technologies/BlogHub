@@ -83,6 +83,11 @@ class Publication(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True
     )
+    # Set when the four-weeks-after-submission "refresh your listing" email goes out.
+    # Doubles as the idempotency marker for that job: non-NULL means never again.
+    resubmit_reminder_sent_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     author: Mapped["User"] = relationship("User", back_populates="publications")  # noqa: F821
     upvotes: Mapped[list["Upvote"]] = relationship(  # noqa: F821
