@@ -1,7 +1,9 @@
 import uuid
+from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.responses import HTMLResponse
+from sqlalchemy import delete as sa_delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -9,6 +11,14 @@ from app.deps import get_current_user
 from app.helpers.auth import verify_unsubscribe_token
 from app.helpers.publications import build_publications_query
 from app.helpers.users import get_user_by_id, update_user_fields
+from app.models.comment import Comment
+from app.models.featured_email_recipient import FeaturedEmailRecipient
+from app.models.featured_slot import FeaturedSlot
+from app.models.publication import Publication
+from app.models.publication_claim import PublicationClaim
+from app.models.publication_invite import PublicationInvite
+from app.models.update_email_send import UpdateEmailSend
+from app.models.upvote import Upvote
 from app.models.user import User
 from app.schemas.publication import PaginatedPublications
 from app.schemas.user import UserOut, UserUpdate
@@ -29,6 +39,44 @@ async def update_me(
 ):
     user = await update_user_fields(db, current_user, data)
     return UserOut.model_validate(user)
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_me(
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Delete the user's content and deactivate the account.
+
+    The `users` row is kept (identity + google_id) so signing in again can offer
+    reactivation rather than silently creating a duplicate account.
+    """
+    user_id = current_user.id
+
+    # Deleting the user's own publications cascades at the DB level to everything
+    # hanging off them (upvotes, comments, claims, slots, invites). The rows below
+    # point at *other* users' publications, so they need deleting explicitly.
+    await db.execute(sa_delete(Upvote).where(Upvote.user_id == user_id))
+    await db.execute(sa_delete(Comment).where(Comment.user_id == user_id))
+    await db.execute(sa_delete(PublicationClaim).where(PublicationClaim.user_id == user_id))
+    await db.execute(sa_delete(FeaturedSlot).where(FeaturedSlot.user_id == user_id))
+    await db.execute(sa_delete(PublicationInvite).where(PublicationInvite.sender_id == user_id))
+    await db.execute(
+        sa_delete(FeaturedEmailRecipient).where(FeaturedEmailRecipient.user_id == user_id)
+    )
+    await db.execute(sa_delete(UpdateEmailSend).where(UpdateEmailSend.user_id == user_id))
+    await db.execute(sa_delete(Publication).where(Publication.user_id == user_id))
+
+    current_user.is_active = False
+    current_user.deactivated_at = datetime.now(timezone.utc)
+    # Belt and braces: no send path can reach a deactivated user anyway, but this
+    # keeps the row correct if it is ever inspected directly.
+    current_user.subscribed_only = False
+    # Reactivation should feel like a fresh account, so re-run onboarding.
+    current_user.onboarded = False
+
+    await db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/users/unsubscribe-digest", response_class=HTMLResponse)

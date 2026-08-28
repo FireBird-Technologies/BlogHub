@@ -7,6 +7,7 @@ import { GOOGLE_CLIENT_ID } from "./lib/googleAuth";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import LoginPromptModal from "./components/auth/LoginPromptModal";
 import SigningInOverlay from "./components/auth/SigningInOverlay";
+import AccountStatusModal from "./components/auth/AccountStatusModal";
 import { OnboardingModal } from "./components/auth/ProfileModal";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
@@ -72,6 +73,7 @@ export default function App() {
             </Routes>
             <LoginPromptModal />
             <OnboardingModal />
+            <AccountStatusModal />
             <SigningInOverlay />
           </AuthProvider>
         </BrowserRouter>

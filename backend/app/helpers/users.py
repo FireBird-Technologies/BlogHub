@@ -22,6 +22,33 @@ async def get_user_by_id(db: AsyncSession, user_id: uuid.UUID):
     return result.scalar_one_or_none()
 
 
+def mailable_user_conditions():
+    """Conditions every bulk email recipient must satisfy.
+
+    Deliberately shared: the resumable campaign senders compare their send query
+    against a completion query, and if the two predicates drift the campaign never
+    reaches "sent"/"completed" — it keeps finding skipped users as still owed.
+    """
+    from app.models.user import User
+
+    return (
+        User.subscribed_only.is_(True),
+        User.is_active.is_(True),
+        User.is_blocked.is_(False),
+    )
+
+
+def is_mailable(user) -> bool:
+    """Row-level twin of `mailable_user_conditions` for transactional sends,
+    where the recipient is already loaded rather than queried.
+
+    Ignores `subscribed_only` — that flag is a digest/marketing opt-out, while
+    transactional mail (your feature was approved, your listing is expiring) is
+    still expected. Only account state suppresses these.
+    """
+    return bool(user) and bool(user.email) and user.is_active and not user.is_blocked
+
+
 def _slug_name(name: str) -> str:
     """Reduce a display name to a lowercase alphanumeric tag base."""
     slug = re.sub(r"[^a-z0-9]", "", (name or "").lower())

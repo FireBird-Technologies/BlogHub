@@ -80,6 +80,32 @@ async def get_google_user_from_id_token(id_token: str) -> dict:
     }
 
 
+def _assert_account_usable(user) -> None:
+    """Block sign-in for accounts that are blocked or self-deleted.
+
+    Raises 403 (not 401) with a machine-readable `code` so the frontend can show
+    the right screen — a blocked notice, or the reactivation prompt.
+    """
+    if user.is_blocked:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "account_blocked",
+                # Shown verbatim under the sign-in button, so it has to stand alone.
+                "message": "Your account has been blocked. Please contact us if you think this is a mistake.",
+            },
+        )
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "account_inactive",
+                "message": "Your account is inactive. Reactivate it to sign in again.",
+                "email": user.email,
+            },
+        )
+
+
 async def upsert_user(db: AsyncSession, google_info: dict):
     from app.models.user import User
 
@@ -87,6 +113,9 @@ async def upsert_user(db: AsyncSession, google_info: dict):
     user = result.scalar_one_or_none()
 
     if user:
+        # Never silently revive a deleted account — reactivation is an explicit,
+        # separate step the user has to confirm.
+        _assert_account_usable(user)
         # Existing user: keep name/avatar as the user may have edited them.
         pass
     else:
@@ -101,6 +130,51 @@ async def upsert_user(db: AsyncSession, google_info: dict):
             avatar_url=google_info.get("picture"),
         )
         db.add(user)
+
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+async def reactivate_user(db: AsyncSession, google_info: dict):
+    """Turn a self-deleted account back on, as a fresh profile.
+
+    Verified against Google rather than a bearer token, because a deactivated user
+    has no valid session at this point.
+    """
+    from app.models.user import User
+
+    result = await db.execute(select(User).where(User.google_id == google_info["id"]))
+    user = result.scalar_one_or_none()
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No account found for this Google account.",
+        )
+    if user.is_blocked:
+        # Blocked always wins: a blocked user must not reactivate their way back in.
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "account_blocked",
+                "message": "Your account has been blocked.",
+            },
+        )
+
+    if user.is_active:
+        # Already active (e.g. a double-submitted reactivation) — just hand back a session.
+        return user
+
+    user.is_active = True
+    user.deactivated_at = None
+    user.subscribed_only = True
+    # Start over from the Google profile: the account was emptied on delete.
+    user.name = google_info.get("name") or user.name
+    user.avatar_url = google_info.get("picture")
+    user.avatar_position = None
+    user.avatar_scale = None
+    user.website = None
 
     await db.commit()
     await db.refresh(user)
