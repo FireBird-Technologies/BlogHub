@@ -24,6 +24,7 @@ from app.helpers.email import (
     send_feature_purchase_notification,
 )
 from app.helpers.publications import _batch_claims, _batch_meta, _pub_to_out
+from app.helpers.users import is_mailable
 from app.models.featured_slot import FeaturedSlot, FeaturedSlotImpression
 from app.models.publication import Publication
 from app.schemas.featured import (
@@ -632,7 +633,7 @@ async def handle_checkout_completed(db: AsyncSession, session_obj) -> None:
         buyer_email=slot.user.email if slot.user else None,
     )
     await send_feature_pending_review_notification(
-        to_email=slot.user.email if slot.user else None,
+        to_email=slot.user.email if is_mailable(slot.user) else None,
         buyer_name=slot.user.name if slot.user else None,
         publication=slot.publication,
         slot=slot,
@@ -831,7 +832,7 @@ async def approve_slot(db: AsyncSession, slot_id: uuid.UUID, *, approve: bool) -
             from app.helpers.email import send_feature_rejected_notification
 
             await send_feature_rejected_notification(
-                to_email=slot.user.email if slot.user else None,
+                to_email=slot.user.email if is_mailable(slot.user) else None,
                 author_name=slot.user.name if slot.user else None,
                 publication=slot.publication,
                 slot=slot,
@@ -853,7 +854,7 @@ async def approve_slot(db: AsyncSession, slot_id: uuid.UUID, *, approve: bool) -
 
             email = await approve_draft_as_admin(db, slot)
             await send_feature_approved_notification(
-                to_email=slot.user.email if slot.user else None,
+                to_email=slot.user.email if is_mailable(slot.user) else None,
                 author_name=slot.user.name if slot.user else None,
                 publication=slot.publication,
                 slot=slot,

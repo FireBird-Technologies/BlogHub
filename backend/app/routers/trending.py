@@ -11,6 +11,7 @@ from app.deps import get_optional_user
 from app.helpers.auth import create_unsubscribe_token
 from app.helpers.email import send_blog2video_promo, send_weekly_digest
 from app.helpers.publications import _batch_claims, _batch_meta, _pub_to_out
+from app.helpers.users import mailable_user_conditions
 from app.models.publication import Publication
 from app.models.user import User
 from app.schemas.publication import PublicationOut
@@ -97,7 +98,7 @@ async def send_weekly_digest_endpoint(
         return {"sent": 0, "posts": 0}
 
     result = await db.execute(
-        select(User.id, User.email, User.name).where(User.subscribed_only.is_(True))
+        select(User.id, User.email, User.name).where(*mailable_user_conditions())
     )
     subscribers = result.all()
 
@@ -140,7 +141,7 @@ async def send_underrated_digest_endpoint(
         return {"sent": 0, "posts": 0}
 
     result = await db.execute(
-        select(User.id, User.email, User.name).where(User.subscribed_only.is_(True))
+        select(User.id, User.email, User.name).where(*mailable_user_conditions())
     )
     subscribers = result.all()
 
@@ -169,7 +170,7 @@ async def send_blog2video_promo_endpoint(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or missing cron secret")
 
     result = await db.execute(
-        select(User.id, User.email, User.name).where(User.subscribed_only.is_(True))
+        select(User.id, User.email, User.name).where(*mailable_user_conditions())
     )
     subscribers = result.all()
 

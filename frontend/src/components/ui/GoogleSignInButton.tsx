@@ -30,8 +30,11 @@ export default function GoogleSignInButton({ onSignedIn, width }: GoogleSignInBu
     }
     setError("");
     try {
-      await loginWithGoogle(cred.credential);
-      onSignedIn?.();
+      // Only advance on a real session — a deactivated account resolves false and
+      // shows the reactivation prompt instead, so there is nowhere to navigate yet.
+      if (await loginWithGoogle(cred.credential)) {
+        onSignedIn?.();
+      }
     } catch (e) {
       console.warn("BlogHub sign-in failed after Google credential response", e);
       setError(formatApiErrorDetail(e, "Sign-in failed. Please retry."));

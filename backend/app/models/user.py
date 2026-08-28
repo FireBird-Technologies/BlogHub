@@ -24,6 +24,14 @@ class User(Base):
     website: Mapped[str | None] = mapped_column(Text, nullable=True)
     onboarded: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     subscribed_only: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    # False once the user deletes their account. The row is kept (identity + google_id)
+    # so signing in again can offer reactivation instead of creating a duplicate user.
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    # Set manually in the DB by an operator. Blocked users cannot sign in or reactivate.
+    is_blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    deactivated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
