@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.helpers.email import send_feature_expiring_notification
+from app.helpers.users import is_mailable
 from app.models.featured_slot import FeaturedSlot
 from app.settings import settings
 
@@ -70,9 +71,10 @@ async def send_expiry_reminders(db: AsyncSession) -> dict:
     for slot in slots:
         pub = slot.publication
         user = slot.user
-        if pub is None or user is None:
-            # The row is orphaned (publication or user deleted). Stamp it so we don't
-            # re-examine it every hour for the rest of the day.
+        if pub is None or not is_mailable(user):
+            # The row is orphaned (publication gone), or the owner's account is deleted
+            # or blocked. Stamp it so we don't re-examine it every hour for the rest
+            # of the day.
             slot.expiry_reminder_sent_at = now
             await db.commit()
             continue

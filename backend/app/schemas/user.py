@@ -17,6 +17,8 @@ class UserOut(BaseModel):
     avatar_scale: float | None = None
     website: str | None
     onboarded: bool
+    is_active: bool = True
+    is_blocked: bool = False
 
 
 class UserUpdate(BaseModel):

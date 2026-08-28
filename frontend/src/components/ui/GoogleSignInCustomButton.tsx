@@ -62,8 +62,11 @@ function GooglePopupButton({
       }
       setError("");
       try {
-        await loginWithGoogleAccessToken(tokenResponse.access_token);
-        onSignedIn?.();
+        // Only advance on a real session — a deactivated account resolves false and
+        // shows the reactivation prompt instead, so there is nowhere to navigate yet.
+        if (await loginWithGoogleAccessToken(tokenResponse.access_token)) {
+          onSignedIn?.();
+        }
       } catch (e) {
         console.warn("BlogHub sign-in failed after Google token response", e);
         setError(formatApiErrorDetail(e, "Sign-in failed. Please retry."));

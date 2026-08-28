@@ -7,6 +7,7 @@ import AvatarPicker from "../ui/AvatarPicker";
 import AdjustImageModal from "../ui/AdjustImageModal";
 import Button from "../ui/Button";
 import Spinner from "../ui/Spinner";
+import DeleteAccountModal from "./DeleteAccountModal";
 import { useAuth } from "../../context/AuthContext";
 import api, { formatApiErrorDetail } from "../../lib/api";
 import type { User } from "../../types/models";
@@ -36,6 +37,7 @@ function ProfileModalForm({ mode, user, onClose }: { mode: Mode; user: User; onC
   const [avatarPosition, setAvatarPosition] = useState<string | null>(user.avatar_position ?? null);
   const [avatarScale, setAvatarScale] = useState<number | null>(user.avatar_scale ?? null);
   const [adjustingAvatar, setAdjustingAvatar] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const onboarding = mode === "onboarding";
 
@@ -226,6 +228,27 @@ function ProfileModalForm({ mode, user, onClose }: { mode: Mode; user: User; onC
             {onboarding ? "Skip for now" : "Cancel"}
           </Button>
         </div>
+
+        {/* Not offered during onboarding — there is nothing to delete yet. */}
+        {!onboarding && (
+          <div className="w-full border-t border-gray-100 pt-4">
+            <p className="mt-1 text-xs text-gray-400">
+              Deleting your account permanently removes your publications, comments
+              and upvotes.
+            </p>
+            <button
+              type="button"
+              onClick={() => setDeleting(true)}
+              disabled={isPending}
+              className="mt-2 text-xs font-medium text-red-600 hover:text-red-700 underline
+                         disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Delete my account
+            </button>
+          </div>
+        )}
+
+        <DeleteAccountModal isOpen={deleting} onClose={() => setDeleting(false)} />
       </div>
     </Modal>
   );

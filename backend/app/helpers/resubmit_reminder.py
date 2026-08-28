@@ -33,6 +33,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.helpers.email import send_publication_resubmit_reminder
+from app.helpers.users import is_mailable
 from app.models.publication import Publication
 
 logger = logging.getLogger(__name__)
@@ -74,8 +75,9 @@ async def send_resubmit_reminders(db: AsyncSession) -> dict:
     failed = 0
     for pub in publications:
         author = pub.author
-        if author is None or not author.email:
-            # Nobody to mail. Stamp it so we don't re-examine the row every hour.
+        if not is_mailable(author):
+            # Nobody to mail — no author, no address, or the account is deleted or
+            # blocked. Stamp it so we don't re-examine the row every hour.
             pub.resubmit_reminder_sent_at = now
             await db.commit()
             continue

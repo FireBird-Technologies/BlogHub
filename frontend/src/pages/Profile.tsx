@@ -18,6 +18,7 @@ import {
 } from "../hooks/useFeaturedEmail";
 import type { FeaturedEmail, MyBooking } from "../types/models";
 import { ProfileModal } from "../components/auth/ProfileModal";
+import DeleteAccountModal from "../components/auth/DeleteAccountModal";
 import { useAuth } from "../context/AuthContext";
 import { useUserPublications } from "../hooks/useUserPublications";
 import api from "../lib/api";
@@ -26,6 +27,7 @@ import type { Publication } from "../types/models";
 export default function Profile() {
   const { user } = useAuth();
   const [editing, setEditing] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const [pubToEdit, setPubToEdit] = useState<Publication | null>(null);
   const [featuring, setFeaturing] = useState(false);
   const [tab, setTab] = useState<"mine" | "featured">("mine");
@@ -148,6 +150,14 @@ export default function Profile() {
                 </a>
               )}
             </div>
+
+            <button
+              type="button"
+              onClick={() => setDeletingAccount(true)}
+              className="shrink-0 self-end text-xs font-medium text-red-600 underline transition-colors hover:text-red-700"
+            >
+              Delete my account
+            </button>
           </div>
         </div>
 
@@ -237,6 +247,7 @@ export default function Profile() {
       </main>
 
       <ProfileModal mode="edit" isOpen={editing} onClose={() => setEditing(false)} />
+      <DeleteAccountModal isOpen={deletingAccount} onClose={() => setDeletingAccount(false)} />
       <EditPublicationModal publication={pubToEdit} isOpen={Boolean(pubToEdit)} onClose={() => setPubToEdit(null)} />
       <FeaturePublicationModal isOpen={featuring} onClose={() => setFeaturing(false)} />
       <MarketingEmailModal

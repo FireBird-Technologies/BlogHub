@@ -7,6 +7,7 @@ from app.helpers.auth import (
     create_jwt,
     get_google_user_from_id_token,
     get_google_user_info,
+    reactivate_user,
     upsert_user,
 )
 
@@ -19,6 +20,13 @@ class GoogleTokenRequest(BaseModel):
 
 class GoogleIdTokenRequest(BaseModel):
     id_token: str
+
+
+class ReactivateRequest(BaseModel):
+    """Accepts whichever credential the client used to sign in. Exactly one is required."""
+
+    id_token: str | None = None
+    access_token: str | None = None
 
 
 class TokenResponse(BaseModel):
@@ -46,6 +54,38 @@ async def google_token_login(
         )
 
     user = await upsert_user(db, google_user)
+    return TokenResponse(token=create_jwt(str(user.id)))
+
+
+@router.post("/auth/reactivate", response_model=TokenResponse)
+async def reactivate_account(
+    body: ReactivateRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Turn a self-deleted account back on and issue a session. Re-verifies the
+    Google credential because the user has no valid JWT while deactivated.
+    """
+    if not body.id_token and not body.access_token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A Google credential is required to reactivate.",
+        )
+
+    try:
+        if body.id_token:
+            google_user = await get_google_user_from_id_token(body.id_token)
+        else:
+            google_user = await get_google_user_info(body.access_token)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Could not verify Google token: {exc}",
+        )
+
+    user = await reactivate_user(db, google_user)
     return TokenResponse(token=create_jwt(str(user.id)))
 
 

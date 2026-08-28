@@ -12,6 +12,10 @@ export interface User {
   avatar_scale?: number | null;
   website?: string | null;
   onboarded: boolean;
+  /** False once the user has deleted their account (the row is kept for reactivation). */
+  is_active?: boolean;
+  /** Set by an operator directly in the DB; blocked users cannot sign in. */
+  is_blocked?: boolean;
 }
 
 export interface SocialLinkOut {

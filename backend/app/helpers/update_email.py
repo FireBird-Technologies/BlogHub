@@ -22,6 +22,7 @@ from sqlalchemy.sql.selectable import Select
 
 from app.helpers.auth import create_unsubscribe_token
 from app.helpers.email import send_update_email
+from app.helpers.users import mailable_user_conditions
 from app.models.update_email import UpdateEmail
 from app.models.update_email_send import UpdateEmailSend
 from app.models.user import User
@@ -39,7 +40,7 @@ def _segment_query(user_filter: str) -> Select:
     implemented; BlogHub has no plan/tier concept. Unknown filters fall back to "all".
     """
     return select(User.id, User.email, User.name).where(
-        User.subscribed_only.is_(True),
+        *mailable_user_conditions(),
         User.email.isnot(None),
         User.email != "",
     )
