@@ -2900,4 +2900,138 @@ export const blogPosts: BlogPost[] = [
       ),
     ],
   },
+
+  // ── Link building ────────────────────────────────────────────────────────
+  {
+    slug: "youtube-backlinks-for-bloggers",
+    title: "YouTube Backlinks for Bloggers: What a DR 99 Link Is Really Worth",
+    description:
+      "YouTube will publish a page about your blog post, with your link on it, for free — on a domain Ahrefs rates DR 99. Here is what that link actually does, what it does not do, and how to make the video in two minutes instead of two hours.",
+    category: "SEO",
+    publishedAt: "2026-08-27",
+    readTime: "7 min read",
+    heroEyebrow: "Link Building",
+    heroTitle: "YouTube backlinks for bloggers",
+    heroDescription:
+      "Every video you upload earns a permanent, indexed page on a DR 99 domain, carrying your link and your topic. The link is nofollow — and it is still one of the better deals available to a small blog.",
+    primaryKeyword: "youtube backlink",
+    keywordVariant: "how to get backlinks from youtube",
+    relatedPaths: [
+      "/blogs/how-to-turn-a-blog-post-into-a-video",
+      "/blogs/how-to-repurpose-blog-content",
+      "/blogs/best-blog-directories",
+      "/blogs/how-to-promote-your-blog-for-free",
+    ],
+    sections: [
+      {
+        heading: "The one high-authority page you can publish on without asking anyone",
+        paragraphs: [
+          "Link building for a small blog is mostly rejection. You pitch guest posts that go unanswered, you answer journalist requests that never get used, and you eventually find yourself reading a price list from someone selling placements on domains that look suspiciously alike.",
+          "YouTube is the exception, and it is strange how rarely bloggers use it. Upload a video and you are handed a permanent page on youtube.com — a domain Ahrefs rates at DR 99 — carrying your title, up to 5,000 characters of description, your link, your transcript, and your channel name. Nobody approves it. Nobody can take it down.",
+        ],
+      },
+      {
+        heading: "First, the caveat nobody puts in the headline",
+        paragraphs: [
+          "Links in a YouTube description are nofollow. They have always been nofollow. Since March 2020 Google has treated nofollow as a hint rather than a strict instruction, which means the link may be considered for crawling and ranking, but you should not budget for domain authority flowing into your site from a video description.",
+          "That caveat is why so much advice about YouTube backlinks reads as hype. It is also why the tactic is underused by people who would genuinely benefit from it — they hear nofollow, decide it is worthless, and walk away from the actual asset.",
+          "The asset is the page. A watch page on Google's own video platform, about your topic, in your words, pointing at your blog.",
+        ],
+        bullets: [
+          "It can rank on Google and inside YouTube search, so one article now competes on two surfaces for the same query.",
+          "The traffic it sends is pre-qualified — somebody watched your explanation before they clicked.",
+          "It builds the brand association that both Google and AI answer engines use to decide who is credible on a subject.",
+          "It keeps working after you stop promoting it, unlike every social feed you have tried.",
+        ],
+      },
+      {
+        heading: "Why most bloggers never bother",
+        paragraphs: [
+          "Because the video is the expensive part. Filming yourself means a camera, decent audio, a few takes, and an hour of editing — for a post you already published and already moved on from. The maths never works, so the video never happens.",
+          "The shortcut most people reach for, a prompt-to-video AI generator, tends to make things worse. That output has a recognisable look now, and viewers scroll past it. A video with a dozen views is not a distribution channel; it is a page nobody has loaded that happens to contain your URL.",
+          "What you want is something that looks deliberately made, costs almost nothing to produce, and can be repeated for every post in your archive.",
+        ],
+      },
+      {
+        heading: "The two-minute version",
+        paragraphs: [
+          "Blog2Video takes the URL of a post and renders a video from it in code rather than with a video model — real typography, real charts, real motion, arranged by designed templates. Nothing warps, nothing melts, and the text on screen is actually text.",
+          "You can narrate it yourself, recording scene by scene with the visuals playing beside you, or clone your voice once from a short sample and reuse it on every video after that. Then you download the MP4 and upload it.",
+          "The script is already written. It is your blog post. That is the entire reason this collapses from an afternoon into a couple of minutes.",
+        ],
+        ctaPath: "https://blog2video.app",
+        ctaLabel: "Turn a post into a video",
+      },
+      {
+        heading: "Upload it so the link is worth having",
+        paragraphs: [
+          "Most of the value is won or lost in the upload, not the render. The description in particular is a page of indexed copy that Google reads and answer engines quote, so it deserves more than a line of hashtags.",
+        ],
+        bullets: [
+          "Link in the first line of the description — only the first two lines are visible before the fold.",
+          "Two to three hundred words summarising the post, with the link repeated at the bottom.",
+          "Upload real subtitles rather than relying on auto-captions, which mangle exactly the branded and technical terms you want indexed.",
+          "Paste the transcript or a summary into the description for more indexable text on the page.",
+          "Title the video for the same search term as the post, phrased the way a person would type it.",
+          "Pin a comment containing the link so it survives description truncation.",
+          "Add chapters, which Google can surface as key moments in search results.",
+        ],
+      },
+      {
+        heading: "One video per post, not one video",
+        paragraphs: [
+          "A single upload is a curiosity. The version that changes anything is a video for every post you publish, and gradually for the archive behind it.",
+          "Twenty posts becomes twenty indexed watch pages, all pointing back at your blog, plus a channel that Google can read as a coherent topic. None of it depends on your own domain ranking for anything, which is precisely what a young blog needs while it waits for its own authority to build.",
+          "Pair that with the other channels that keep working while you sleep — a directory listing, an email list — and you have a distribution layer that does not reset to zero every time you stop posting.",
+        ],
+        ctaPath: "/dashboard",
+        ctaLabel: "List your blog on BlogHub",
+      },
+    ],
+    faq: [
+      {
+        question: "Are YouTube backlinks dofollow or nofollow?",
+        answer:
+          "Nofollow. Links in video descriptions and on channel pages carry the rel=\"nofollow\" attribute. Google has treated nofollow as a hint rather than a directive since March 2020, so the link may still inform crawling and ranking, but you should not expect it to pass authority the way an editorial link would.",
+      },
+      {
+        question: "So are YouTube backlinks worth getting?",
+        answer:
+          "Yes, for reasons that have little to do with link equity. You get a permanent, indexed page on a DR 99 domain that can rank for your topic, send qualified referral traffic, and tie your brand to your subject in the data Google and AI answer engines use. That is a strong return for a video you can make from an existing post.",
+      },
+      {
+        question: "Do I need to be on camera to get one?",
+        answer:
+          "No. A rendered explainer video built from your post — typography, charts, images, and motion, with a voiceover — is a perfectly normal upload and often outperforms a webcam take for written-first content.",
+      },
+      {
+        question: "How many YouTube videos should I make for my blog?",
+        answer:
+          "Aim for one per post going forward, then work backwards through the archive. The value compounds with the number of indexed watch pages and with the channel reading as a consistent topical entity, not with any single upload.",
+      },
+      {
+        question: "Will the video compete with my blog post in search results?",
+        answer:
+          "Rarely, and when it does it is usually a net gain — you occupy two results for the same query instead of one. The formats satisfy different intents, and embedding the video back into the post tends to raise time on page.",
+      },
+    ],
+    distributionPlan: [
+      {
+        channel: "site",
+        title: "YouTube backlinks for bloggers: what a DR 99 link is really worth",
+        angle:
+          "Link-building post for bloggers, with the nofollow reality handled up front so the piece is credible to readers who already know it.",
+      },
+      {
+        channel: "substack",
+        title: "Nofollow, DR 99, and the backlink advice nobody qualifies",
+        angle:
+          "Open with why the tactic sounds like hype, then make the case that the watch page itself is the asset.",
+      },
+      videoAsset(
+        "How bloggers get a DR 99 page on YouTube in two minutes",
+        "Show the loop end to end: post URL in, rendered video out, uploaded with the link on the first line of the description.",
+      ),
+    ],
+  },
 ];
