@@ -19,6 +19,142 @@ function videoAsset(title: string, angle: string): DistributionAsset {
 }
 
 export const blogPosts: BlogPost[] = [
+  {
+    slug: "video-blog-sites",
+    title: "Video Blog Sites: Where to Find Them, and Where to List Yours",
+    description:
+      "Video blogs are hard to discover because search engines index the page, not the clip. Here is where video-first and video-supported blogs actually get found, how to get yours listed, and what to fix on the page first.",
+    category: "Discovery",
+    publishedAt: "2026-09-05",
+    readTime: "7 min read",
+    heroEyebrow: "Discovery",
+    heroTitle: "A video blog has a discovery problem no amount of good video solves",
+    heroDescription:
+      "Search engines index your page, not your footage. Which means a blog built around video is harder to find than a plain text one — unless you get it in front of people who are browsing rather than searching.",
+    primaryKeyword: "video blog site",
+    keywordVariant: "video blog sites",
+    relatedPaths: [
+      "/blogs/best-blog-directories",
+      "/blogs/how-to-turn-a-blog-post-into-a-video",
+      "/blogs/how-to-get-your-blog-noticed",
+      "/blogs/blog-promotion-sites",
+    ],
+    sections: [
+      {
+        heading: "Why video blogs are harder to find than text blogs",
+        paragraphs: [
+          "A search engine reads text. It does not watch your video. When a blog's substance lives inside a clip, most of what makes that blog good is invisible to the thing responsible for sending it readers.",
+          "You can mitigate this — transcripts, VideoObject markup, real written summaries around the embed — and you should. But mitigation is not the same as parity. A video-heavy blog will generally be outranked by a text-heavy blog covering the same subject, on the strength of the format alone.",
+          "So the answer for a video blog is not to out-SEO the text blogs. It is to be discovered by people who are browsing a category, following a recommendation, or scrolling a directory — routes where somebody decides what to open based on what it looks like, which is the one comparison a video blog wins.",
+        ],
+      },
+      {
+        heading: "Where video blogs actually get found",
+        paragraphs: [
+          "Four routes do most of the work, and only one of them is search.",
+          "YouTube is the obvious one and is genuinely a search engine, which makes it the closest thing to search traffic a video blog can reliably win. The catch is that YouTube keeps the viewer; the traffic only reaches your site if the description and the video actively send it there.",
+          "Directories are the underrated one. Somebody browsing a category is in a different mode from somebody typing a query — they are looking for something to follow, not an answer to a question, which is exactly the transaction a good video blog is offering.",
+          "Then there are newsletters and communities, where a recommendation from a person still outperforms every algorithm, and social, which drives spikes rather than a baseline and stops the moment you do.",
+        ],
+        bullets: [
+          "YouTube — real search volume, but you must engineer the click back to your site",
+          "Directories — browsing intent, permanent listing, and an indexed link",
+          "Newsletters and communities — the highest-converting route, and the slowest to build",
+          "Social — spiky, non-compounding, and gone the week you stop posting",
+        ],
+      },
+      {
+        heading: "Get the blog listed somewhere permanent",
+        paragraphs: [
+          "A directory listing is the one distribution step that keeps working with no further effort. It sits there, it is indexed, and it puts your publication in front of readers who are actively looking for something new to follow in your subject.",
+          "BlogHub is built for that: a launch platform for blogs and newsletters where readers browse by category rather than search by keyword. Listing takes a few minutes, and it leaves behind a real page pointing at your site.",
+          "For a video blog specifically it matters more than usual, because the browse-and-look-at-it mode is where your format is an advantage rather than a handicap.",
+        ],
+        ctaPath: "/dashboard",
+        ctaLabel: "List your blog on BlogHub",
+      },
+      {
+        heading: "Fix the page before you promote it",
+        paragraphs: [
+          "Getting people to arrive is wasted if the page they land on is an unlabelled embed. Three things matter and they take an afternoon between them.",
+          "Write real text around the video — at minimum a summary of what it covers, ideally the transcript. This is what a crawler reads and what a reader skims before deciding to press play. Add VideoObject structured data with a name, description, thumbnail and upload date, which is what makes the page eligible for video results at all. And make sure the embed is lazy-loaded, because a page that takes four seconds to become interactive loses the visitor before the video has a chance.",
+          "None of this makes the video better. All of it decides whether the video is ever seen.",
+        ],
+        bullets: [
+          "A written summary or full transcript on the page, not only in the video",
+          "VideoObject structured data — name, description, thumbnailUrl, uploadDate",
+          "One video per post, placed under the intro rather than above the headline",
+          "Lazy-loaded embeds so the page still loads quickly",
+          "A descriptive title and caption that read well with the video unplayed",
+        ],
+      },
+      {
+        heading: "The version that is easier to sustain",
+        paragraphs: [
+          "Most people who set out to run a video blog stop within three months, and it is almost never a motivation problem. It is that filming, editing and publishing a video per post is a full production job stacked on top of writing.",
+          "The format that survives is text-first with video support: you write the post as normal, and generate a video from it afterwards. The article still does the ranking, the video still does the demonstrating, and nobody has to be on camera on a Tuesday.",
+          "Tools like blog2video.app do exactly this — the post goes in as a URL, and a narrated video comes out a few minutes later, using your own voice if you want it to. It renders the video programmatically rather than generating frames, so on-screen text stays sharp and readable instead of turning into the melted lettering that makes AI video obvious.",
+        ],
+        ctaPath: "https://blog2video.app",
+        ctaLabel: "Generate a video from a blog post",
+      },
+      {
+        heading: "Then upload the same video to YouTube",
+        paragraphs: [
+          "Once the video exists, it costs nothing to publish it twice. The embed serves your own page; the YouTube upload earns a separate indexed watch page that can rank on its own and send people back.",
+          "Put the post link in the first line of the description, since only the first two lines show before the fold. Upload real subtitles rather than relying on auto-captions, which mangle exactly the branded terms you want indexed. Add chapters, which Google can surface as key moments.",
+          "That is two discovery surfaces from one piece of work, which is the only ratio that makes video sustainable for a blog run by one person.",
+        ],
+        ctaPath: "https://blog2video.app/blogs/blogs-with-videos",
+        ctaLabel: "How to add video to a blog post properly",
+      },
+    ],
+    faq: [
+      {
+        question: "What is a video blog site?",
+        answer:
+          "The term covers two different things. A video-first blog, or vlog, is one where the video is the content and text is incidental. A video-supported blog is a written blog whose posts embed video that demonstrates or summarises the writing. The second is far more sustainable for one person and is what most people mean when they set out to build one.",
+      },
+      {
+        question: "Where can I find video blogs to read?",
+        answer:
+          "Category-browsing surfaces rather than search, because search engines index the page rather than the footage. Blog and newsletter directories, curated newsletters, and topic communities are where video blogs surface. Search will mostly return text-heavy pages on the same subject.",
+      },
+      {
+        question: "How do I get my video blog discovered?",
+        answer:
+          "List it in directories where readers browse by category, upload the same videos to YouTube with your post linked in the first line of the description, and make sure each post carries a written summary or transcript plus VideoObject structured data. Browsing surfaces are where a video blog's format is an advantage rather than a handicap.",
+      },
+      {
+        question: "Do video blogs rank well in Google?",
+        answer:
+          "Not on the video alone. Google reads the text on the page, so a post whose substance sits inside an unlabelled embed has very little to rank. Adding a transcript, a written summary and VideoObject markup closes much of the gap, and the YouTube upload gives you a second page competing for the same query.",
+      },
+      {
+        question: "Do I need to appear on camera to run a video blog?",
+        answer:
+          "No, and most sustainable video blogs do not. Narrated text-and-motion videos generated from the post itself cover the same ground without filming. You can use a synthetic voice, record narration yourself, or clone your voice once and reuse it.",
+      },
+    ],
+    distributionPlan: [
+      {
+        channel: "site",
+        title: "Video Blog Sites: Where to Find Them, and Where to List Yours",
+        angle:
+          "Own the video-blog discovery query from the directory side, and route readers into a BlogHub listing.",
+      },
+      {
+        channel: "substack",
+        title: "Video blogs have a discovery problem nobody warns you about",
+        angle:
+          "Lead with the invisible-to-search argument, land on directories and YouTube as the two routes that work.",
+      },
+      videoAsset(
+        "Why nobody can find your video blog",
+        "Show the same topic as a text post and a video post in search results, then the directory and YouTube routes that fix it.",
+      ),
+    ],
+  },
   // ── Growth & discovery ───────────────────────────────────────────────────
   {
     slug: "how-to-get-traffic-to-your-blog",
