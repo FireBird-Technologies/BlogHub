@@ -791,6 +791,7 @@ async def send_featured_marketing_email(
     button_text: str,
     link_url: str,
     unsubscribe_token: str,
+    promo_url: str | None = None,
 ) -> None:
     """The announcement itself, to one subscriber.
 
@@ -798,9 +799,13 @@ async def send_featured_marketing_email(
     publication link is a single button, labelled with whatever text the author chose
     for it. Deliberately no cover image, title card, or category/author line — the
     message is the author's own words plus one button, nothing else competing for
-    attention. The body is escaped, so nothing an author types can inject markup, and
-    the button and the unsubscribe footer are rendered here rather than stored — an
+    attention above the fold. The body is escaped, so nothing an author types can inject
+    markup, and the button and the footer are rendered here rather than stored — an
     author editing the draft cannot break or delete either.
+
+    Below a divider, well clear of the author's own content, `promo_url` adds BlogHub's
+    "get featured yourself" line — the blast reaches every subscriber, so it is the best
+    place we have to reach future buyers. Omitted when not supplied.
 
     Sent from the newsletter address, which is the sender subscribers already
     recognise. Never raises: one bad address must not stop the rest of the blast.
@@ -820,6 +825,20 @@ async def send_featured_marketing_email(
     safe_link_url = html.escape(link_url)
     safe_button_text = html.escape(button_text)
 
+    # Deliberately broad: the site's card rotates "business / Substack / services"
+    # because buyers are not only publications. Text only, behind a hairline rule —
+    # a styled block here would compete with the author's own button.
+    promo_html = (
+        '<p style="margin:32px 0 0;padding-top:20px;border-top:1px solid #f3f4f6;'
+        'font-size:13px;color:#6b7280;line-height:1.6;">'
+        "Want this spot for your business, newsletter, or services? "
+        f'<a href="{html.escape(promo_url)}" style="color:#dc2626;text-decoration:none;'
+        'font-weight:600;">Get featured on BlogHub</a>.'
+        "</p>"
+        if promo_url
+        else ""
+    )
+
     html_body = (
         '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"></head>'
         '<body style="margin:0;padding:0;background:#fff;'
@@ -829,7 +848,9 @@ async def send_featured_marketing_email(
         f'<a href="{safe_link_url}" style="display:inline-block;background:#dc2626;color:#ffffff;'
         "font-size:14px;font-weight:600;text-decoration:none;padding:10px 22px;border-radius:8px;\">"
         f"{safe_button_text}</a>"
-        '<p style="margin:32px 0 0;font-size:12px;color:#9ca3af;">'
+        f"{promo_html}"
+        # Tighter above the unsubscribe line when the promo already opened a gap.
+        f'<p style="margin:{20 if promo_html else 32}px 0 0;font-size:12px;color:#9ca3af;">'
         f'<a href="{html.escape(unsubscribe_url)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a>'
         "</p>"
         "</div></body></html>"

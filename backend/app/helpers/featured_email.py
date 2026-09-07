@@ -67,14 +67,22 @@ _MARKETING_EMAIL_UTM = {
     "utm_content": "marketing_email",
 }
 
+# utm_content for the footer's "get featured yourself" link. Distinct from
+# "marketing_email" above so BlogHub's own promo clicks are never mixed in with the
+# clicks the featured author paid for.
+PROMO_UTM_CONTENT = "promo_footer"
 
-def _with_marketing_email_utm(url: str) -> str:
+
+def _with_marketing_email_utm(url: str, *, utm_content: str | None = None) -> str:
     """Append the marketing-email UTM tag to an outbound URL.
 
     Preserves any query string already on the link and never overwrites a param the
     author's own URL already set. Falls back to the raw URL for anything that isn't a
     parseable absolute http(s) link, so a malformed publication URL degrades to a
     plain link rather than breaking the send.
+
+    `utm_content` overrides the default tag: the "get featured yourself" promo in the
+    footer passes its own so its clicks can be told apart from the author's button.
     """
     try:
         parts = urlsplit(url)
@@ -83,6 +91,8 @@ def _with_marketing_email_utm(url: str) -> str:
         query = dict(parse_qsl(parts.query, keep_blank_values=True))
         for key, value in _MARKETING_EMAIL_UTM.items():
             query.setdefault(key, value)
+        if utm_content is not None:
+            query["utm_content"] = utm_content
         return urlunsplit(parts._replace(query=urlencode(query)))
     except Exception:  # noqa: BLE001
         return url
@@ -330,6 +340,12 @@ async def send_due_emails(db: AsyncSession) -> dict:
             raw_link_url = (pub.url if pub else None) or settings.FRONTEND_URL
             link_url = _with_marketing_email_utm(raw_link_url)
             button_text = (email.button_text or "").strip() or DEFAULT_BUTTON_TEXT
+            # "Get featured yourself" footer link. Points at the pricing/FAQ page, which
+            # already routes both signed-in and signed-out readers into the booking flow
+            # — most recipients here have never seen the pitch.
+            promo_url = _with_marketing_email_utm(
+                f"{settings.FRONTEND_URL}/featured-faq", utm_content=PROMO_UTM_CONTENT
+            )
 
             for i, (user_id, to_email, name) in enumerate(pending):
                 if i > 0:
@@ -343,6 +359,7 @@ async def send_due_emails(db: AsyncSession) -> dict:
                     body=email.body.replace(NAME_PLACEHOLDER, name or "there"),
                     button_text=button_text,
                     link_url=link_url,
+                    promo_url=promo_url,
                     unsubscribe_token=token,
                 )
                 # Recorded — and committed — right after this one send, not batched

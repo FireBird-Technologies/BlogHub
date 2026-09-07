@@ -41,7 +41,7 @@ const PACKAGES = [
   {
     durationDays: 7 as FeatureDuration,
     name: "7 days",
-    price: "$30",
+    price: "$60",
     label: "Launch week",
     description: "A focused run for a new post, product update, or announcement.",
     advantages: [
@@ -58,7 +58,7 @@ const PACKAGES = [
   {
     durationDays: 14 as FeatureDuration,
     name: "14 days",
-    price: "$60",
+    price: "$120",
     label: "Campaign",
     description: "More time for readers to see the feature across multiple visits.",
     advantages: [
@@ -75,7 +75,7 @@ const PACKAGES = [
   {
     durationDays: 30 as FeatureDuration,
     name: "30 days",
-    price: "$80",
+    price: "$160",
     label: "Best value",
     description: "The longest run, best for ongoing launches or evergreen pages.",
     advantages: [
@@ -224,7 +224,7 @@ function FaqContent() {
           averaged 50 to 80 clicks in a single week, directly to their site.
         </p>
         <p>
-          At $30 per week, that works out to a fraction of what you&apos;d pay for the same volume
+          At $60 per week, that works out to a fraction of what you&apos;d pay for the same volume
           on Meta or Google Ads, without the bidding wars or targeting overhead.
         </p>
         <p>
@@ -240,7 +240,7 @@ function FaqContent() {
 
       <LegalSection title="What does it cost?">
         <p>
-          $30 for 7 days, $60 for 14 days, or $80 for 30 days. One payment, no subscription,
+          $60 for 7 days, $120 for 14 days, or $160 for 30 days. One payment, no subscription,
           nothing renews. When your run is up the slot opens again.
         </p>
         <p>

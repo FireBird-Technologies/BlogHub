@@ -41,9 +41,10 @@ function priceLabel(prices: Record<string, number>, days: number): string {
  *
  * Deliberately not the 3-step `FeaturePublicationModal`: the publication is already
  * decided here, so its "which publication?" step has nothing to ask. What replaces it
- * is a duration-first flow — MIN_LEAD_DAYS means a renewal can never butt up against a
- * run ending today, so rather than drop the author on a calendar to hunt for a gap, we
- * pick the earliest window that fits and let them change it.
+ * is a duration-first flow — the earliest a renewal can start is tomorrow, and the run
+ * being extended may not be the only thing on the calendar, so rather than drop the
+ * author on a calendar to hunt for a gap, we pick the earliest window that fits and let
+ * them change it.
  */
 export default function RenewFeatureModal({ isOpen, onClose, slotId }: RenewFeatureModalProps) {
   const renewal = useRenewalContext(isOpen ? slotId : null);
@@ -118,8 +119,8 @@ export default function RenewFeatureModal({ isOpen, onClose, slotId }: RenewFeat
         email_button_text: draft.buttonText.trim(),
         email_scheduled_at: draftSendAtUtc(draft),
         email_timezone: localZone(),
-        // Unlocks the shorter renewal lead time, so extending a run that ends today
-        // can start tomorrow. Re-verified server-side against this slot's owner.
+        // Applies the renewal lead time, so extending a run that ends today can start
+        // tomorrow. Re-verified server-side against this slot's owner.
         ...(slotId ? { renewal_of_slot_id: slotId } : {}),
       },
       {
@@ -239,9 +240,10 @@ export default function RenewFeatureModal({ isOpen, onClose, slotId }: RenewFeat
                   </span>
                 </div>
 
-                {/* min/max come from the renewal payload, not the generic availability:
-                    renewals clear a shorter lead time, so the generic min would grey out
-                    the very day we just suggested. */}
+                {/* min/max come from the renewal payload, not the generic availability.
+                    The two lead times currently match, but the renewal one is never
+                    longer — so this is the min that can't grey out the day we just
+                    suggested, whatever the generic lead time is set to. */}
                 <FeatureCalendar
                   bookedDays={bookedDays}
                   durationDays={duration}

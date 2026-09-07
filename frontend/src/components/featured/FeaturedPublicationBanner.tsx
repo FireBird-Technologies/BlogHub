@@ -179,7 +179,7 @@ function OpenSlotBody() {
           announcement email to {LEGAL.siteName} subscribers.
         </p>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-auto pt-0.5">
-          <span className="text-[11px] font-semibold text-amber-700">From $30 for 7 days</span>
+          <span className="text-[11px] font-semibold text-amber-700">From $60 for 7 days</span>
           <span className="text-gray-300">|</span>
           <span className="text-[11px] font-medium text-gray-400">~3,000 visitors so far</span>
         </div>
