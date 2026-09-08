@@ -323,14 +323,14 @@ async def send_due_emails(db: AsyncSession) -> dict:
         # The publication's owner always gets their own announcement, even if they've
         # turned off the general subscriber digest — this is the email *about their
         # publication*, not the weekly blast, and they bought the slot it's for.
-        # The digest opt-out is what the owner bypasses — being deleted or blocked is
-        # not, so those conditions stay outside the or_().
+        # The digest opt-out is what the owner bypasses — being deleted is not, so
+        # that condition stays outside the or_(). Blocking is not filtered on at all:
+        # it gates sign-in, not deliverability (see app/helpers/users.py).
         owner_id = email.publication.user_id if email.publication else None
         subs = await db.execute(
             select(User.id, User.email, User.name).where(
                 or_(User.subscribed_only.is_(True), User.id == owner_id),
                 User.is_active.is_(True),
-                User.is_blocked.is_(False),
             )
         )
         pending = [row for row in subs.all() if row[0] not in already_sent_ids]
@@ -401,7 +401,6 @@ async def send_due_emails(db: AsyncSession) -> dict:
             .where(
                 or_(User.subscribed_only.is_(True), User.id == owner_id),
                 User.is_active.is_(True),
-                User.is_blocked.is_(False),
             )
             .where(
                 ~User.id.in_(

@@ -164,3 +164,15 @@ class ResubmitAndClaimCreate(BaseModel):
 class ApproveClaimRequest(BaseModel):
     claim_id: uuid.UUID
     password: str
+
+
+class BlockClaimerRequest(BaseModel):
+    """Twin of `ApproveClaimRequest` for the destructive branch of claim review.
+
+    Same shape and same shared password, but kept a separate type so the two
+    endpoints stay independently documented — one transfers ownership, the other
+    blocks the claimer and deletes their publications.
+    """
+
+    claim_id: uuid.UUID
+    password: str

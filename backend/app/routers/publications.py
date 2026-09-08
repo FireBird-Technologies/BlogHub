@@ -4,7 +4,8 @@ from datetime import date, datetime, time, timezone
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
-from sqlalchemy import select
+from sqlalchemy import delete as sa_delete
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -17,10 +18,22 @@ from app.helpers.publications import (
     toggle_upvote,
 )
 from app.helpers.url_normalize import normalize_link_url, normalize_publication_url
+from app.models.comment import Comment
+from app.models.featured_email_recipient import FeaturedEmailRecipient
+from app.models.featured_slot import FeaturedSlot
 from app.models.publication import Publication
 from app.models.publication_claim import PublicationClaim
 from app.models.publication_invite import PublicationInvite
-from app.schemas.claim import ApproveClaimRequest, ClaimCreate, ClaimOut, ResubmitAndClaimCreate
+from app.models.update_email_send import UpdateEmailSend
+from app.models.upvote import Upvote
+from app.models.user import User
+from app.schemas.claim import (
+    ApproveClaimRequest,
+    BlockClaimerRequest,
+    ClaimCreate,
+    ClaimOut,
+    ResubmitAndClaimCreate,
+)
 from app.schemas.publication import (
     PaginatedPublications,
     PublicationCreate,
@@ -527,6 +540,10 @@ async def claim_publication(
         f"{settings.FRONTEND_URL}/admin/approve-claim"
         f"?pub_id={publication_id}&claim_id={claim.id}"
     )
+    block_url = (
+        f"{settings.FRONTEND_URL}/admin/block-claimer"
+        f"?pub_id={publication_id}&claim_id={claim.id}"
+    )
     try:
         await send_claim_notification(
             claim_id=claim.id,
@@ -537,6 +554,7 @@ async def claim_publication(
             original_url=original_url,
             comment=data.comment,
             approve_url=approve_url,
+            block_url=block_url,
         )
     except Exception:  # noqa: BLE001
         pass
@@ -633,6 +651,10 @@ async def resubmit_and_claim(
         f"{settings.FRONTEND_URL}/admin/approve-claim"
         f"?pub_id={publication_id}&claim_id={claim.id}"
     )
+    block_url = (
+        f"{settings.FRONTEND_URL}/admin/block-claimer"
+        f"?pub_id={publication_id}&claim_id={claim.id}"
+    )
     try:
         await send_claim_notification(
             claim_id=claim.id,
@@ -643,6 +665,7 @@ async def resubmit_and_claim(
             original_url=original_url,
             comment=data.comment,
             approve_url=approve_url,
+            block_url=block_url,
         )
     except Exception:  # noqa: BLE001
         pass
@@ -703,3 +726,81 @@ async def approve_claim(
         pass
 
     return {"ok": True, "publication_id": str(publication_id), "new_owner_id": str(claim.user_id)}
+
+
+@router.post(
+    "/publications/{publication_id}/block-claimer",
+    status_code=status.HTTP_200_OK,
+)
+async def block_claimer(
+    publication_id: uuid.UUID,
+    data: BlockClaimerRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Destructive counterpart to `approve_claim`: block the claimer, delete their work.
+
+    Reached from the "Block user & delete publications" button in the claim
+    notification email. Guarded by the same shared `CLAIM_APPROVE_PASSWORD` as the
+    approve path, so both actions in that email share one auth story.
+
+    Targets the *claimer* (`claim.user_id`) — the person who submitted the claim —
+    not the current owner of the claimed publication. The claimed publication is
+    therefore left alone unless the claimer already owned it.
+
+    Sets `is_blocked` only; `is_active` is deliberately untouched, so this stays
+    reversible by flipping a single column.
+    """
+    if not settings.CLAIM_APPROVE_PASSWORD or data.password != settings.CLAIM_APPROVE_PASSWORD:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password")
+
+    claim_result = await db.execute(
+        select(PublicationClaim).where(
+            PublicationClaim.id == data.claim_id,
+            PublicationClaim.publication_id == publication_id,
+        )
+    )
+    claim = claim_result.scalar_one_or_none()
+    if not claim:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Claim not found")
+
+    claimer_id = claim.user_id
+    user = await db.get(User, claimer_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Claimer not found")
+    if user.is_blocked:
+        # The link lives in an inbox and can be clicked twice; the first pass already
+        # deleted their publications, so a second must not look like it did more work.
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="This user is already blocked"
+        )
+
+    # Counted before the delete, for the confirmation the admin page shows.
+    count_result = await db.execute(
+        select(func.count()).select_from(Publication).where(Publication.user_id == claimer_id)
+    )
+    publications_deleted = count_result.scalar_one()
+
+    user.is_blocked = True
+
+    # Same ordering as `delete_me` in app/routers/users.py: deleting the user's own
+    # publications cascades to everything hanging off them, but the rows below point
+    # at *other* users' publications, so they need deleting explicitly first.
+    await db.execute(sa_delete(Upvote).where(Upvote.user_id == claimer_id))
+    await db.execute(sa_delete(Comment).where(Comment.user_id == claimer_id))
+    await db.execute(sa_delete(PublicationClaim).where(PublicationClaim.user_id == claimer_id))
+    await db.execute(sa_delete(FeaturedSlot).where(FeaturedSlot.user_id == claimer_id))
+    await db.execute(sa_delete(PublicationInvite).where(PublicationInvite.sender_id == claimer_id))
+    await db.execute(
+        sa_delete(FeaturedEmailRecipient).where(FeaturedEmailRecipient.user_id == claimer_id)
+    )
+    await db.execute(sa_delete(UpdateEmailSend).where(UpdateEmailSend.user_id == claimer_id))
+    await db.execute(sa_delete(Publication).where(Publication.user_id == claimer_id))
+
+    # `claim` was removed by the PublicationClaim delete above — do not touch it now.
+    await db.commit()
+
+    return {
+        "ok": True,
+        "blocked_user_id": str(claimer_id),
+        "publications_deleted": publications_deleted,
+    }

@@ -91,6 +91,7 @@ async def send_claim_notification(
     original_url: str | None,
     comment: str | None = None,
     approve_url: str | None = None,
+    block_url: str | None = None,
 ) -> None:
     """Best-effort email to the site owner when a publication is claimed.
 
@@ -127,18 +128,38 @@ async def send_claim_notification(
     pub_url = html.escape(publication.url or "")
     claim_id_str = html.escape(str(claim_id))
 
-    approve_button_html = ""
+    # Two opposed actions, colour-coded: green approves and transfers ownership, red
+    # blocks the claimer and deletes their publications. Each is rendered only when
+    # its URL is supplied, and both land on a password-protected confirmation page.
+    action_buttons = []
     if approve_url:
         safe_approve_url = html.escape(approve_url)
-        approve_button_html = f"""
-      <div style="margin-top:24px;text-align:center;">
+        action_buttons.append(
+            f"""
         <a href="{safe_approve_url}"
-           style="display:inline-block;background:#dc2626;color:#ffffff;font-size:14px;
+           style="display:inline-block;background:#16a34a;color:#ffffff;font-size:14px;
                   font-weight:600;text-decoration:none;padding:12px 28px;border-radius:8px;">
           Approve &amp; Transfer Ownership
-        </a>
+        </a>"""
+        )
+    if block_url:
+        safe_block_url = html.escape(block_url)
+        action_buttons.append(
+            f"""
+        <a href="{safe_block_url}"
+           style="display:inline-block;margin-top:10px;background:#dc2626;color:#ffffff;
+                  font-size:14px;font-weight:600;text-decoration:none;padding:12px 28px;
+                  border-radius:8px;">
+          Block User &amp; Delete Publications
+        </a>"""
+        )
+
+    approve_button_html = ""
+    if action_buttons:
+        approve_button_html = f"""
+      <div style="margin-top:24px;text-align:center;">{"".join(action_buttons)}
         <p style="color:#9ca3af;font-size:11px;margin-top:10px;">
-          Clicking this button will take you to a password-protected page to confirm the approval.
+          Both buttons lead to a password-protected page to confirm the action.
         </p>
       </div>"""
 
@@ -1051,13 +1072,22 @@ async def send_weekly_digest(
         title = html.escape(pub.title or "")
         raw_desc = (pub.description or "").strip()
         desc = html.escape(raw_desc[:180].rsplit(" ", 1)[0] + "…") if len(raw_desc) > 180 else html.escape(raw_desc)
-        desc_block = f'<p style="margin:6px 0 10px;font-size:14px;color:#374151;line-height:1.6;">{desc}</p>' if desc else '<p style="margin:0 0 10px;"></p>'
+        desc_block = f'<p style="margin:6px 0 4px;font-size:14px;color:#374151;line-height:1.6;">{desc}</p>' if desc else '<p style="margin:0 0 4px;"></p>'
+        author = getattr(pub, "author", None)
+        author_name = (getattr(author, "name", None) or "").strip()
+        byline_block = (
+            f'<p style="margin:0 0 10px;font-size:13px;color:#6b7280;line-height:1.5;">'
+            f'By {html.escape(author_name)}</p>'
+            if author_name
+            else ""
+        )
         return (
             f'<tr><td style="padding:20px 0;">'
             f'<p style="margin:0 0 4px;font-size:15px;font-weight:600;color:#111827;line-height:1.5;">'
             f'&rarr; <a href="{pub_url}" style="color:#111827;text-decoration:none;">{title}</a>'
             f'</p>'
             f'{desc_block}'
+            f'{byline_block}'
             f'<a href="{pub_url}" style="font-size:13px;color:#111827;text-decoration:underline;">Read the full post</a>'
             f'</td></tr>'
         )

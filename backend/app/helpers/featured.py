@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 # duration_days -> price in cents. This is the *display* price (shown in the UI and
 # stored on the booking). The amount actually charged comes from the Stripe Price
 # below — see _stripe_price_id(). Keep the two in sync.
-FEATURE_PRICES_CENTS: dict[int, int] = {7: 6000, 14: 12000, 30: 16000}
+FEATURE_PRICES_CENTS: dict[int, int] = {7: 6000, 14: 12000, 30: 20000}
 
 
 def _stripe_price_id(duration_days: int) -> str | None:

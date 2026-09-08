@@ -75,7 +75,7 @@ const PACKAGES = [
   {
     durationDays: 30 as FeatureDuration,
     name: "30 days",
-    price: "$160",
+    price: "$200",
     label: "Best value",
     description: "The longest run, best for ongoing launches or evergreen pages.",
     advantages: [
@@ -240,7 +240,7 @@ function FaqContent() {
 
       <LegalSection title="What does it cost?">
         <p>
-          $60 for 7 days, $120 for 14 days, or $160 for 30 days. One payment, no subscription,
+          $60 for 7 days, $120 for 14 days, or $200 for 30 days. One payment, no subscription,
           nothing renews. When your run is up the slot opens again.
         </p>
         <p>
