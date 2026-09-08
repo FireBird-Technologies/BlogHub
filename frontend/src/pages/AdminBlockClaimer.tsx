@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ShieldX, Ban, AlertTriangle } from "lucide-react";
+import { ShieldX, Ban } from "lucide-react";
 import api, { formatApiErrorDetail } from "../lib/api";
 import Spinner from "../components/ui/Spinner";
 
@@ -9,9 +9,8 @@ export default function AdminBlockClaimer() {
   const pubId = searchParams.get("pub_id");
   const claimId = searchParams.get("claim_id");
 
-  // The link lives in an inbox, and the action is irreversible — so the password
-  // field only appears after the admin has explicitly acknowledged what it does.
-  const [confirmed, setConfirmed] = useState(false);
+  // The link lives in an inbox and the action is irreversible, so the admin password
+  // is what gates it — the warning above the field states what it does.
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [deletedCount, setDeletedCount] = useState<number | null>(null);
@@ -80,51 +79,34 @@ export default function AdminBlockClaimer() {
           </p>
         </div>
 
-        <div className="flex gap-2.5 rounded-lg bg-red-50 border border-red-100 p-3">
-          <AlertTriangle size={16} className="text-red-600 shrink-0 mt-0.5" />
-          <p className="text-xs text-red-700 leading-relaxed">
-            This cannot be undone. Their publications, upvotes, and comments are permanently
-            deleted.
-          </p>
+        <p className="text-xs text-red-600 leading-relaxed">
+          This cannot be undone. Their publications, upvotes, and comments are permanently
+          deleted.
+        </p>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-semibold text-gray-900">Admin password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleBlock()}
+            placeholder="••••••••"
+            className="w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-lg px-3 py-2.5 placeholder:text-gray-400 focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400/20 hover:border-gray-300 transition-colors"
+            autoFocus
+          />
         </div>
 
-        {!confirmed ? (
-          <button
-            type="button"
-            onClick={() => setConfirmed(true)}
-            className="w-full bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg px-4 py-2.5 transition-colors"
-          >
-            I understand — continue
-          </button>
-        ) : (
-          <>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-gray-900">Admin password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleBlock()}
-                placeholder="••••••••"
-                className="w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-lg px-3 py-2.5 placeholder:text-gray-400 focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400/20 hover:border-gray-300 transition-colors"
-                autoFocus
-              />
-            </div>
+        {error && <p className="text-red-600 text-sm">{error}</p>}
 
-            {error && <p className="text-red-600 text-sm">{error}</p>}
-
-            <button
-              type="button"
-              onClick={handleBlock}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg px-4 py-2.5 transition-colors disabled:opacity-60"
-            >
-              {loading ? <Spinner size={16} /> : "Block User & Delete Publications"}
-            </button>
-          </>
-        )}
-
-        {!confirmed && error && <p className="text-red-600 text-sm">{error}</p>}
+        <button
+          type="button"
+          onClick={handleBlock}
+          disabled={loading}
+          className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg px-4 py-2.5 transition-colors disabled:opacity-60"
+        >
+          {loading ? <Spinner size={16} /> : "Block User & Delete Publications"}
+        </button>
       </div>
     </div>
   );
