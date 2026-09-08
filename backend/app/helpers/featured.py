@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 # duration_days -> price in cents. This is the *display* price (shown in the UI and
 # stored on the booking). The amount actually charged comes from the Stripe Price
 # below — see _stripe_price_id(). Keep the two in sync.
-FEATURE_PRICES_CENTS: dict[int, int] = {7: 3000, 14: 6000, 30: 8000}
+FEATURE_PRICES_CENTS: dict[int, int] = {7: 6000, 14: 12000, 30: 20000}
 
 
 def _stripe_price_id(duration_days: int) -> str | None:
@@ -64,14 +64,15 @@ HOLD_MINUTES = 30
 # How far ahead a slot may be booked.
 BOOKING_HORIZON_DAYS = 180
 
-# Minimum lead time before a booking's start date — gives our team a full day to
-# review and approve it before the run is meant to begin.
-MIN_LEAD_DAYS = 2
+# Minimum lead time before a booking's start date — the earliest a run may begin is
+# tomorrow, leaving our team the rest of today to review and approve it.
+MIN_LEAD_DAYS = 1
 
-# Renewals only need to clear tomorrow. The publication has already been through
-# review for the run that is ending, so the extra approval day the normal lead time
-# buys us is not needed — and insisting on it would strand a renewing author with a
-# dead day between their current run and the next one.
+# Renewals clear the same lead time as a new booking. Kept separate so the two can be
+# tuned independently: a renewing publication has already been through review for the
+# run that is ending, so it never needs *more* lead time than a new booking, and
+# insisting on it would strand a renewing author with a dead day between their current
+# run and the next one.
 RENEWAL_MIN_LEAD_DAYS = 1
 
 CURRENCY = "usd"
@@ -339,9 +340,9 @@ async def create_checkout(
         )
 
     today = date.today()
-    # A renewal of the caller's own already-approved booking earns the shorter lead
-    # time. Verified here rather than trusted from the client, so the reduced lead
-    # time cannot be claimed by passing an arbitrary slot id.
+    # A renewal of the caller's own already-approved booking earns the renewal lead
+    # time. Verified here rather than trusted from the client, so it cannot be claimed
+    # by passing an arbitrary slot id — this matters whenever the two values differ.
     lead_days = MIN_LEAD_DAYS
     if renewal_of_slot_id is not None:
         previous = await db.get(FeaturedSlot, renewal_of_slot_id)

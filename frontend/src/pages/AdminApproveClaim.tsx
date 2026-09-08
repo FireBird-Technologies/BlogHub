@@ -95,7 +95,7 @@ export default function AdminApproveClaim() {
           type="button"
           onClick={handleApprove}
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg px-4 py-2.5 transition-colors disabled:opacity-60"
+          className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg px-4 py-2.5 transition-colors disabled:opacity-60"
         >
           {loading ? <Spinner size={16} /> : "Approve & Transfer Ownership"}
         </button>

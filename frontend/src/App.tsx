@@ -19,6 +19,7 @@ import SubmitNewsletter from "./pages/SubmitNewsletter";
 import BlogPostPage from "./pages/BlogPostPage";
 import UnderratedRoundupPage from "./pages/UnderratedRoundupPage";
 import AdminApproveClaim from "./pages/AdminApproveClaim";
+import AdminBlockClaimer from "./pages/AdminBlockClaimer";
 import NotFound from "./pages/NotFound";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -68,6 +69,7 @@ export default function App() {
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/featured-faq" element={<FeaturedFaq />} />
               <Route path="/admin/approve-claim" element={<AdminApproveClaim />} />
+              <Route path="/admin/block-claimer" element={<AdminBlockClaimer />} />
               <Route path="/admin/approve-featured" element={<AdminApproveFeatured />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

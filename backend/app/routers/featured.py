@@ -148,8 +148,9 @@ async def featured_renewal_context(
         _, _, button_text = build_draft(pub)
 
     availability = await get_availability(db, current_user.id)
-    # Renewals clear tomorrow rather than the usual two days, so an author extending a
-    # run that ends today is offered the very next day.
+    # Renewals clear tomorrow, so an author extending a run that ends today is offered
+    # the very next day. Uses the renewal lead time explicitly rather than the default:
+    # the two currently match, but a renewal must never be held to a longer wait.
     next_available = {
         days: await next_available_start(db, days, lead_days=RENEWAL_MIN_LEAD_DAYS)
         for days in sorted(FEATURE_PRICES_CENTS)

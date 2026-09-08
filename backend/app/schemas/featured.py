@@ -87,7 +87,7 @@ class FeatureCheckoutIn(BaseModel):
     #: The IANA zone that instant was chosen in, e.g. "Asia/Karachi".
     email_timezone: str = Field(min_length=1, max_length=64)
     #: Set when extending an existing run. The booking it names is verified server-side
-    #: (same owner, already approved) before the shorter renewal lead time is allowed.
+    #: (same owner, already approved) before the renewal lead time is applied.
     renewal_of_slot_id: uuid.UUID | None = None
 
 

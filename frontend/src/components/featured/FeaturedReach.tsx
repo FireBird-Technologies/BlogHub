@@ -84,7 +84,7 @@ export default function FeaturedReach({ variant = "page", durationDays }: Featur
             averaged 50 to 80 clicks in a single week, directly to their site.
           </p>
           <p>
-            At $30 per week, that works out to a fraction of what you&apos;d pay for the same volume
+            At $60 per week, that works out to a fraction of what you&apos;d pay for the same volume
             on Meta or Google Ads, without the bidding wars or targeting overhead.
           </p>
           <p>

@@ -25,6 +25,15 @@ async def get_user_by_id(db: AsyncSession, user_id: uuid.UUID):
 def mailable_user_conditions():
     """Conditions every bulk email recipient must satisfy.
 
+    `subscribed_only` is the unsubscribe flag: anyone who used the unsubscribe link
+    is excluded from every digest and marketing blast. `is_active` is the only
+    account-state gate — it is cleared on account deletion, so deleted/deactivated
+    users never receive mail.
+
+    Blocking is deliberately NOT considered here. It governs site access (a blocked
+    user cannot sign in — see `_assert_account_usable` in app/helpers/auth.py), not
+    deliverability, so a blocked user still gets mail unless they unsubscribed.
+
     Deliberately shared: the resumable campaign senders compare their send query
     against a completion query, and if the two predicates drift the campaign never
     reaches "sent"/"completed" — it keeps finding skipped users as still owed.
@@ -34,7 +43,6 @@ def mailable_user_conditions():
     return (
         User.subscribed_only.is_(True),
         User.is_active.is_(True),
-        User.is_blocked.is_(False),
     )
 
 
@@ -44,9 +52,11 @@ def is_mailable(user) -> bool:
 
     Ignores `subscribed_only` — that flag is a digest/marketing opt-out, while
     transactional mail (your feature was approved, your listing is expiring) is
-    still expected. Only account state suppresses these.
+    still expected. Blocking is ignored too, for the reason given above: it gates
+    sign-in, not email. Deletion (`is_active = False`) is the only state that
+    suppresses these.
     """
-    return bool(user) and bool(user.email) and user.is_active and not user.is_blocked
+    return bool(user) and bool(user.email) and user.is_active
 
 
 def _slug_name(name: str) -> str:
