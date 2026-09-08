@@ -77,8 +77,8 @@ interface CheckoutVars {
   /** A UTC instant (ISO). The browser converts from the author's local date + hour. */
   email_scheduled_at: string;
   email_timezone: string;
-  /** Set when extending a run — unlocks the shorter renewal lead time, after the
-   *  backend verifies the caller owns that booking and it was approved. */
+  /** Set when extending a run — applies the renewal lead time, after the backend
+   *  verifies the caller owns that booking and it was approved. */
   renewal_of_slot_id?: string;
 }
 

@@ -91,6 +91,7 @@ async def send_claim_notification(
     original_url: str | None,
     comment: str | None = None,
     approve_url: str | None = None,
+    block_url: str | None = None,
 ) -> None:
     """Best-effort email to the site owner when a publication is claimed.
 
@@ -127,18 +128,38 @@ async def send_claim_notification(
     pub_url = html.escape(publication.url or "")
     claim_id_str = html.escape(str(claim_id))
 
-    approve_button_html = ""
+    # Two opposed actions, colour-coded: green approves and transfers ownership, red
+    # blocks the claimer and deletes their publications. Each is rendered only when
+    # its URL is supplied, and both land on a password-protected confirmation page.
+    action_buttons = []
     if approve_url:
         safe_approve_url = html.escape(approve_url)
-        approve_button_html = f"""
-      <div style="margin-top:24px;text-align:center;">
+        action_buttons.append(
+            f"""
         <a href="{safe_approve_url}"
-           style="display:inline-block;background:#dc2626;color:#ffffff;font-size:14px;
+           style="display:inline-block;background:#16a34a;color:#ffffff;font-size:14px;
                   font-weight:600;text-decoration:none;padding:12px 28px;border-radius:8px;">
           Approve &amp; Transfer Ownership
-        </a>
+        </a>"""
+        )
+    if block_url:
+        safe_block_url = html.escape(block_url)
+        action_buttons.append(
+            f"""
+        <a href="{safe_block_url}"
+           style="display:inline-block;margin-top:10px;background:#dc2626;color:#ffffff;
+                  font-size:14px;font-weight:600;text-decoration:none;padding:12px 28px;
+                  border-radius:8px;">
+          Block User &amp; Delete Publications
+        </a>"""
+        )
+
+    approve_button_html = ""
+    if action_buttons:
+        approve_button_html = f"""
+      <div style="margin-top:24px;text-align:center;">{"".join(action_buttons)}
         <p style="color:#9ca3af;font-size:11px;margin-top:10px;">
-          Clicking this button will take you to a password-protected page to confirm the approval.
+          Both buttons lead to a password-protected page to confirm the action.
         </p>
       </div>"""
 
@@ -791,6 +812,7 @@ async def send_featured_marketing_email(
     button_text: str,
     link_url: str,
     unsubscribe_token: str,
+    promo_url: str | None = None,
 ) -> None:
     """The announcement itself, to one subscriber.
 
@@ -798,9 +820,13 @@ async def send_featured_marketing_email(
     publication link is a single button, labelled with whatever text the author chose
     for it. Deliberately no cover image, title card, or category/author line — the
     message is the author's own words plus one button, nothing else competing for
-    attention. The body is escaped, so nothing an author types can inject markup, and
-    the button and the unsubscribe footer are rendered here rather than stored — an
+    attention above the fold. The body is escaped, so nothing an author types can inject
+    markup, and the button and the footer are rendered here rather than stored — an
     author editing the draft cannot break or delete either.
+
+    Below a divider, well clear of the author's own content, `promo_url` adds BlogHub's
+    "get featured yourself" line — the blast reaches every subscriber, so it is the best
+    place we have to reach future buyers. Omitted when not supplied.
 
     Sent from the newsletter address, which is the sender subscribers already
     recognise. Never raises: one bad address must not stop the rest of the blast.
@@ -820,6 +846,20 @@ async def send_featured_marketing_email(
     safe_link_url = html.escape(link_url)
     safe_button_text = html.escape(button_text)
 
+    # Deliberately broad: the site's card rotates "business / Substack / services"
+    # because buyers are not only publications. Text only, behind a hairline rule —
+    # a styled block here would compete with the author's own button.
+    promo_html = (
+        '<p style="margin:32px 0 0;padding-top:20px;border-top:1px solid #f3f4f6;'
+        'font-size:13px;color:#6b7280;line-height:1.6;">'
+        "Want this spot for your business, newsletter, or services? "
+        f'<a href="{html.escape(promo_url)}" style="color:#dc2626;text-decoration:none;'
+        'font-weight:600;">Get featured on BlogHub</a>.'
+        "</p>"
+        if promo_url
+        else ""
+    )
+
     html_body = (
         '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"></head>'
         '<body style="margin:0;padding:0;background:#fff;'
@@ -829,7 +869,9 @@ async def send_featured_marketing_email(
         f'<a href="{safe_link_url}" style="display:inline-block;background:#dc2626;color:#ffffff;'
         "font-size:14px;font-weight:600;text-decoration:none;padding:10px 22px;border-radius:8px;\">"
         f"{safe_button_text}</a>"
-        '<p style="margin:32px 0 0;font-size:12px;color:#9ca3af;">'
+        f"{promo_html}"
+        # Tighter above the unsubscribe line when the promo already opened a gap.
+        f'<p style="margin:{20 if promo_html else 32}px 0 0;font-size:12px;color:#9ca3af;">'
         f'<a href="{html.escape(unsubscribe_url)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a>'
         "</p>"
         "</div></body></html>"
@@ -1030,13 +1072,22 @@ async def send_weekly_digest(
         title = html.escape(pub.title or "")
         raw_desc = (pub.description or "").strip()
         desc = html.escape(raw_desc[:180].rsplit(" ", 1)[0] + "…") if len(raw_desc) > 180 else html.escape(raw_desc)
-        desc_block = f'<p style="margin:6px 0 10px;font-size:14px;color:#374151;line-height:1.6;">{desc}</p>' if desc else '<p style="margin:0 0 10px;"></p>'
+        desc_block = f'<p style="margin:6px 0 4px;font-size:14px;color:#374151;line-height:1.6;">{desc}</p>' if desc else '<p style="margin:0 0 4px;"></p>'
+        author = getattr(pub, "author", None)
+        author_name = (getattr(author, "name", None) or "").strip()
+        byline_block = (
+            f'<p style="margin:0 0 10px;font-size:13px;color:#6b7280;line-height:1.5;">'
+            f'By {html.escape(author_name)}</p>'
+            if author_name
+            else ""
+        )
         return (
             f'<tr><td style="padding:20px 0;">'
             f'<p style="margin:0 0 4px;font-size:15px;font-weight:600;color:#111827;line-height:1.5;">'
             f'&rarr; <a href="{pub_url}" style="color:#111827;text-decoration:none;">{title}</a>'
             f'</p>'
             f'{desc_block}'
+            f'{byline_block}'
             f'<a href="{pub_url}" style="font-size:13px;color:#111827;text-decoration:underline;">Read the full post</a>'
             f'</td></tr>'
         )
