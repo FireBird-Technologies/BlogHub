@@ -153,7 +153,7 @@ async def send_underrated_digest_endpoint(
             token,
             name,
             subject="5 hidden gems this week",
-            intro="Here are some great posts that deserve more eyes:",
+            intro="Here are some great posts that deserve more readers:",
             utm_content="underrated_weekly",
         )
 

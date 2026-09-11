@@ -33,7 +33,7 @@ function blurb(roundup: RoundupSummary): string {
 }
 
 function underratedBlurb(roundup: RoundupSummary): string {
-  return `Underrated ${roundup.category.toLowerCase()} blogs on ${siteName} this month — hidden gems that deserve more eyes.`;
+  return `Underrated ${roundup.category.toLowerCase()} blogs on ${siteName} this month — hidden gems that deserve more readers.`;
 }
 
 /** A single roundup card — used in both the Top and Underrated columns. */
@@ -281,7 +281,7 @@ export default function Blog() {
             <section className="flex flex-col">
               <h2 className="text-lg font-bold text-gray-900">Underrated</h2>
               <p className="text-sm text-gray-500 mt-1 mb-5">
-                The under scored blogs in each category — hidden gems that deserve more eyes.
+                The under scored blogs in each category — hidden gems that deserve more readers.
               </p>
               {underratedPageItems.length > 0 ? (
                 <div className="grid gap-6 sm:grid-cols-2">
