@@ -277,7 +277,7 @@ export default function RoundupPage({
             {isUnderrated ? (
               <>
                 These are the lowest-scored {roundup.category.toLowerCase()} blogs on {siteName}{" "}
-                in {formatMonth(roundup.week_start)} — hidden gems that deserve more eyes.
+                in {formatMonth(roundup.week_start)} — hidden gems that deserve more readers.
               </>
             ) : (
               <>
