@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.deps import get_current_user, get_optional_user
 from app.helpers.publications import (
+    add_self_upvote,
     build_publications_query,
     get_publication_by_id,
     list_distinct_tags,
@@ -224,6 +225,7 @@ async def create_publication(
             existing.created_at = datetime.now(timezone.utc)
             # resubmit_reminder_sent_at is deliberately left alone: the nudge is a
             # one-time prompt per publication, so resubmitting must not re-arm it.
+            await add_self_upvote(db, user_id=current_user.id, publication_id=existing.id)
             await db.commit()
             response.status_code = status.HTTP_200_OK
             updated = await get_publication_by_id(db, existing.id, current_user.id)
@@ -252,6 +254,9 @@ async def create_publication(
         social_links=[sl.model_dump(mode="json") for sl in data.social_links],
     )
     db.add(pub)
+    await db.flush()
+    # Every new publication starts with its author's own upvote; they can remove it later.
+    await add_self_upvote(db, user_id=current_user.id, publication_id=pub.id)
     await db.commit()
     response.status_code = status.HTTP_201_CREATED
     pub_id = pub.id
