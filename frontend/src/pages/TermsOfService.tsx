@@ -1,7 +1,17 @@
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import LegalPageLayout, { LegalSection } from "../components/legal/LegalPageLayout";
 import { LEGAL } from "../constants/legal";
 
 export default function TermsOfService() {
+  const { hash } = useLocation();
+
+  // The booking flow links straight to the refund section; a client-side render means
+  // the browser's own anchor jump fires before the section exists.
+  useEffect(() => {
+    if (hash) document.getElementById(hash.slice(1))?.scrollIntoView();
+  }, [hash]);
+
   return (
     <LegalPageLayout
       title="Terms of Service"
@@ -101,7 +111,62 @@ export default function TermsOfService() {
         </p>
       </LegalSection>
 
-      <LegalSection title="10. Intellectual Property">
+      <LegalSection id="featured-refunds" title="10. Paid Featured Placements, Disputes and Refunds">
+        <p>
+          {LEGAL.siteName} sells a paid featured placement. What you buy is the featured slot on the
+          home page and dashboard for the dates shown at checkout, plus one announcement email to{" "}
+          {LEGAL.siteName} subscribers, subject to our approval. Payment is a single one-time charge
+          processed by Stripe. Nothing renews automatically.
+        </p>
+        <p>
+          <strong>Clicks, impressions and visitor numbers are estimates only.</strong> Any click or
+          traffic figure we show, on our pricing page, in the booking flow or anywhere else, is
+          an estimate from past features and is not a
+          promise of what your run will get. Results depend on your title, description, cover
+          image, the time of year, and things we don&apos;t control. We do not guarantee any number
+          of clicks, impressions, sign-ups, subscribers or sales.
+        </p>
+        <p>
+          <strong>Refunds.</strong> You are entitled to a full refund if:
+        </p>
+        <ul className="list-disc pl-6 flex flex-col gap-1.5">
+          <li>
+            we don&apos;t approve your booking. We issue this refund ourselves, without you
+            needing to ask, within a maximum of 60 days of our decision;
+          </li>
+          <li>you ask us to cancel before your run&apos;s start date; or</li>
+          <li>
+            you were charged twice or charged the wrong amount (we refund the extra amount).
+          </li>
+        </ul>
+        <p>
+          If your publication is not shown in the featured slot for part of a paid run because of a
+          fault on our side, we will, at your choice, extend your run by the days you lost or refund
+          those days pro rata. If we fail to send the approved announcement email, we will reschedule
+          it within your run or refund a fair share of the price.
+        </p>
+        <p>
+          <strong>
+            We do not give refunds, in full or in part, because a run received fewer clicks,
+            impressions, visitors or conversions than estimated or hoped for.
+          </strong>{" "}
+          Once a run has started, cancelling it does not entitle you to a refund for the remaining
+          days. If we remove a featured listing because it breaks these Terms (for example, the
+          linked page changes to prohibited content), no refund is due for the remainder of the run.
+        </p>
+        <p>
+          To request a refund, email{" "}
+          <a href={`mailto:${LEGAL.contactEmail}`} className="text-red-600 underline hover:text-red-700">
+            {LEGAL.contactEmail}
+          </a>{" "}
+          with the email address you paid with and your run dates. Approved refunds go back to the
+          original payment method through Stripe and usually appear within 5 to 10 business days. If
+          something has gone wrong with a booking, please contact us before disputing the charge with
+          your bank; we can usually fix it faster.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="11. Intellectual Property">
         <p>
           The {LEGAL.siteName} name, logo, design, and underlying technology are owned by {LEGAL.operatorName}{" "}
           or its licensors and are protected by intellectual property laws. You may not copy, modify, or
@@ -116,7 +181,7 @@ export default function TermsOfService() {
         </p>
       </LegalSection>
 
-      <LegalSection title="11. Disclaimers">
+      <LegalSection title="12. Disclaimers">
         <p>
           {LEGAL.siteName} is provided &quot;as is&quot; and &quot;as available&quot; without warranties of any
           kind, whether express or implied, including merchantability, fitness for a particular purpose, and
@@ -125,7 +190,7 @@ export default function TermsOfService() {
         </p>
       </LegalSection>
 
-      <LegalSection title="12. Limitation of Liability">
+      <LegalSection title="13. Limitation of Liability">
         <p>
           To the fullest extent permitted by law, {LEGAL.operatorName} and its affiliates, officers,
           employees, and agents will not be liable for any indirect, incidental, special, consequential, or
@@ -136,7 +201,7 @@ export default function TermsOfService() {
         </p>
       </LegalSection>
 
-      <LegalSection title="13. Indemnification">
+      <LegalSection title="14. Indemnification">
         <p>
           You agree to indemnify and hold harmless {LEGAL.operatorName} and its affiliates from any claims,
           damages, losses, or expenses (including reasonable legal fees) arising from your User Content, your
@@ -144,7 +209,7 @@ export default function TermsOfService() {
         </p>
       </LegalSection>
 
-      <LegalSection title="14. Termination">
+      <LegalSection title="15. Termination">
         <p>
           You may stop using {LEGAL.siteName} at any time. We may suspend or terminate your access, or remove
           content, at our discretion if we believe you have violated these Terms or if necessary to protect the
@@ -152,7 +217,7 @@ export default function TermsOfService() {
         </p>
       </LegalSection>
 
-      <LegalSection title="15. Changes to These Terms">
+      <LegalSection title="16. Changes to These Terms">
         <p>
           We may update these Terms from time to time. We will post the revised Terms on this page and update
           the &quot;Last updated&quot; date. Continued use of {LEGAL.siteName} after changes become effective
@@ -160,7 +225,7 @@ export default function TermsOfService() {
         </p>
       </LegalSection>
 
-      <LegalSection title="16. Governing Law">
+      <LegalSection title="17. Governing Law">
         <p>
           These Terms are governed by {LEGAL.governingLaw}, without regard to conflict-of-law principles. Any
           disputes will be resolved in the courts of competent jurisdiction, unless otherwise required by
@@ -168,7 +233,7 @@ export default function TermsOfService() {
         </p>
       </LegalSection>
 
-      <LegalSection title="17. Contact">
+      <LegalSection title="18. Contact">
         <p>
           Questions about these Terms? Contact us at{" "}
           <a href={`mailto:${LEGAL.contactEmail}`} className="text-red-600 hover:text-red-700">

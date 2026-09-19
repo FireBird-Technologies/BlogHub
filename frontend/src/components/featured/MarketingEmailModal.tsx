@@ -73,7 +73,7 @@ export default function MarketingEmailModal({
       if (dirty) await update.mutateAsync({ id: email.id, subject, body, button_text: buttonText });
       await approve.mutateAsync(email.id);
     } catch (err) {
-      setError(formatApiErrorDetail(err, "Could not finalise the announcement."));
+      setError(formatApiErrorDetail(err, "Could not finalise the email announcement."));
     }
   };
 
@@ -106,9 +106,9 @@ export default function MarketingEmailModal({
             <p>
               {email.admin_approved ? (
                 email.status === "sent" ? (
-                  <>This announcement has been sent to BlogHub subscribers.</>
+                  <>This email announcement has been sent to BlogHub subscribers.</>
                 ) : email.status === "sending" ? (
-                  <>This announcement is going out to BlogHub subscribers right now.</>
+                  <>This email announcement is going out to BlogHub subscribers right now.</>
                 ) : (
                   <>
                     Approved by our team

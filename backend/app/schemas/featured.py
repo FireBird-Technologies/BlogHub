@@ -89,6 +89,9 @@ class FeatureCheckoutIn(BaseModel):
     #: Set when extending an existing run. The booking it names is verified server-side
     #: (same owner, already approved) before the renewal lead time is applied.
     renewal_of_slot_id: uuid.UUID | None = None
+    #: The buyer confirmed the pre-payment checklist: click figures are estimates, low
+    #: clicks are not grounds for a refund, and what the purchase covers.
+    terms_accepted: bool = False
 
 
 class FeatureCheckoutOut(BaseModel):

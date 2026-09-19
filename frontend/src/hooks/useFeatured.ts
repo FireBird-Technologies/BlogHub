@@ -80,6 +80,9 @@ interface CheckoutVars {
   /** Set when extending a run — applies the renewal lead time, after the backend
    *  verifies the caller owns that booking and it was approved. */
   renewal_of_slot_id?: string;
+  /** The buyer ticked every box in the pre-payment checklist (estimates, no refund for
+   *  low clicks, what's being bought). The backend refuses checkout without it. */
+  terms_accepted: boolean;
 }
 
 /** Holds the dates and hands back a Stripe Checkout URL; the caller redirects to it. */

@@ -9,6 +9,7 @@ import ImageUploadButton from "../ui/ImageUploadButton";
 import AdjustImageModal, { ImageThumbWithAdjust } from "../ui/AdjustImageModal";
 import FeatureCalendar from "./FeatureCalendar";
 import FeaturedReach from "./FeaturedReach";
+import FeaturedTermsChecklist from "./FeaturedTermsChecklist";
 import CropImage from "../ui/CropImage";
 import { useScrape } from "../../hooks/useScrape";
 import { useAuth } from "../../context/AuthContext";
@@ -39,7 +40,7 @@ import type { Publication } from "../../types/models";
 
 const DEFAULT_DURATION = 7;
 
-type Step = "dates" | "publication" | "announcement";
+type Step = "dates" | "publication" | "announcement" | "time";
 
 /** Everything the "Use a link" sub-flow needs to create the publication on Next —
  *  filled in from the scrape, editable before saving. */
@@ -97,6 +98,7 @@ export default function FeaturePublicationModal({
   const [publicationId, setPublicationId] = useState<string | null>(null);
   const [draft, setDraft] = useState<AnnouncementDraft | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [termsChecked, setTermsChecked] = useState(false);
 
   // Step 2 has two ways to pick what's being featured: one of the buyer's own
   // publications, or an arbitrary link that isn't (yet) a publication at all — typed
@@ -133,6 +135,7 @@ export default function FeaturePublicationModal({
       setPublicationId(null);
       setDraft(null);
       setError(null);
+      setTermsChecked(false);
       setPubSource("link");
       setLinkUrl("");
       setLinkFields(EMPTY_LINK_FIELDS);
@@ -227,7 +230,7 @@ export default function FeaturePublicationModal({
           setStep("announcement");
         },
         onError: (err) =>
-          setError(formatApiErrorDetail(err, "Could not draft your announcement.")),
+          setError(formatApiErrorDetail(err, "Could not draft your email announcement.")),
       },
     );
   };
@@ -283,6 +286,7 @@ export default function FeaturePublicationModal({
         // The author's local day + hour, as the UTC instant it actually refers to.
         email_scheduled_at: draftSendAtUtc(draft),
         email_timezone: localZone(),
+        terms_accepted: true,
       },
       {
         onError: (err) => {
@@ -300,9 +304,8 @@ export default function FeaturePublicationModal({
   };
 
   const sendTimeValid = draft ? new Date(draftSendAtUtc(draft)).getTime() > Date.now() : false;
-  const canPay = Boolean(
-    draft?.subject.trim() && draft?.body.trim() && draft?.buttonText.trim() && sendTimeValid,
-  );
+  const copyValid = Boolean(draft?.subject.trim() && draft?.body.trim() && draft?.buttonText.trim());
+  const canPay = copyValid && sendTimeValid && termsChecked;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Feature your publication" maxWidth="max-w-lg">
@@ -315,8 +318,10 @@ export default function FeaturePublicationModal({
           </span>
           <span className="text-gray-300">→</span>
           <span className={step === "announcement" ? "text-red-600" : "text-gray-400"}>
-            3. Announcement
+            3. Email announcement
           </span>
+          <span className="text-gray-300">→</span>
+          <span className={step === "time" ? "text-red-600" : "text-gray-400"}>4. Time</span>
         </div>
 
         {availability.isLoading && (
@@ -679,6 +684,33 @@ export default function FeaturePublicationModal({
               onChange={setDraft}
               startDate={selectedStart}
               endDate={endDate}
+              part="content"
+            />
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+              <Button variant="ghost" size="sm" onClick={() => setStep("publication")}>
+                <ArrowLeft size={14} /> Back
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                disabled={!copyValid}
+                onClick={() => setStep("time")}
+              >
+                Next
+              </Button>
+            </div>
+          </>
+        )}
+
+        {step === "time" && draft && selectedStart && endDate && (
+          <>
+            <AnnouncementStep
+              draft={draft}
+              onChange={setDraft}
+              startDate={selectedStart}
+              endDate={endDate}
+              part="time"
             />
 
             <div className="rounded-xl bg-gray-50 border border-gray-100 p-3 flex flex-col gap-1.5 text-sm">
@@ -694,6 +726,12 @@ export default function FeaturePublicationModal({
               </div>
             </div>
 
+            <FeaturedTermsChecklist
+              checked={termsChecked}
+              onChange={setTermsChecked}
+              disabled={checkout.isPending}
+            />
+
             {error && (
               <p className="flex items-start gap-1.5 text-sm text-red-600">
                 <AlertCircle size={15} className="mt-0.5 flex-shrink-0" />
@@ -705,7 +743,7 @@ export default function FeaturePublicationModal({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setStep("publication")}
+                onClick={() => setStep("announcement")}
                 disabled={checkout.isPending}
               >
                 <ArrowLeft size={14} /> Back

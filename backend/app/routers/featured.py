@@ -188,6 +188,11 @@ async def featured_checkout(
 
     Carries the announcement the author composed and signed off on in the wizard.
     """
+    if not payload.terms_accepted:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please confirm the featured placement terms before paying.",
+        )
     return await create_checkout(
         db,
         user=current_user,
