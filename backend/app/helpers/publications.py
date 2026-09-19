@@ -605,6 +605,33 @@ async def get_publication_by_id(
 
 # ── upvote ────────────────────────────────────────────────────────────────────
 
+async def add_self_upvote(
+    db: AsyncSession, user_id: uuid.UUID, publication_id: uuid.UUID
+) -> None:
+    """Give a freshly submitted publication its author's upvote, so every pub starts at 1.
+
+    A no-op when the author already has one (e.g. resubmitting a pub they upvoted),
+    so the count never double-counts. The author can remove it later like any other
+    upvote. Does not commit: the caller commits alongside the publication write.
+    """
+    from app.models.publication import Publication
+    from app.models.upvote import Upvote
+
+    result = await db.execute(
+        select(Upvote.id).where(
+            and_(Upvote.user_id == user_id, Upvote.publication_id == publication_id)
+        )
+    )
+    if result.scalar_one_or_none() is not None:
+        return
+
+    db.add(Upvote(user_id=user_id, publication_id=publication_id))
+    await db.execute(
+        update(Publication).where(Publication.id == publication_id)
+        .values(upvote_count=Publication.upvote_count + 1)
+    )
+
+
 async def toggle_upvote(
     db: AsyncSession, user_id: uuid.UUID, publication_id: uuid.UUID
 ) -> UpvoteResponse:
