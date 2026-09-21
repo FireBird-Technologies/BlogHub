@@ -83,9 +83,18 @@ export default function LegalPageLayout({
   );
 }
 
-export function LegalSection({ title, children }: { title: string; children: ReactNode }) {
+export function LegalSection({
+  title,
+  children,
+  id,
+}: {
+  title: string;
+  children: ReactNode;
+  /** Anchor target, so other pages can deep-link to one section. */
+  id?: string;
+}) {
   return (
-    <section>
+    <section id={id} className={id ? "scroll-mt-24" : undefined}>
       <h2 className="text-lg font-semibold text-gray-900 mb-3">{title}</h2>
       <div className="flex flex-col gap-3">{children}</div>
     </section>

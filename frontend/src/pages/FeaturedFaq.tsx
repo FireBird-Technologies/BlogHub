@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { BarChart3, Check, Globe, Mail, MousePointerClick } from "lucide-react";
 import LegalPageLayout, { LegalSection } from "../components/legal/LegalPageLayout";
 import Button from "../components/ui/Button";
@@ -8,6 +8,8 @@ import { useAuth } from "../context/AuthContext";
 import {
   type FeatureDuration,
   POST_LOGIN_PATH_KEY,
+  ESTIMATE_DISCLAIMER,
+  FEATURED_REFUND_POLICY_PATH,
   estimatedClicksLabel,
   featureDashboardPath,
 } from "../lib/featuredCheckout";
@@ -137,6 +139,7 @@ function PricingContent() {
                   <MousePointerClick size={14} className="flex-shrink-0 text-red-600" />
                   {estimatedClicksLabel(pkg.durationDays)} clicks to your site
                 </p>
+                <p className="mt-0.5 text-[11px] font-medium text-gray-600">{ESTIMATE_DISCLAIMER}</p>
                 <p className="mt-1 flex items-center gap-1.5 text-[11px] text-gray-500">
                   <Globe size={12} className="flex-shrink-0 text-gray-400" />
                   70% US, 20% other developed countries
@@ -164,9 +167,17 @@ function PricingContent() {
         </div>
 
         <p className="mt-3 text-xs text-gray-500">
-          Click ranges scale our last advertiser&apos;s 50–80 clicks in a week to the length of each
-          run. They&apos;re estimates from past traffic, not a guaranteed number of clicks — what
-          your listing earns depends on your title, description, and cover image.
+          You&apos;re buying the featured slot for the dates you pick, plus the announcement email.
+          Click ranges are estimates only, not guaranteed. What your listing earns depends on your
+          title, description and cover image, and{" "}
+          <strong className="font-semibold text-gray-700">
+            we don&apos;t refund runs that get fewer clicks than estimated
+          </strong>
+          . See the{" "}
+          <Link to={FEATURED_REFUND_POLICY_PATH} className="text-red-600 underline hover:text-red-700">
+            refund policy
+          </Link>
+          .
         </p>
       </section>
 
@@ -179,9 +190,10 @@ function PricingContent() {
             Marketing email included
           </div>
           <p className="mt-2 text-sm text-gray-600">
-            We draft a subscriber announcement during checkout. You edit the subject, body,
-            button text, and send time before paying; completing payment finalises your copy.
-            Nothing goes out until we approve it.
+            We draft a subscriber email announcement during checkout. You edit the subject, body,
+            button text, and send time before paying, and completing payment locks in your
+            version. Our team then reviews it alongside your booking before it sends: your
+            approval sets the copy, ours clears it to go out.
           </p>
         </div>
         <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
@@ -220,12 +232,9 @@ function FaqContent() {
 
       <LegalSection title="How much traffic does it get?">
         <p>
-          {LEGAL.siteName} has seen around 3,000 visitors so far. Our last featured advertiser
-          averaged 50 to 80 clicks in a single week, directly to their site.
-        </p>
-        <p>
-          At $60 per week, that works out to a fraction of what you&apos;d pay for the same volume
-          on Meta or Google Ads, without the bidding wars or targeting overhead.
+          {LEGAL.siteName} has had around 5,000 visitors in total since launch. That&apos;s a
+          cumulative count, not a monthly figure. Based on past features, a featured listing gets
+          around 50 to 80 clicks to its site in a week {ESTIMATE_DISCLAIMER}.
         </p>
         <p>
           Our traffic is roughly 70% US and another 20% from other developed countries, so
@@ -233,8 +242,9 @@ function FaqContent() {
           content they like.
         </p>
         <p>
-          These are past figures for the site, not a guaranteed number of clicks for your run. What
-          your listing earns depends on your title, description, and cover image.
+          These are past figures, not a prediction for your run. What your listing earns depends on
+          your title, description and cover image. We don&apos;t refund a run because it got fewer
+          clicks than estimated.
         </p>
       </LegalSection>
 
@@ -282,12 +292,15 @@ function FaqContent() {
           After that it goes live on your start date, or right away if your run has already started.
           It comes down on its own when the last day is over.
         </p>
-        <p>If we can&apos;t approve a booking, you get your dates back and your money back.</p>
+        <p>
+          If we can&apos;t approve a booking, you get a full refund within a maximum of 60 days of
+          our decision. You don&apos;t need to ask for it.
+        </p>
       </LegalSection>
 
       <LegalSection title="The announcement email">
         <p>
-          The booking flow has an announcement step before you pay. We draft a short email about
+          The booking flow has an email announcement step before you pay. We draft a short email about
           your publication for {LEGAL.siteName} subscribers. You can rewrite the subject, message,
           and button text, and choose when it should send — any day within your featured run.
         </p>
@@ -297,8 +310,8 @@ function FaqContent() {
           is read-only after checkout.
         </p>
         <p>
-          Our team approves your booking and the email. Nothing goes out until both are approved.
-          It then sends at the time you picked during checkout.
+          Your copy is final once you pay. Our team then reviews the booking and the email, and the
+          email sends at the time you picked once both are approved.
         </p>
       </LegalSection>
 
@@ -328,8 +341,30 @@ function FaqContent() {
 
       <LegalSection title="Refunds">
         <p>
-          If your run hasn&apos;t started, or something has gone wrong with a booking, email us and
-          we&apos;ll sort it out.
+          You get a full refund if we don&apos;t approve your booking, issued within a maximum of 60
+          days of our decision. You also get a full refund if you ask us to cancel before your
+          run&apos;s start date.
+        </p>
+        <p>
+          If your publication isn&apos;t shown in the slot for part of your run because of a fault
+          on our side, we extend your run by the days you lost or refund those days, whichever you
+          prefer.
+        </p>
+        <p>
+          <strong>
+            We don&apos;t give refunds because a run got fewer clicks, impressions or sign-ups than
+            estimated.
+          </strong>{" "}
+          The click figures we show are estimates only, not guaranteed. Once a run has started,
+          cancelling it doesn&apos;t refund the remaining days.
+        </p>
+        <p>
+          To ask for a refund, email us with the address you paid with and your run dates. The
+          full policy is in section 10 of our{" "}
+          <Link to={FEATURED_REFUND_POLICY_PATH} className="text-red-600 underline hover:text-red-700">
+            Terms of Service
+          </Link>
+          .
         </p>
       </LegalSection>
 

@@ -71,3 +71,10 @@ export function estimatedClicksLabel(days: number): string {
   const round5 = (n: number) => Math.round((n * weeks) / 5) * 5;
   return `${round5(CLICKS_PER_WEEK[0])}–${round5(CLICKS_PER_WEEK[1])}`;
 }
+
+/** Shown beside every click figure, wherever it appears. One string so no surface can
+ *  quietly drop the caveat. */
+export const ESTIMATE_DISCLAIMER = "(These are estimates only, not guaranteed)";
+
+/** Where the featured refund policy lives. */
+export const FEATURED_REFUND_POLICY_PATH = "/terms#featured-refunds";
