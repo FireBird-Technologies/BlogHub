@@ -500,6 +500,11 @@ async def create_checkout(
     )
 
 
+#: Bump when the featured refund policy (Terms section 10) changes, so Stripe metadata
+#: shows which version a buyer accepted.
+FEATURED_TERMS_VERSION = "2026-09-19"
+
+
 def _create_stripe_session(
     slot: FeaturedSlot, pub: Publication, user, price_id: str, hold_expires_at: datetime
 ):
@@ -529,6 +534,18 @@ def _create_stripe_session(
             "start_date": slot.start_date.isoformat(),
             "end_date": slot.end_date.isoformat(),
             "duration_days": str(slot.duration_days),
+            # Evidence for a later dispute: the buyer ticked the estimates / no-refund
+            # checklist, against this version of the refund policy.
+            "terms_accepted": FEATURED_TERMS_VERSION,
+        },
+        custom_text={
+            "submit": {
+                "message": (
+                    "Click figures are estimates only, not guaranteed. Runs that get fewer "
+                    "clicks than estimated are not refunded. Refund policy: "
+                    f"{settings.FRONTEND_URL}/terms#featured-refunds"
+                )
+            }
         },
         # Keyed on the slot *and this attempt's hold expiry*, not the slot alone. A hold
         # is reused when a buyer re-does a checkout (possibly for a different

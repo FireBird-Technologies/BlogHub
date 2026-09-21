@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   addDays,
@@ -7,6 +7,7 @@ import {
   isSameDay,
   mondayFirstOffset,
   monthLabel,
+  parseISODate,
   startOfMonth,
   toISODate,
 } from "../../lib/dates";
@@ -37,7 +38,6 @@ export default function FeatureCalendar({
   selectedStart,
   onSelectStart,
 }: FeatureCalendarProps) {
-  const [viewMonth, setViewMonth] = useState(() => startOfMonth(selectedStart ?? minDate));
   const [hoverStart, setHoverStart] = useState<Date | null>(null);
 
   const isValidStart = useMemo(
@@ -52,6 +52,25 @@ export default function FeatureCalendar({
     },
     [bookedDays, durationDays, minDate, maxDate],
   );
+
+  /** The earliest day a run of this length can start. The grid opens on its month, so
+   *  a buyer never lands on a month that's fully booked. */
+  const firstAvailable = useMemo(() => {
+    for (let d = minDate; d <= maxDate; d = addDays(d, 1)) {
+      if (isValidStart(d)) return d;
+    }
+    return null;
+  }, [isValidStart, minDate, maxDate]);
+
+  const openingMonth = startOfMonth(selectedStart ?? firstAvailable ?? minDate);
+  const [viewMonth, setViewMonth] = useState(openingMonth);
+
+  // Re-open on the first free month when the duration or bookings change what's free.
+  // Keyed on the month, not the Date object, so it doesn't undo the buyer's own paging.
+  const openingKey = toISODate(openingMonth);
+  useEffect(() => {
+    setViewMonth(parseISODate(openingKey));
+  }, [openingKey]);
 
   /** Days painted as part of the selected (or hovered) run. */
   const bandDays = useMemo(() => {

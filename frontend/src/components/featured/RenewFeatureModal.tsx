@@ -5,6 +5,7 @@ import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import Spinner from "../ui/Spinner";
 import FeatureCalendar from "./FeatureCalendar";
+import FeaturedTermsChecklist from "./FeaturedTermsChecklist";
 import AnnouncementStep, {
   draftSendAtUtc,
   type AnnouncementDraft,
@@ -59,6 +60,7 @@ export default function RenewFeatureModal({ isOpen, onClose, slotId }: RenewFeat
   const [pickedManually, setPickedManually] = useState(false);
   const [draft, setDraft] = useState<AnnouncementDraft | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [termsChecked, setTermsChecked] = useState(false);
 
   // Reset every time the modal opens, so a second renewal in the same session doesn't
   // inherit the previous one's dates or edits.
@@ -70,6 +72,7 @@ export default function RenewFeatureModal({ isOpen, onClose, slotId }: RenewFeat
     setPickedManually(false);
     setDraft(null);
     setError(null);
+    setTermsChecked(false);
   }, [isOpen, slotId]);
 
   const data = renewal.data;
@@ -119,6 +122,7 @@ export default function RenewFeatureModal({ isOpen, onClose, slotId }: RenewFeat
         email_button_text: draft.buttonText.trim(),
         email_scheduled_at: draftSendAtUtc(draft),
         email_timezone: localZone(),
+        terms_accepted: true,
         // Applies the renewal lead time, so extending a run that ends today can start
         // tomorrow. Re-verified server-side against this slot's owner.
         ...(slotId ? { renewal_of_slot_id: slotId } : {}),
@@ -142,7 +146,11 @@ export default function RenewFeatureModal({ isOpen, onClose, slotId }: RenewFeat
 
   const sendTimeValid = draft ? new Date(draftSendAtUtc(draft)).getTime() > Date.now() : false;
   const canPay = Boolean(
-    draft?.subject.trim() && draft?.body.trim() && draft?.buttonText.trim() && sendTimeValid,
+    draft?.subject.trim() &&
+      draft?.body.trim() &&
+      draft?.buttonText.trim() &&
+      sendTimeValid &&
+      termsChecked,
   );
 
   const isLoading = renewal.isLoading || availability.isLoading;
@@ -270,7 +278,7 @@ export default function RenewFeatureModal({ isOpen, onClose, slotId }: RenewFeat
             {step === "announcement" && draft && selectedStart && endDate && (
               <>
                 <p className="text-sm text-gray-500">
-                  This is the announcement you sent last time. Edit anything you'd like before
+                  This is the email announcement you sent last time. Edit anything you'd like before
                   it goes out to subscribers.
                 </p>
 
@@ -279,6 +287,12 @@ export default function RenewFeatureModal({ isOpen, onClose, slotId }: RenewFeat
                   onChange={setDraft}
                   startDate={selectedStart}
                   endDate={endDate}
+                />
+
+                <FeaturedTermsChecklist
+                  checked={termsChecked}
+                  onChange={setTermsChecked}
+                  disabled={checkout.isPending}
                 />
 
                 {error && <p className="text-sm text-red-600">{error}</p>}
