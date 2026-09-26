@@ -25,7 +25,7 @@ export default function FeaturedTermsChecklist({
       />
       <span>
         I acknowledge that all figures shown by BlogHub, including estimated clicks, visitor
-        numbers and audience data, are estimates only and are not guaranteed. I confirm that I have
+        numbers and audience data, are estimates based on averages from previous featured publications and are not guaranteed. I confirm that I have
         read and understand BlogHub&apos;s{" "}
         <Link
           to="/terms"
