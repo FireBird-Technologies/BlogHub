@@ -74,7 +74,7 @@ export function estimatedClicksLabel(days: number): string {
 
 /** Shown beside every click figure, wherever it appears. One string so no surface can
  *  quietly drop the caveat. */
-export const ESTIMATE_DISCLAIMER = "(These are estimates only, not guaranteed)";
+export const ESTIMATE_DISCLAIMER = "(These are estimates based on previous featured publication averages)";
 
 /** Where the featured refund policy lives. */
 export const FEATURED_REFUND_POLICY_PATH = "/terms#featured-refunds";
