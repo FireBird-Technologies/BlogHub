@@ -9,13 +9,24 @@
       "path": "/blogs",
       "changefreq": "weekly",
       "priority": "0.6"
+    },
+    {
+      "path": "/tools",
+      "changefreq": "monthly",
+      "priority": "0.7"
+    },
+    {
+      "path": "/tools/blog-name-generator",
+      "changefreq": "monthly",
+      "priority": "0.8"
+    },
+    {
+      "path": "/tools/newsletter-name-generator",
+      "changefreq": "monthly",
+      "priority": "0.8"
     }
   ],
   "posts": [
-    {
-      "slug": "finance-substack-distribution-problem",
-      "publishedAt": "2026-09-13"
-    },
     {
       "slug": "video-blog-sites",
       "publishedAt": "2026-09-05"

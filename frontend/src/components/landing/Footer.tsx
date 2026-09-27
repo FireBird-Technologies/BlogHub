@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { LEGAL } from "../../constants/legal";
-import { blog2videoUrl, pdf2vidUrl } from "../../lib/blog2video";
+import { blog2videoUrl, notestackUrl, pdf2vidUrl } from "../../lib/blog2video";
 
 export default function Footer() {
   return (
@@ -15,6 +15,9 @@ export default function Footer() {
         <div className="flex flex-col items-center sm:items-start gap-1.5 text-center sm:text-left">
           <Link to="/submit-your-newsletter" className="hover:text-gray-700 transition-colors">
             Submit your newsletter
+          </Link>
+          <Link to="/tools" className="hover:text-gray-700 transition-colors">
+            Free tools
           </Link>
           <Link to="/blogs" className="hover:text-gray-700 transition-colors">
             Blogs
@@ -39,6 +42,9 @@ export default function Footer() {
           </a>
           <a href={pdf2vidUrl("footer")} className="hover:text-gray-700 transition-colors">
             PDF2Video — document to video
+          </a>
+          <a href={notestackUrl("footer")} className="hover:text-gray-700 transition-colors">
+            Notestack — research your archive
           </a>
         </div>
       </div>

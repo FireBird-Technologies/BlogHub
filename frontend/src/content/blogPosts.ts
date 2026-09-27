@@ -20,145 +20,6 @@ function videoAsset(title: string, angle: string): DistributionAsset {
 
 export const blogPosts: BlogPost[] = [
   {
-    slug: "finance-substack-distribution-problem",
-    title: "Finance Substacks Don't Have a Writing Problem. They Have a Distribution Problem.",
-    description:
-      "The bottleneck on a finance newsletter is almost never the quality of the analysis. It is that the analysis exists in one format, on one platform, for one kind of reader. Here is what a second channel actually looks like.",
-    category: "Growth",
-    publishedAt: "2026-09-13",
-    readTime: "6 min read",
-    heroEyebrow: "Growth",
-    heroTitle: "Finance Substacks don't have a writing problem",
-    heroDescription:
-      "They have a distribution problem. The analysis is good. It just exists in exactly one format, on exactly one platform, for exactly one kind of reader.",
-    primaryKeyword: "finance substack",
-    keywordVariant: "how to grow a finance substack",
-    relatedPaths: [
-      "/blogs/how-to-promote-your-newsletter",
-      "/blogs/how-to-grow-on-substack",
-      "/blogs/how-to-turn-a-blog-post-into-a-video",
-      "/blogs/best-newsletter-directories",
-      "/blogs/how-to-repurpose-blog-content",
-    ],
-    sections: [
-      {
-        heading: "The loop most finance writers are stuck in",
-        paragraphs: [
-          "You publish something genuinely good. A teardown of a balance sheet. A thesis on where rates go next. An honest post-mortem on a trade that went against you. It lands with the existing list, a few people share it, and then nothing. The post slides into the archive and the subscriber count moves by single digits.",
-          "The instinct is to write more, or to write better. That instinct is usually wrong. The bottleneck is almost never the quality of the analysis. It is that the analysis exists in exactly one format, on exactly one platform, for exactly one kind of reader.",
-          "Every finance writer already has a text funnel. Almost none have a second one. The writers who grew fastest over the last few years were not better analysts than the ones who did not. They showed up in more places.",
-        ],
-      },
-      {
-        heading: "The reader you are never going to reach",
-        paragraphs: [
-          "There is a large population of people who are interested in markets and will never read 2,000 words about them. Not because they are lazy or unserious. They are commuting, or at the gym, or half watching something while the kids eat dinner. They consume ideas through audio and motion, and they are on YouTube, TikTok, Instagram and LinkedIn instead of in a newsletter inbox.",
-          "That group is not a lesser audience. It is the audience that has not been pre-selected by your existing distribution. Everyone currently on your list found you through a channel that already filtered for people who like reading.",
-          "There is also a compounding effect that a send does not give you. A Substack post has a half life of about 48 hours. A video sits on a platform with a recommendation engine attached to it, and that engine will keep feeding your February explainer to strangers in October. Search and recommendation do the work while you sleep. Your inbox does not.",
-        ],
-      },
-      {
-        heading: "Finance is unusually well suited to video",
-        paragraphs: [
-          "Some writing translates badly to video. Finance is not in that category. It is the opposite.",
-          "Finance writing is built on the exact things video renders well. Numbers that should be seen rather than read. Charts with a shape that tells the story faster than a paragraph can. A claim, the evidence for the claim, and the counterargument. That structure is already a script. Most of the work of turning a finance post into a video is work you did when you wrote the post.",
-          "There is a trust dimension too. Money is a high trust purchase. People subscribe to a paid finance publication because they believe the person behind it knows what they are talking about. Text proves competence. Voice proves conviction. Readers who have heard you reason through a position out loud convert at a different rate than readers who have only skimmed you.",
-        ],
-        bullets: [
-          "Numbers that should be seen rather than read",
-          "Charts whose shape tells the story faster than a paragraph can",
-          "A claim, the evidence, and the counterargument - already a script",
-          "Voice proves conviction in a way text cannot",
-        ],
-      },
-      {
-        heading: "So why is nobody doing it",
-        paragraphs: [
-          "Because the traditional answer is brutal. Hire an editor at several hundred dollars a video, or learn a timeline editor yourself and spend four hours per post. Neither is compatible with publishing twice a week while also doing the research that makes the publication worth reading. So the video plan becomes a someday plan, and someday never arrives.",
-          "The newer answer is generative AI video, and for finance it is worse than doing nothing. Generative models invent. They will produce a chart that looks like a chart and means nothing. They will draw a candlestick pattern that never existed and put a number on an axis that was never in your post. If you publish financial analysis, you cannot ship a video that hallucinates a figure. Your entire product is that you are accurate.",
-          "The workable middle is a tool that renders video programmatically rather than generating frames with a model, so the numbers and charts that come out are the ones that went in. Blog2Video was built for this specific job - you paste a URL or the post itself, it pulls the structure, writes a script that preserves the argument, narrates it in a voice you choose, and renders scenes, captions and B-roll. Minutes rather than hours, and no camera.",
-        ],
-        ctaPath: "https://blog2video.app",
-        ctaLabel: "Turn a finance post into a video",
-      },
-      {
-        heading: "The second half of the problem: being found at all",
-        paragraphs: [
-          "Video fixes the format problem. It does not fix the discovery problem underneath it, which is that most people who would happily subscribe to a good finance newsletter have no idea yours exists and are not searching for it by name.",
-          "Search sends you readers who already know what they want. Recommendation engines send you readers who were watching something adjacent. The third route is browsing - somebody scanning a category looking for a publication to follow, which is a different mode entirely and the one finance readers use when they are deliberately building a reading list.",
-          "That is what a directory is for. BlogHub keeps a standing, crawlable page for Finance, ranked and updated daily, where a publication gets found by people in exactly that browsing mode - and picks up a real indexed link back to the site while it is there.",
-        ],
-        ctaPath: "/dashboard",
-        ctaLabel: "List your publication on BlogHub",
-      },
-      {
-        heading: "What to actually do this week",
-        paragraphs: [
-          "None of this needs a strategy document. It needs one post and one afternoon.",
-          "Take your best post from last month - the one you were proud of that underperformed. Turn it into a video and put it on YouTube and LinkedIn with a link back to the original. Then list the publication in the places where people browse for something to read, so the next person who goes looking for a finance newsletter has a route to yours.",
-        ],
-        bullets: [
-          "Pick the best post from last month, not the newest one",
-          "Render it as a video and publish to YouTube and LinkedIn with a link back",
-          "List the publication in a directory so browsers can find it too",
-          "Repeat weekly with the archive before writing anything new",
-        ],
-      },
-      {
-        heading: "The thing worth being honest about",
-        paragraphs: [
-          "Video is not going to save a publication that nobody wants to read. If the analysis is thin, more distribution just exposes the thinness to more people faster.",
-          "But that is not the situation most finance writers are in. Most of them are sitting on a genuinely good archive that only ever reached the people who were already subscribed. That archive is a content library. It is just sitting in the wrong format, in one place, in front of one kind of reader.",
-        ],
-      },
-    ],
-    faq: [
-      {
-        question: "Why is my finance Substack not growing even though the writing is good?",
-        answer:
-          "Almost always because it exists in one format on one platform. Everyone on your list arrived through a channel that pre-selected for people who like reading long analysis, and that pool is finite. Growth past it means showing up where people who follow markets through audio and motion already are - YouTube, LinkedIn, TikTok - and in places where readers browse for publications to follow rather than search for an answer.",
-      },
-      {
-        question: "Does video actually work for finance newsletters?",
-        answer:
-          "It fits finance better than almost any other category. Finance writing is already a claim, the evidence for it, and the counterargument, carried by numbers and charts that read better on screen than on the page - which is to say it is already a script. It also builds the kind of trust that matters for a paid subscription: text proves competence, voice proves conviction.",
-      },
-      {
-        question: "Is AI video safe to use for financial analysis?",
-        answer:
-          "Generative video models are not, because they invent - a chart that looks like a chart and means nothing, a number on an axis that was never in your post. For financial content, use a tool that renders video programmatically from your actual text and data rather than generating frames with a model, so nothing in the output was imagined.",
-      },
-      {
-        question: "How long does a Substack post stay in circulation?",
-        answer:
-          "A send has a half life of roughly 48 hours - it lands, a few people share it, and it slides into the archive. A video on a platform with a recommendation engine behind it keeps getting surfaced for months, which is the compounding effect a newsletter archive does not have on its own.",
-      },
-      {
-        question: "Where should I list a finance newsletter to get found?",
-        answer:
-          "In places built for browsing rather than searching. BlogHub keeps a standing, crawlable Finance category page, ranked by community score and updated daily, so a publication can be discovered by someone building a reading list - and the listing is a real indexed link back to your site.",
-      },
-    ],
-    distributionPlan: [
-      {
-        channel: "site",
-        title: "Finance Substacks Don't Have a Writing Problem. They Have a Distribution Problem.",
-        angle:
-          "Growth post for finance newsletter writers: the bottleneck is format and platform, not analysis quality, and the fix is a second channel plus a browsing route.",
-      },
-      {
-        channel: "substack",
-        title: "Your finance Substack doesn't have a writing problem",
-        angle:
-          "Open on the publish-and-nothing-happens loop, then the reader who is structurally never going to reach the inbox.",
-      },
-      videoAsset(
-        "Why finance writing is the best possible source material for video",
-        "Walk the claim-evidence-counterargument structure and show the same post rendered as scenes with the real numbers intact.",
-      ),
-    ],
-  },
-  {
     slug: "video-blog-sites",
     title: "Video Blog Sites: Where to Find Them, and Where to List Yours",
     description:
@@ -246,6 +107,14 @@ export const blogPosts: BlogPost[] = [
         ],
         ctaPath: "https://blog2video.app/blogs/blogs-with-videos",
         ctaLabel: "How to add video to a blog post properly",
+      },
+      {
+        heading: "Blogs that already mix writing and video",
+        paragraphs: [
+          "Looking for examples rather than platforms? Blog2Video keeps a list of blogs with videos that pair written posts with video versions of the same ideas.",
+        ],
+        ctaPath: "https://blog2video.app/blogs/blogs-with-videos",
+        ctaLabel: "See blogs with videos",
       },
     ],
     faq: [
@@ -1067,6 +936,14 @@ export const blogPosts: BlogPost[] = [
           "Modern tools like blog2video.app turn a post into a short video in minutes, so the format that once took an afternoon now fits into your normal publishing flow.",
         ],
       },
+      {
+        heading: "Find the posts worth repurposing first",
+        paragraphs: [
+          "Repurposing works best on the posts that still matter. Notestack reads your whole archive, answers questions from it with citations to the exact lines, and turns any post into an audio overview, short videos and a ready to post Launch Kit.",
+        ],
+        ctaPath: "https://notestack.ai",
+        ctaLabel: "Put your archive to work with Notestack",
+      },
     ],
     faq: [
       {
@@ -1096,7 +973,7 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "how-to-turn-a-blog-post-into-a-video",
-    title: "How to Turn a Blog Post Into a Video (Fast)",
+    title: "Blog Post to Video: A Blogger's Distribution Guide",
     description:
       "A simple workflow for turning a blog post into a short video — scripting from your own writing, choosing visuals, and reaching a whole new audience.",
     category: "Video",
@@ -1106,7 +983,8 @@ export const blogPosts: BlogPost[] = [
     heroTitle: "How to turn a blog post into a video",
     heroDescription:
       "Your best posts already contain a script. Turning one into a short video is mostly editing, not creating — and it opens a channel most text blogs never touch.",
-    primaryKeyword: "how to turn a blog post into a video",
+    // The how-to query is owned by blog2video.app/blogs/how-to-turn-a-blog-post-into-a-video; this post links there.
+    primaryKeyword: "blog post to video for bloggers",
     keywordVariant: "starting a video from scratch",
     relatedPaths: ["/dashboard", "/blogs/how-to-repurpose-blog-content", "/blogs/repurpose-blog-posts-into-social-media"],
     sections: [
@@ -1137,6 +1015,14 @@ export const blogPosts: BlogPost[] = [
           "A video's job in your system is not to replace the post — it's to reach people who'd never find it and send the interested ones back. Always point to the full article for those who want more.",
           "Done consistently — especially with a tool like blog2video.app that scripts and builds the clip straight from your post — blog-to-video turns each post into two front doors: one for readers, one for viewers.",
         ],
+      },
+      {
+        heading: "The step by step version",
+        paragraphs: [
+          "This guide covers where the video goes once it exists. For the production steps (script, scenes, voiceover and export), Blog2Video has a detailed walkthrough of turning a blog post into a video.",
+        ],
+        ctaPath: "https://blog2video.app/blogs/how-to-turn-a-blog-post-into-a-video",
+        ctaLabel: "How to turn a blog post into a video",
       },
     ],
     faq: [
@@ -1209,6 +1095,14 @@ export const blogPosts: BlogPost[] = [
           "The goal is a tight loop where distribution feeds discovery feeds subscribers — a system that grows the blog while you focus on writing.",
         ],
       },
+      {
+        heading: "Turn the strategy into a routine",
+        paragraphs: [
+          "A repurposing strategy only compounds if it runs every week. Notestack's Launch Kit turns one post into an X thread, LinkedIn post, Substack Note, Bluesky post and SEO pack in your own voice, then schedules them.",
+        ],
+        ctaPath: "https://notestack.ai/blogs/substack-launch-kit",
+        ctaLabel: "See how a Launch Kit works",
+      },
     ],
     faq: [
       {
@@ -1280,6 +1174,14 @@ export const blogPosts: BlogPost[] = [
           "Short video is where the most reach lives right now, and a blog post is an easy source for it. One clip per post can out-reach every other social format combined.",
           "Same idea, spoken and captioned in under a minute, with a nudge back to the article.",
         ],
+      },
+      {
+        heading: "Do it from the whole archive",
+        paragraphs: [
+          "Once you have the formats, the bottleneck is picking which posts to repurpose. Notestack maps the topics you keep returning to and resurfaces evergreen posts worth sharing again.",
+        ],
+        ctaPath: "https://notestack.ai/blogs/ai-second-brain-for-writers",
+        ctaLabel: "Use your archive as a second brain",
       },
     ],
     faq: [
@@ -2555,6 +2457,14 @@ export const blogPosts: BlogPost[] = [
         ctaPath: "/submit-your-newsletter",
         ctaLabel: "Get your Substack listed on BlogHub",
       },
+      {
+        heading: "Reuse every post you have already written",
+        paragraphs: [
+          "Growth is easier when each post keeps working after publish day. Notestack connects to your Substack's full archive and turns posts into Notes, threads, audio and video in your own voice.",
+        ],
+        ctaPath: "https://notestack.ai/blogs/substack-launch-kit",
+        ctaLabel: "The Substack Launch Kit",
+      },
     ],
     faq: [
       {
@@ -2791,7 +2701,7 @@ export const blogPosts: BlogPost[] = [
   // ── Video ────────────────────────────────────────────────────────────────
   {
     slug: "ai-video-generators-that-arent-slop",
-    title: "AI Video Generators That Aren't Slop: A Writer's Filter",
+    title: "A Writer's Filter for AI Video Tools: 5 Questions Before You Publish",
     description:
       "Video is the fastest way to reach readers who'll never find your writing — and the fastest way to embarrass yourself if the tool makes slop. Two questions that sort the category.",
     category: "Video",
@@ -2801,7 +2711,8 @@ export const blogPosts: BlogPost[] = [
     heroTitle: "AI video generators that aren't slop",
     heroDescription:
       "Your name goes on the video, which makes this a reputation decision rather than a tooling one. Two questions sort the tools worth using from the ones that will cost you readers.",
-    primaryKeyword: "ai slop",
+    // "ai slop" is owned by blog2video.app/blogs/ai-video-generators-that-are-not-slop; this post links there.
+    primaryKeyword: "ai video tools for writers",
     keywordVariant: "generic AI video",
     relatedPaths: [
       "/blogs/how-to-turn-a-blog-post-into-a-video",
@@ -2872,6 +2783,14 @@ export const blogPosts: BlogPost[] = [
         ],
         ctaPath: "/dashboard",
         ctaLabel: "List your publication on BlogHub",
+      },
+      {
+        heading: "What AI slop actually is",
+        paragraphs: [
+          "This filter is the writer's shortcut. For the full breakdown of what AI slop is, how it gets produced, and which AI video generators avoid it, read Blog2Video's guide.",
+        ],
+        ctaPath: "https://blog2video.app/blogs/ai-video-generators-that-are-not-slop",
+        ctaLabel: "Read the guide to AI slop",
       },
     ],
     faq: [
@@ -3189,7 +3108,8 @@ export const blogPosts: BlogPost[] = [
     heroTitle: "YouTube backlinks for bloggers",
     heroDescription:
       "Every video you upload earns a permanent, indexed page on a DR 99 domain, carrying your link and your topic. The link is nofollow — and it is still one of the better deals available to a small blog.",
-    primaryKeyword: "youtube backlink",
+    // "youtube backlink" is owned by blog2video.app/blogs/youtube-backlink; this post links there.
+    primaryKeyword: "youtube backlinks for bloggers",
     keywordVariant: "how to get backlinks from youtube",
     relatedPaths: [
       "/blogs/how-to-turn-a-blog-post-into-a-video",
@@ -3261,6 +3181,14 @@ export const blogPosts: BlogPost[] = [
         ],
         ctaPath: "/dashboard",
         ctaLabel: "List your blog on BlogHub",
+      },
+      {
+        heading: "Get the link in minutes",
+        paragraphs: [
+          "Knowing what the link is worth is half of it. Blog2Video's guide shows how to get a YouTube backlink without filming anything, by turning a post you already wrote into a video.",
+        ],
+        ctaPath: "https://blog2video.app/blogs/youtube-backlink",
+        ctaLabel: "How to get a YouTube backlink",
       },
     ],
     faq: [
