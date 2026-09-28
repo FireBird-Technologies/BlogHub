@@ -24,6 +24,7 @@ import NotFound from "./pages/NotFound";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import FeaturedFaq from "./pages/FeaturedFaq";
+import ToolPage, { ToolsHub } from "./pages/ToolPage";
 import AdminApproveFeatured from "./pages/AdminApproveFeatured";
 
 const queryClient = new QueryClient({
@@ -62,6 +63,8 @@ export default function App() {
               />
               <Route path="/publications/:id" element={<PublicationDetail />} />
               <Route path="/submit-your-newsletter" element={<SubmitNewsletter />} />
+              <Route path="/tools" element={<ToolsHub />} />
+              <Route path="/tools/:slug" element={<ToolPage />} />
               <Route path="/blogs" element={<Blog />} />
               <Route path="/blogs/:slug/underrated" element={<UnderratedRoundupPage />} />
               <Route path="/blogs/:slug" element={<BlogPostPage />} />

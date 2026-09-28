@@ -30,7 +30,7 @@ export default function FeaturedReach({ variant = "page", durationDays }: Featur
     const tiles = [
       {
         value: durationDays ? estimatedClicksLabel(durationDays) : "50–80",
-        label: durationDays ? `est. clicks / ${durationDays} days*` : "est. clicks / week*",
+        label: durationDays ? `avg. clicks / ${durationDays} days*` : "avg. clicks / week*",
       },
       { value: "~5,000", label: "visitors since launch" },
       { value: "70% US", label: "+20% other developed" },
