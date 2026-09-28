@@ -10,6 +10,7 @@
 // this file.
 const BLOG2VIDEO_URL = "https://blog2video.app";
 const PDF2VID_URL = "https://pdf2vid.com";
+const NOTESTACK_URL = "https://notestack.ai";
 
 function withUtm(base: string, campaign: string, content: string): string {
   const params = new URLSearchParams({
@@ -27,4 +28,9 @@ export function blog2videoUrl(content: string): string {
 
 export function pdf2vidUrl(content: string): string {
   return withUtm(PDF2VID_URL, "pdf2vid", content);
+}
+
+/** notestack.ai: the research notebook that works over a writer's whole archive. */
+export function notestackUrl(content: string): string {
+  return withUtm(NOTESTACK_URL, "notestack", content);
 }
