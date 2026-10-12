@@ -12,6 +12,7 @@ const STARS = [
 
 interface ExploreButtonProps {
   href: string;
+  label?: string;
   className?: string;
 }
 
@@ -19,7 +20,7 @@ interface ExploreButtonProps {
  * Dark night-sky pill with twinkling stars that links out to notestack.ai.
  * Mirrors blog2video's ExploreButton so the sibling navbars match.
  */
-export default function ExploreButton({ href, className = "" }: ExploreButtonProps) {
+export default function ExploreButton({ href, label = "Explore", className = "" }: ExploreButtonProps) {
   return (
     <a
       href={href}
@@ -46,7 +47,7 @@ export default function ExploreButton({ href, className = "" }: ExploreButtonPro
           }}
         />
       ))}
-      <span className="relative">Explore</span>
+      <span className="relative">{label}</span>
     </a>
   );
 }
