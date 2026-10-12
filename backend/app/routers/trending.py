@@ -1,7 +1,8 @@
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
+from typing import Literal
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -9,7 +10,7 @@ from sqlalchemy.orm import selectinload
 from app.database import get_db
 from app.deps import get_optional_user
 from app.helpers.auth import create_unsubscribe_token
-from app.helpers.email import send_blog2video_promo, send_weekly_digest
+from app.helpers.email import send_blog2video_promo, send_notestack_promo, send_weekly_digest
 from app.helpers.publications import _batch_claims, _batch_meta, _pub_to_out
 from app.helpers.users import mailable_user_conditions
 from app.models.publication import Publication
@@ -20,6 +21,21 @@ from app.settings import settings
 router = APIRouter(tags=["trending"])
 
 TOP_WEEKLY_LIMIT = 5
+
+# The Wednesday promo alternates weekly between Notestack and Blog2Video, starting with
+# Notestack on this date. Derived from the date alone (no stored state), so a re-run
+# in the same week sends the same product.
+NOTESTACK_PROMO_START = date(2026, 10, 14)
+
+PromoProduct = Literal["notestack", "blog2video"]
+
+
+def _promo_for(today: date) -> PromoProduct:
+    """Which product this week's promo email is about."""
+    if today < NOTESTACK_PROMO_START:
+        return "blog2video"
+    weeks = (today - NOTESTACK_PROMO_START).days // 7
+    return "notestack" if weeks % 2 == 0 else "blog2video"
 
 
 async def _get_weekly(
@@ -163,9 +179,14 @@ async def send_underrated_digest_endpoint(
 @router.post("/publications/blog2video-promo/send-digest")
 async def send_blog2video_promo_endpoint(
     x_cron_secret: str | None = Header(default=None, alias="X-Cron-Secret"),
+    product: PromoProduct | None = Query(default=None),
     db: AsyncSession = Depends(get_db),
 ):
-    """Email the Blog2Video promo to all subscribed users. Triggered by an external cron job."""
+    """Email this week's promo to all subscribed users. Triggered by the Wednesday cron job.
+
+    Alternates weekly between Notestack and Blog2Video (see `_promo_for`). Pass
+    `?product=` to force one for a manual send.
+    """
     if not settings.CRON_SECRET or x_cron_secret != settings.CRON_SECRET:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or missing cron secret")
 
@@ -174,10 +195,13 @@ async def send_blog2video_promo_endpoint(
     )
     subscribers = result.all()
 
+    product = product or _promo_for(datetime.now(timezone.utc).date())
+    send_promo = send_notestack_promo if product == "notestack" else send_blog2video_promo
+
     for user_id, email, name in subscribers:
         token = create_unsubscribe_token(user_id)
-        await send_blog2video_promo(email, token, name)
+        await send_promo(email, token, name)
 
-    return {"sent": len(subscribers)}
+    return {"sent": len(subscribers), "product": product}
 
 
