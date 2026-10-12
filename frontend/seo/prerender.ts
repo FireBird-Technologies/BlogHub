@@ -347,7 +347,10 @@ export function prerenderPlugin(): Plugin {
         await mkdir(path.dirname(file), { recursive: true });
         await writeFile(file, shell, "utf8");
       }
-      config.logger.info(`prerendered ${all.length} content routes + ${CLIENT_ONLY_ROUTES.length} app-shell routes`);
+      // 404.html is served with a real 404 status for any URL without a file (new/unprerendered /publications/*,
+      // /category/*, roundups). Making it the app shell lets the SPA render those on refresh while crawlers still get 404.
+      await writeFile(path.join(outDir, "404.html"), shell, "utf8");
+      config.logger.info(`prerendered ${all.length} content routes +${CLIENT_ONLY_ROUTES.length} app-shell routes`);
     },
   };
 }
