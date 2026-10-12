@@ -17,6 +17,14 @@ import { TOOLS, TOOLS_HUB, type ToolDef } from "../src/content/tools";
 
 const SITE = "https://bloghub.app";
 
+// The static body is for crawlers and link unfurlers, which read the HTML without
+// styling it. Browsers would otherwise flash it as raw, unstyled text until React
+// mounts and replaces #root, so it is visually hidden (sr-only style, inline because
+// the stylesheet may not have loaded yet) while staying in the DOM and readable by
+// crawlers and screen readers.
+const VISUALLY_HIDDEN =
+  "position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0";
+
 type Rendered = { path: string; title: string; description: string; body: string; jsonLd?: object[]; ogType?: string };
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -317,7 +325,7 @@ export function prerenderPlugin(): Plugin {
       for (const r of all) {
         const html = template
           .replace("</head>", `    ${head(r)}\n  </head>`)
-          .replace('<div id="root"></div>', `<div id="root">${r.body}</div>`);
+          .replace('<div id="root"></div>', `<div id="root"><div style="${VISUALLY_HIDDEN}">${r.body}</div></div>`);
         const file = path.join(outDir, r.path === "/" ? "index.html" : `${r.path.slice(1)}.html`);
         await mkdir(path.dirname(file), { recursive: true });
         await writeFile(file, html, "utf8");
