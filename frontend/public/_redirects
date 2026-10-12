@@ -1,7 +1,9 @@
 # Verbatim duplicate of a blog2video.app post; one canonical copy lives there (2026-09-28).
 /blogs/finance-substack-distribution-problem  https://blog2video.app/blogs/finance-substack-distribution-problem  301
 
-# A root 404.html turns off Cloudflare's SPA fallback, so unknown URLs now return a real 404. Client-only and
+# A root 404.html turns off Cloudflare's SPA fallback, so unknown URLs return a real 404. The build overwrites
+# dist/404.html with the app shell (seo/prerender.ts) so refreshes on unprerendered routes still render the SPA.
+# The 200 rewrites below were not being applied live; the shell files and 404.html are the reliable path. Client-only and
 # DB-backed routes that may not be prerendered yet (new publications, new monthly roundups) still get the app shell.
 # Real files always win over these rewrites.
 /dashboard           /index.html  200

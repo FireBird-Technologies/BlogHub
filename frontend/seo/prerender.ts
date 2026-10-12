@@ -303,6 +303,15 @@ function head(r: Rendered) {
   ].join("\n    ");
 }
 
+const CLIENT_ONLY_ROUTES = [
+  "/dashboard",
+  "/profile",
+  "/featured-faq",
+  "/admin/approve-claim",
+  "/admin/block-claimer",
+  "/admin/approve-featured",
+];
+
 export function prerenderPlugin(): Plugin {
   let config: ResolvedConfig;
   return {
@@ -330,7 +339,18 @@ export function prerenderPlugin(): Plugin {
         await mkdir(path.dirname(file), { recursive: true });
         await writeFile(file, html, "utf8");
       }
-      config.logger.info(`prerendered ${all.length} content routes`);
+      // Client-only routes: the _redirects "/index.html 200" rewrites are not applied on the live host (refresh and
+      // email deep links 404), so emit the app shell as a real file. Real files always win. noindex: never in search.
+      const shell = template.replace("</head>", '    <meta name="robots" content="noindex" />\n  </head>');
+      for (const p of CLIENT_ONLY_ROUTES) {
+        const file = path.join(outDir, `${p.slice(1)}.html`);
+        await mkdir(path.dirname(file), { recursive: true });
+        await writeFile(file, shell, "utf8");
+      }
+      // 404.html is served with a real 404 status for any URL without a file (new/unprerendered /publications/*,
+      // /category/*, roundups). Making it the app shell lets the SPA render those on refresh while crawlers still get 404.
+      await writeFile(path.join(outDir, "404.html"), shell, "utf8");
+      config.logger.info(`prerendered ${all.length} content routes +${CLIENT_ONLY_ROUTES.length} app-shell routes`);
     },
   };
 }
