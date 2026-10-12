@@ -9,6 +9,7 @@ as `CRON_SECRET` (the scripts read it from there so it's never hard-coded in cro
 | `generate_roundups.sh` | `POST /api/roundups/generate` | 1st of month, 06:00 UTC |
 | `send_weekly_digest.sh` | `POST /api/publications/top-weekly/send-digest` | weekly |
 | `send_underrated_digest.sh` | `POST /api/publications/underrated-weekly/send-digest` | weekly |
+| _(droplet crontab only)_ | `POST /api/publications/blog2video-promo/send-digest` | Wednesdays |
 
 > Featured-slot reconciliation is **not** in this table — it runs inside the backend
 > process itself, not from cron. See "Featured slot reconciliation" below.
@@ -128,4 +129,17 @@ still there, guarded by `X-Cron-Secret` like the jobs above.
 ```bash
 curl -X POST http://localhost:8081/api/featured/reconcile \
   -H "X-Cron-Secret: $(grep -E '^CRON_SECRET=' backend/.env | cut -d= -f2-)"
+```
+
+## Wednesday promo email (Notestack / Blog2Video)
+
+`POST /api/publications/blog2video-promo/send-digest` emails one product promo to every
+subscribed user. It alternates weekly: **Notestack** on even weeks counted from
+2026-10-14 (`NOTESTACK_PROMO_START` in `app/routers/trending.py`), **Blog2Video** on odd
+weeks. The choice comes from the date, so re-running in the same week resends the same
+product. Force one manually with `?product=notestack` or `?product=blog2video`:
+
+```bash
+curl -fsS -X POST "http://localhost:8081/api/publications/blog2video-promo/send-digest?product=notestack" \
+  -H "X-Cron-Secret: $CRON_SECRET"
 ```

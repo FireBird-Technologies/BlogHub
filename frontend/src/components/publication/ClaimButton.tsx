@@ -13,7 +13,7 @@ export default function ClaimButton({ publication, className = "" }: ClaimButton
   const { user, openLoginModal } = useAuth();
   const [open, setOpen] = useState(false);
 
-  const sizeCls = "h-8 px-3.5 text-sm rounded-lg gap-1.5";
+  const sizeCls = "h-7 px-2.5 text-xs rounded-lg gap-1.5";
 
   // Already verified — the blue tick communicates this; no button needed.
   if (publication.is_verified) return null;
@@ -26,7 +26,7 @@ export default function ClaimButton({ publication, className = "" }: ClaimButton
                     border-amber-200 cursor-default ${sizeCls} ${className}`}
         title="Your claim is awaiting review"
       >
-        <Clock size={15} className="text-amber-600" />
+        <Clock size={13} className="text-amber-600" />
         Claim sent
       </span>
     );
@@ -50,7 +50,7 @@ export default function ClaimButton({ publication, className = "" }: ClaimButton
                     ${sizeCls} ${className}`}
         title="Claim this publication as the original author"
       >
-        <ShieldCheck size={15} className="text-red-500" />
+        <ShieldCheck size={13} className="text-red-500" />
         Claim this publication
       </button>
       {user && (
