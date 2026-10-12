@@ -23,7 +23,8 @@ import { resolveSocialIcon } from "../lib/socialIcons";
 import { useLinkEmbeds } from "../hooks/useLinkEmbeds";
 import { useDocumentMeta } from "../hooks/useDocumentMeta";
 import { parseShortIdFromParam, publicationPath } from "../lib/publicationUrl";
-import { blog2videoUrl } from "../lib/blog2video";
+import { blog2videoUrl, notestackUrl } from "../lib/blog2video";
+import ExploreButton from "../components/ui/ExploreButton";
 import { outboundUrl, trackFeaturedClick } from "../lib/featuredUtm";
 import { useActiveFeature } from "../hooks/useFeatured";
 import type { PublicationId, PaginatedPublications } from "../types/models";
@@ -503,6 +504,41 @@ export default function PublicationDetail() {
   const isFeatured = activeFeature?.publication.id === pub.id;
   const openEdit = (f: EditableField) => setEditField(f);
 
+  // Header actions, shown in one row above the category/verification badges.
+  const actionCls =
+    "flex items-center gap-1.5 h-7 px-2.5 rounded-lg bg-white border border-gray-200 text-xs font-medium " +
+    "text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors shadow-sm flex-shrink-0";
+  const ownershipActions = (
+    <>
+      <ClaimButton publication={pub} />
+      {isOwner && (
+        <button type="button" onClick={() => openEdit("all")} className={actionCls}>
+          <RefreshCw size={12} className="text-red-500" />
+          Resubmit
+        </button>
+      )}
+    </>
+  );
+  const outboundActions = (
+    <>
+      <a
+        href={blog2videoUrl("detail_page")}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={actionCls}
+      >
+        <Video size={12} className="text-red-500" />
+        Convert to video
+        <ExternalLink size={10} className="text-gray-400" />
+      </a>
+      <ExploreButton
+        href={notestackUrl("detail_page")}
+        label="Explore more"
+        className="h-7 px-2.5 text-xs shadow-sm flex-shrink-0"
+      />
+    </>
+  );
+
   return (
     <div className="min-h-screen lg:h-screen bg-gray-50 flex flex-col">
       <Navbar />
@@ -516,6 +552,11 @@ export default function PublicationDetail() {
           >
             <ArrowLeft size={15} /> Back
           </button>
+
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {ownershipActions}
+            {outboundActions}
+          </div>
 
           <div className="flex flex-wrap items-center gap-2">
             {isFeatured && (
@@ -538,33 +579,6 @@ export default function PublicationDetail() {
                 {tag}
               </span>
             ))}
-            <div className="ml-auto flex flex-col items-start gap-2 min-w-0">
-              <div className="flex flex-wrap items-center justify-start gap-2">
-                <ClaimButton publication={pub} />
-                {isOwner && (
-                  <button
-                    type="button"
-                    onClick={() => openEdit("all")}
-                    className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-white border border-gray-200 text-xs font-medium
-                               text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors shadow-sm flex-shrink-0"
-                  >
-                    <RefreshCw size={12} className="text-red-500" />
-                    Resubmit
-                  </button>
-                )}
-                <a
-                  href={blog2videoUrl("detail_page")}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-white border border-gray-200 text-xs font-medium
-                             text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors shadow-sm flex-shrink-0"
-                >
-                  <Video size={12} className="text-red-500" />
-                  Convert to video
-                  <ExternalLink size={10} className="text-gray-400" />
-                </a>
-              </div>
-            </div>
           </div>
 
           <div className="flex items-start gap-2">

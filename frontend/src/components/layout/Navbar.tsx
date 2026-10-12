@@ -4,7 +4,8 @@ import { ArrowRight, LogOut, Menu, X } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import Avatar from "../ui/Avatar";
 import Button from "../ui/Button";
-import { blog2videoUrl } from "../../lib/blog2video";
+import ExploreButton from "../ui/ExploreButton";
+import { blog2videoUrl, notestackUrl } from "../../lib/blog2video";
 
 export default function Navbar() {
   const { user, loading, logout, openLoginModal } = useAuth();
@@ -94,7 +95,9 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
+          <ExploreButton href={notestackUrl("app_navbar")} className="sm:hidden whitespace-nowrap text-xs px-3 py-1.5" />
           <div className="hidden sm:flex items-center gap-7">
+            <ExploreButton href={notestackUrl("app_navbar")} className="text-sm px-3.5 py-1.5" />
             <Link
               to="/featured-faq"
               className="text-sm font-semibold text-gray-600 hover:text-red-600 transition-colors"
