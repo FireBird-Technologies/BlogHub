@@ -119,9 +119,118 @@ function renderTool(tool: ToolDef): Rendered {
   };
 }
 
+// ---- DB-backed routes (publications, categories, roundups) -------------------------------------------------
+// Fetched from the public API at build time. Any failure skips these routes and logs a warning: the build must
+// never fail because the API is down, and the client still renders them after hydration.
+const API = process.env.PRERENDER_API_URL ?? "https://api.bloghub.app";
+
+type ApiPub = { id: string; title: string; description?: string | null; category?: string; url: string; is_unlisted?: boolean };
+type ApiRoundup = { slug: string; title: string; category: string; week_start: string; underrated_count: number; publications?: ApiPub[]; underrated?: ApiPub[] };
+
+async function api<T>(p: string): Promise<T> {
+  let last: unknown;
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    try {
+      const res = await fetch(`${API}/api${p}`, { signal: AbortSignal.timeout(20_000) });
+      if (!res.ok) throw new Error(`${p} -> ${res.status}`);
+      return (await res.json()) as T;
+    } catch (e) {
+      last = e;
+      await new Promise((r) => setTimeout(r, attempt * 750));
+    }
+  }
+  throw last;
+}
+
+const pubSlug = (title: string) =>
+  title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60).replace(/-+$/g, "");
+const pubPath = (p: { id: string; title: string }) => {
+  const sid = p.id.replace(/-/g, "").slice(0, 8).toLowerCase();
+  const slug = pubSlug(p.title);
+  return slug ? `/publications/${slug}-${sid}` : `/publications/${sid}`;
+};
+const monthLabel = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+const pubList = (pubs: ApiPub[]) =>
+  `<ol>${pubs.map((p) => `<li><h2><a href="${esc(pubPath(p))}">${esc(p.title)}</a></h2>${p.description ? `<p>${esc(p.description.slice(0, 200))}</p>` : ""}</li>`).join("")}</ol>`;
+
+async function dynamicRoutes(): Promise<Rendered[]> {
+  const out: Rendered[] = [];
+
+  // Publications: page through the whole directory (50 per page).
+  const pubs: ApiPub[] = [];
+  let cursor: string | undefined;
+  do {
+    const q = new URLSearchParams({ limit: "50", sort: "newest", ...(cursor ? { cursor } : {}) });
+    const page = await api<{ items: ApiPub[]; next_cursor: string | null }>(`/publications?${q}`);
+    pubs.push(...page.items);
+    cursor = page.next_cursor ?? undefined;
+  } while (cursor && pubs.length < 5000);
+  for (const p of pubs.filter((x) => !x.is_unlisted)) {
+    const desc = p.description?.trim() || `Read "${p.title}" on BlogHub.`;
+    out.push({
+      path: pubPath(p),
+      title: `${p.title} — BlogHub`,
+      description: desc.slice(0, 300),
+      ogType: "article",
+      body: page(
+        `<article><h1>${esc(p.title)}</h1><p>${esc(desc)}</p>${p.category ? `<p>Category: <a href="/category/${encodeURIComponent(p.category)}">${esc(p.category)}</a></p>` : ""}<p><a href="${esc(p.url)}" rel="noopener">Visit ${esc(p.title)}</a></p></article>`,
+      ),
+    });
+  }
+
+  // Category ranking pages: top 50 per category.
+  const cats = await api<string[]>("/publications/categories");
+  for (const c of cats) {
+    const list = await api<{ items: ApiPub[] }>(`/publications?${new URLSearchParams({ limit: "50", category: c, sort: "ranked_global" })}`);
+    if (!list.items.length) continue;
+    out.push({
+      path: `/category/${encodeURIComponent(c)}`,
+      title: `${c} publications, ranked — BlogHub`,
+      description: `Discover the top-ranked ${c} publications on BlogHub, sorted by community score and updated daily.`,
+      body: page(`<h1>${esc(c)}</h1><p>Top-ranked ${esc(c)} publications on BlogHub.</p>${pubList(list.items.filter((x) => !x.is_unlisted))}`),
+    });
+  }
+
+  // Monthly roundups and their /underrated companions.
+  const roundups = await api<ApiRoundup[]>("/roundups");
+  for (const r of roundups) {
+    const d = await api<ApiRoundup>(`/roundups/${r.slug}`);
+    const month = monthLabel(d.week_start);
+    out.push({
+      path: `/blogs/${d.slug}`,
+      title: `${d.title} — BlogHub`,
+      description: `The top ${d.category} blogs on BlogHub for ${month}, ranked by reader upvotes and discussion.`,
+      ogType: "article",
+      body: page(`<h1>${esc(d.title)}</h1>${pubList(d.publications ?? [])}${d.underrated?.length ? `<p><a href="/blogs/${d.slug}/underrated">Underrated ${esc(d.category)} blogs for ${month}</a></p>` : ""}`),
+    });
+    if (d.underrated?.length) {
+      out.push({
+        path: `/blogs/${d.slug}/underrated`,
+        title: `Underrated ${d.category} Blogs — ${month} — BlogHub`,
+        description: `Underrated ${d.category} blogs on BlogHub for ${month} — great reads that haven't found their audience yet.`,
+        ogType: "article",
+        body: page(`<h1>Underrated ${esc(d.category)} blogs — ${month}</h1>${pubList(d.underrated)}<p><a href="/blogs/${d.slug}">Top ${esc(d.category)} blogs for ${month}</a></p>`),
+      });
+    }
+  }
+  return out;
+}
+
 function routes(): Rendered[] {
   const posts = [...blogPosts].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
   return [
+    {
+      path: "/",
+      title: "BlogHub: Free Blog & Newsletter Directory",
+      description:
+        "Submit your blog, newsletter, or Substack to BlogHub's free directory. Get discovered by real readers, drive traffic to your site, and earn a link back — no listing fee, no subscriber minimum.",
+      body: page(
+        `<h1>BlogHub: the free blog and newsletter directory</h1><p>Submit your blog, newsletter, or Substack to BlogHub's free directory. Get discovered by real readers, drive traffic to your site, and earn a link back. No listing fee, no subscriber minimum.</p><p><a href="/submit-your-newsletter">Submit your newsletter</a></p><section><h2>Guides for growing a blog or newsletter</h2><ul><li><a href="/blogs/substack-alternatives">Substack alternatives and competitors</a></li><li><a href="/blogs/substack-vs-beehiiv">Substack vs beehiiv</a></li><li><a href="/blogs/best-newsletter-platforms">Best newsletter platforms</a></li><li><a href="/blogs/best-newsletter-directories">Best newsletter directories</a></li><li><a href="/blogs">All guides</a></li></ul></section><section><h2>Browse by category</h2><ul>${["Tech", "Business", "Finance", "Science", "Culture", "Health", "Education", "Design"].map((c) => `<li><a href="/category/${c}">${c} publications</a></li>`).join("")}</ul></section><section><h2>Free tools</h2><ul>${TOOLS.map((t) => `<li><a href="/tools/${t.slug}">${esc(t.heroTitle)}</a></li>`).join("")}</ul></section>`,
+      ),
+      jsonLd: [
+        { "@context": "https://schema.org", "@type": "WebSite", name: "BlogHub", url: SITE },
+      ],
+    },
     {
       path: "/blogs",
       title: "Blog | BlogHub",
@@ -198,12 +307,18 @@ export function prerenderPlugin(): Plugin {
       const outDir = path.resolve(config.root, config.build.outDir);
       const template = sanitize(await readFile(path.join(outDir, "index.html"), "utf8"));
       if (!template.includes('<div id="root"></div>')) throw new Error("bloghub-prerender: #root not found in index.html");
-      const all = routes();
+      let dynamic: Rendered[] = [];
+      try {
+        dynamic = await dynamicRoutes();
+      } catch (e) {
+        config.logger.warn(`bloghub-prerender: skipped DB-backed routes (${(e as Error).message})`);
+      }
+      const all = [...routes(), ...dynamic];
       for (const r of all) {
         const html = template
           .replace("</head>", `    ${head(r)}\n  </head>`)
           .replace('<div id="root"></div>', `<div id="root">${r.body}</div>`);
-        const file = path.join(outDir, `${r.path.slice(1)}.html`);
+        const file = path.join(outDir, r.path === "/" ? "index.html" : `${r.path.slice(1)}.html`);
         await mkdir(path.dirname(file), { recursive: true });
         await writeFile(file, html, "utf8");
       }

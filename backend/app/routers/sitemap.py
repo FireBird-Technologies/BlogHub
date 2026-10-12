@@ -23,7 +23,6 @@ _MANUAL_BLOG_POSTS_PATH = Path(__file__).resolve().parent.parent / "data" / "man
 
 STATIC_URLS = [
     {"loc": f"{FRONTEND_URL}/", "changefreq": "weekly", "priority": "1.0"},
-    {"loc": f"{FRONTEND_URL}/dashboard", "changefreq": "hourly", "priority": "0.9"},
     {"loc": f"{FRONTEND_URL}/terms", "changefreq": "yearly", "priority": "0.3"},
     {"loc": f"{FRONTEND_URL}/privacy", "changefreq": "yearly", "priority": "0.3"},
 ]

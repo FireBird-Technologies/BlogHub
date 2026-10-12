@@ -1,2 +1,14 @@
 # Verbatim duplicate of a blog2video.app post; one canonical copy lives there (2026-09-28).
 /blogs/finance-substack-distribution-problem  https://blog2video.app/blogs/finance-substack-distribution-problem  301
+
+# A root 404.html turns off Cloudflare's SPA fallback, so unknown URLs now return a real 404. Client-only and
+# DB-backed routes that may not be prerendered yet (new publications, new monthly roundups) still get the app shell.
+# Real files always win over these rewrites.
+/dashboard           /index.html  200
+/profile             /index.html  200
+/featured-faq        /index.html  200
+/admin/*             /index.html  200
+/publications/*      /index.html  200
+/category/*          /index.html  200
+/blogs/*/underrated  /index.html  200
+/blogs/*             /index.html  200
