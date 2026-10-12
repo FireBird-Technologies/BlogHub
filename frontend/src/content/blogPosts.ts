@@ -2127,6 +2127,7 @@ export const blogPosts: BlogPost[] = [
     primaryKeyword: "substack vs beehiiv",
     keywordVariant: "picking on vibes",
     relatedPaths: [
+      "/blogs/substack-alternatives",
       "/blogs/best-newsletter-platforms",
       "/blogs/how-to-grow-on-substack",
       "/submit-your-newsletter",
@@ -2160,6 +2161,32 @@ export const blogPosts: BlogPost[] = [
         ],
       },
       {
+        heading: "Substack vs beehiiv, side by side",
+        paragraphs: [
+          "If you just want the comparison in one place, this is it. Features and pricing change, so verify the details on each platform before you decide.",
+        ],
+        bullets: [
+          "Pricing model: Substack is free to use and takes 10% of paid subscription revenue. beehiiv charges a monthly fee that scales with list size and takes no cut of subscription revenue, apart from payment processor fees.",
+          "Discovery: Substack has a network of recommendations, Notes and an app that can surface you to existing readers. beehiiv offers boosts and a recommendation network you configure yourself.",
+          "Growth tooling: beehiiv has segmentation, A/B tests, referral programmes, polls and landing pages. Substack deliberately offers far fewer controls.",
+          "Monetisation: both support paid subscriptions. beehiiv adds an ad network aimed at sponsorship revenue.",
+          "Portability: both let you export subscribers as a CSV, and beehiiv has an import flow built for Substack migrations. Neither carries over your recommendation network.",
+        ],
+      },
+      {
+        heading: "Which to pick",
+        paragraphs: [
+          "Use your situation, not a feature count, to decide.",
+        ],
+        bullets: [
+          "Writing essays, not monetising yet, want zero cost: Substack.",
+          "Earning real money from paid subscriptions, where a flat fee beats a revenue share: beehiiv.",
+          "Running the newsletter like a media business, with sponsors, segments and referrals: beehiiv.",
+          "Starting from zero and relying on built-in discovery: Substack, with modest expectations.",
+          "Not sure: start on Substack, because it is free, and move later if the numbers justify it.",
+        ],
+      },
+      {
         heading: "The thing that actually matters: neither one grows you",
         paragraphs: [
           "It's easy to spend a week on this decision and then discover the platform wasn't the bottleneck. Both send email reliably. Both handle payments. Both have a serviceable editor. The publications that grow on either platform are the ones whose writers do the distribution work — showing up in communities, trading recommendations with peers, listing in directories, and building an archive that search engines can index.",
@@ -2190,6 +2217,16 @@ export const blogPosts: BlogPost[] = [
         answer:
           "Substack, marginally, because its recommendation network and app surface new publications to existing readers without you doing anything. But the effect is smaller than its reputation suggests — most newsletters that grow on Substack grow because their writers work external channels, not because the network delivered.",
       },
+      {
+        question: "Is beehiiv cheaper than Substack?",
+        answer:
+          "It depends on revenue and list size. Substack costs nothing until you charge readers, then takes 10% of paid subscription revenue. beehiiv charges a monthly fee by list size and takes no cut of subscriptions. Compare both against your actual numbers.",
+      },
+      {
+        question: "Does beehiiv take a percentage of paid subscriptions?",
+        answer:
+          "No. beehiiv charges a platform fee rather than a revenue share, though payment processor fees still apply. Terms change, so check the current pricing page.",
+      },
     ],
     distributionPlan: [
       {
@@ -2210,9 +2247,9 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "substack-alternatives",
-    title: "9 Substack Alternatives Worth Considering (and Who Each Is For)",
+    title: "Substack Alternatives: 9 Options and Who Each Is For",
     description:
-      "The best Substack alternatives compared — beehiiv, Ghost, Kit, Buttondown, and more — with the pricing model, ownership trade-off, and ideal writer for each.",
+      "The best Substack alternatives and competitors compared: beehiiv, Ghost, Kit, Buttondown, MailerLite, Mailchimp, WordPress, Medium and Patreon, with the pricing model, trade-off and ideal writer for each.",
     category: "Platforms",
     publishedAt: "2026-08-06",
     readTime: "9 min read",
@@ -2225,6 +2262,7 @@ export const blogPosts: BlogPost[] = [
     relatedPaths: [
       "/blogs/substack-vs-beehiiv",
       "/blogs/best-newsletter-platforms",
+      "/blogs/how-to-grow-on-substack",
       "/submit-your-newsletter",
     ],
     sections: [
@@ -2258,6 +2296,32 @@ export const blogPosts: BlogPost[] = [
         ctaLabel: "List your publication — any platform",
       },
       {
+        heading: "All nine, at a glance",
+        paragraphs: [
+          "If you want the whole field in one place, here are the nine alternatives most writers end up comparing, with the pricing model, who each is for, and the trade-off that matters. Pricing changes often, so confirm current plans and limits on each platform's own site before you commit.",
+        ],
+        bullets: [
+          "beehiiv: a monthly fee that scales with list size, and no percentage taken from paid subscriptions. Best for growth tooling and ad revenue. Trade-off: you pay before you earn, and discovery is something you build rather than something the platform does for you.",
+          "Ghost: open source, runs on your own domain, memberships and paid subscriptions built in, no revenue cut. Best for owning the whole stack. Trade-off: you pay for hosting and, if self-hosting, you own deliverability and updates.",
+          "Kit (formerly ConvertKit): built around the creator business, with strong tagging and automation. Best when the newsletter sells a course or product. Trade-off: less of a publication and archive experience than the publishing-first tools.",
+          "Buttondown: minimal, markdown-friendly and developer-friendly. Best for writers who want a simple, cheap sender. Trade-off: fewer growth features and no built-in network.",
+          "MailerLite: a low-cost email tool with landing pages and a free plan for small lists at the time of writing. Best for straightforward newsletters on a budget. Trade-off: not built around paid subscriptions or discovery.",
+          "Mailchimp: a general-purpose email marketing platform. Best when the newsletter sits inside a wider marketing stack. Trade-off: not designed for independent publishing, paid subscriptions or readers finding you.",
+          "WordPress with a newsletter plugin: your own site plus email, with maximum control. Best for writers who already run a WordPress site. Trade-off: you assemble and maintain the parts yourself.",
+          "Medium: a built-in readership and a paywall through its partner programme. Best for getting read without building an audience first. Trade-off: the audience belongs to the platform, and earnings depend on its rules.",
+          "Patreon: membership-first, with paid posts for supporters. Best for creators whose fans pay for access. Trade-off: not newsletter-first, and it takes a percentage of what you earn.",
+        ],
+      },
+      {
+        heading: "Substack competitors, and sites like Substack",
+        paragraphs: [
+          "People search for this in several ways, and they are not quite the same question. 'Substack competitors' usually means platforms that do the same job: publish posts, email them, and charge readers. That is beehiiv, Ghost and Buttondown most directly. 'Sites like Substack' often means somewhere you can also be discovered, which brings in Medium and, to a degree, Patreon. 'Substack alternative' covers all of them, plus the email-first tools such as Kit, MailerLite and Mailchimp.",
+          "The useful cut is whether you need a network or a tool. Substack and Medium come with readers. Almost everything else is a tool you bring readers to. If you are moving from Substack and distribution matters to you, list the publication somewhere readers browse before you leave.",
+        ],
+        ctaPath: "/submit-your-newsletter",
+        ctaLabel: "List your newsletter on BlogHub",
+      },
+      {
         heading: "What you lose when you leave",
         paragraphs: [
           "Every migration guide covers exporting your subscribers, which is the easy part — every platform here supports a CSV import. What they skip is what doesn't come with you: your Substack recommendation network, inbound traffic from the app, and whatever discovery the platform was quietly doing on your behalf.",
@@ -2285,6 +2349,21 @@ export const blogPosts: BlogPost[] = [
         question: "Is Ghost better than Substack for SEO?",
         answer:
           "Generally yes, because Ghost runs on your own domain, so every post builds authority for a site you own rather than for a subdomain of a platform. You also get full control of metadata, structured data, and site structure. It's a real advantage, but it's only worth the migration if you're actually going to publish for search.",
+      },
+      {
+        question: "What are the main Substack competitors?",
+        answer:
+          "The most direct competitors are beehiiv, Ghost and Buttondown, which let you publish, email and charge readers. Kit, MailerLite and Mailchimp are email-first tools. Medium and Patreon overlap on audience and memberships rather than on newsletters.",
+      },
+      {
+        question: "What are sites like Substack?",
+        answer:
+          "Platforms where you can publish posts and charge readers include beehiiv, Ghost and Buttondown. If you also want built-in readers, Medium is the closest in that respect, and Patreon covers paid memberships. Which fits depends on whether you need a network or just a sending tool.",
+      },
+      {
+        question: "Which Substack alternative takes no cut of subscription revenue?",
+        answer:
+          "beehiiv and Ghost do not take a percentage of paid subscription revenue, though payment processor fees still apply. Terms change, so check each platform's current pricing page before deciding.",
       },
     ],
     distributionPlan: [

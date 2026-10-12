@@ -44,6 +44,10 @@ interface AuthContextValue {
   reactivating: boolean;
   reactivateAccount: () => Promise<void>;
   dismissAccountStatus: () => void;
+  /** True after a sign-in in this page session (never on a session restored from a
+   *  reload). Login-only surfaces like the "What's new" popup fire on it, then consume it. */
+  justLoggedIn: boolean;
+  consumeJustLoggedIn: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -73,9 +77,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
   const [pendingCredential, setPendingCredential] = useState<PendingCredential | null>(null);
   const [reactivating, setReactivating] = useState(false);
+  const [justLoggedIn, setJustLoggedIn] = useState(false);
 
   const openLoginModal = useCallback(() => setLoginModalOpen(true), []);
   const closeLoginModal = useCallback(() => setLoginModalOpen(false), []);
+  const consumeJustLoggedIn = useCallback(() => setJustLoggedIn(false), []);
 
   useEffect(() => {
     const token = getToken();
@@ -107,6 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(issuedToken);
       const me = await api.get<User>("/api/me", { skipAuthRedirect: true });
       setUser(me.data);
+      setJustLoggedIn(true);
       return true;
     } catch (err) {
       if (issuedToken && isUnauthorized(err) && getToken() === issuedToken) {
@@ -141,6 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(issuedToken);
       const me = await api.get<User>("/api/me", { skipAuthRedirect: true });
       setUser(me.data);
+      setJustLoggedIn(true);
       return true;
     } catch (err) {
       if (issuedToken && isUnauthorized(err) && getToken() === issuedToken) {
@@ -173,6 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(res.data.token);
       const me = await api.get<User>("/api/me", { skipAuthRedirect: true });
       setUser(me.data);
+      setJustLoggedIn(true);
       setAccountStatus(null);
       setPendingCredential(null);
     } finally {
@@ -223,7 +232,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, signingIn, loginWithGoogle, loginWithGoogleAccessToken, logout, setUser, refreshUser, loginModalOpen, openLoginModal, closeLoginModal, accountStatus, canReactivate: pendingCredential !== null, reactivating, reactivateAccount, dismissAccountStatus }}>
+    <AuthContext.Provider value={{ user, loading, signingIn, loginWithGoogle, loginWithGoogleAccessToken, logout, setUser, refreshUser, loginModalOpen, openLoginModal, closeLoginModal, accountStatus, canReactivate: pendingCredential !== null, reactivating, reactivateAccount, dismissAccountStatus, justLoggedIn, consumeJustLoggedIn }}>
       {children}
     </AuthContext.Provider>
   );

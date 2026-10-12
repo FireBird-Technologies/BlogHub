@@ -1195,3 +1195,65 @@ async def send_blog2video_promo(
             logger.warning("Resend Blog2Video promo email failed (%s): %s", resp.status_code, resp.text)
     except Exception as exc:  # noqa: BLE001
         logger.warning("Resend Blog2Video promo email error: %s", exc)
+
+
+async def send_notestack_promo(
+    to_email: str,
+    unsubscribe_token: str,
+    name: str | None = None,
+) -> None:
+    """Best-effort Notestack promo email — alternates weekly with the Blog2Video promo.
+
+    Shares the same minimal, no-frills layout and unsubscribe flow as the weekly
+    digest. Never raises: if Resend is not configured or the request fails, we log
+    a warning and return.
+    """
+    if not settings.RESEND_API_KEY:
+        logger.warning("Notestack promo email skipped: RESEND_API_KEY not configured.")
+        return
+
+    unsubscribe_url = html.escape(
+        f"{settings.BACKEND_URL}/api/users/unsubscribe-digest?token={unsubscribe_token}"
+    )
+    greeting = html.escape(name) if name and name.strip() else "there"
+
+    body = (
+        '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"></head>'
+        '<body style="margin:0;padding:0;background:#fff;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">'
+        '<div style="max-width:520px;margin:48px auto;padding:0 24px;text-align:left;">'
+        f'<p style="margin:0 0 16px;font-size:15px;color:#111827;line-height:1.6;">Hey {greeting},</p>'
+        '<p style="margin:0 0 16px;font-size:15px;color:#111827;line-height:1.6;">'
+        'Every post you&#39;ve written is a star, and most of them are drifting in the dark.</p>'
+        '<p style="margin:0 0 16px;font-size:15px;color:#111827;line-height:1.6;">'
+        'Notestack puts your archive back in orbit. Ask questions of everything you&#39;ve published and get '
+        'answers traced to your own words. Turn any post into a two-host podcast without recording. Spin one '
+        'piece into a launch kit for every platform, in your voice.</p>'
+        '<p style="margin:0 0 16px;font-size:15px;color:#111827;line-height:1.6;">'
+        'Built for writers who publish, not just take notes. Liftoff is free.</p>'
+        '<p style="margin:0 0 16px;font-size:15px;color:#111827;line-height:1.6;">'
+        'Start free at <a href="https://notestack.ai?utm_source=bloghub&amp;utm_medium=email&amp;utm_campaign=notestack&amp;utm_content=notestack_promo" style="color:#111827;text-decoration:underline;">notestack.ai</a></p>'
+        '<p style="margin:24px 0 0;font-size:15px;color:#111827;line-height:1.6;">Arslan</p>'
+        f'<p style="margin:24px 0 0;font-size:12px;color:#9ca3af;">'
+        f'<a href="{unsubscribe_url}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a>'
+        '</p>'
+        '</div></body></html>'
+    )
+
+    payload = {
+        "from": settings.NO_REPLY_FROM_EMAIL,
+        "to": [to_email],
+        "subject": "Google killed NotebookLM but don't worry we got you covered",
+        "html": body,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                RESEND_ENDPOINT,
+                headers={"Authorization": f"Bearer {settings.RESEND_API_KEY}"},
+                json=payload,
+            )
+        if resp.status_code >= 400:
+            logger.warning("Resend Notestack promo email failed (%s): %s", resp.status_code, resp.text)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Resend Notestack promo email error: %s", exc)

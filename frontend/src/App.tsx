@@ -9,6 +9,7 @@ import LoginPromptModal from "./components/auth/LoginPromptModal";
 import SigningInOverlay from "./components/auth/SigningInOverlay";
 import AccountStatusModal from "./components/auth/AccountStatusModal";
 import { OnboardingModal } from "./components/auth/ProfileModal";
+import WhatsNewPopup from "./components/auth/WhatsNewPopup";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import RankingPage from "./pages/RankingPage";
@@ -78,6 +79,7 @@ export default function App() {
             </Routes>
             <LoginPromptModal />
             <OnboardingModal />
+            <WhatsNewPopup />
             <AccountStatusModal />
             <SigningInOverlay />
           </AuthProvider>
