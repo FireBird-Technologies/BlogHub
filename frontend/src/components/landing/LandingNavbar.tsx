@@ -4,7 +4,8 @@ import { Search, ArrowRight, Menu, X } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import Button from "../ui/Button";
 import Avatar from "../ui/Avatar";
-import { blog2videoUrl } from "../../lib/blog2video";
+import ExploreButton from "../ui/ExploreButton";
+import { blog2videoUrl, notestackUrl } from "../../lib/blog2video";
 
 export default function LandingNavbar() {
   const navigate = useNavigate();
@@ -98,6 +99,7 @@ export default function LandingNavbar() {
           {/* Right — Auth */}
           <div className="flex-shrink-0 flex items-center gap-3">
             <div className="flex items-center gap-7">
+              <ExploreButton href={notestackUrl("landing_navbar")} className="text-sm px-4 py-1.5" />
               <Link
                 to="/submit-your-newsletter"
                 className="text-sm font-semibold text-gray-600 hover:text-red-600 transition-colors"
@@ -187,6 +189,7 @@ export default function LandingNavbar() {
 
           {/* Right — Auth */}
           <div className="flex-shrink-0 flex items-center gap-3">
+            <ExploreButton href={notestackUrl("landing_navbar")} className="whitespace-nowrap text-xs px-3 py-1.5" />
             {loading ? (
               <div className="w-8 h-8 bg-gray-100 rounded-full animate-pulse" />
             ) : user ? (
