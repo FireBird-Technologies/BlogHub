@@ -32,7 +32,7 @@ export default function FeaturedReach({ variant = "page", durationDays }: Featur
         value: durationDays ? estimatedClicksLabel(durationDays) : "50–80",
         label: durationDays ? `avg. clicks / ${durationDays} days*` : "avg. clicks / week*",
       },
-      { value: "~5,000", label: "visitors per month" },
+      { value: "5,000", label: "visitors" },
       { value: "70% US", label: "+20% other developed" },
     ];
     return (
@@ -59,11 +59,11 @@ export default function FeaturedReach({ variant = "page", durationDays }: Featur
           value: estimatedClicksLabel(durationDays),
           label: `estimated clicks over ${durationDays} days ${ESTIMATE_DISCLAIMER}`,
         },
-        { icon: Users, value: "~5,000", label: "visitors per month" },
+        { icon: Users, value: "5,000", label: "visitors" },
         { icon: Globe, value: "70% US", label: "plus 20% other developed countries" },
       ]
     : [
-        { icon: Users, value: "~5,000", label: "visitors per month" },
+        { icon: Users, value: "5,000", label: "visitors" },
         {
           icon: MousePointerClick,
           value: "50–80",
