@@ -32,7 +32,7 @@ export default function FeaturedReach({ variant = "page", durationDays }: Featur
         value: durationDays ? estimatedClicksLabel(durationDays) : "50–80",
         label: durationDays ? `avg. clicks / ${durationDays} days*` : "avg. clicks / week*",
       },
-      { value: "5,000", label: "visitors" },
+      { value: "10,000", label: "visitors" },
       { value: "70% US", label: "+20% other developed" },
     ];
     return (
@@ -59,11 +59,11 @@ export default function FeaturedReach({ variant = "page", durationDays }: Featur
           value: estimatedClicksLabel(durationDays),
           label: `estimated clicks over ${durationDays} days ${ESTIMATE_DISCLAIMER}`,
         },
-        { icon: Users, value: "5,000", label: "visitors" },
+        { icon: Users, value: "10,000", label: "visitors" },
         { icon: Globe, value: "70% US", label: "plus 20% other developed countries" },
       ]
     : [
-        { icon: Users, value: "5,000", label: "visitors" },
+        { icon: Users, value: "10,000", label: "visitors" },
         {
           icon: MousePointerClick,
           value: "50–80",
@@ -88,7 +88,7 @@ export default function FeaturedReach({ variant = "page", durationDays }: Featur
 
       <div className="mt-4 flex flex-col gap-3 text-sm text-gray-600">
         <p>
-          {LEGAL.siteName} gets around 5,000 visitors per month. Based on past features, a featured listing gets
+          {LEGAL.siteName} gets around 10,000 visitors per month. Based on past features, a featured listing gets
           around 50 to 80 clicks to its site in a week {ESTIMATE_DISCLAIMER}.
         </p>
         <p>

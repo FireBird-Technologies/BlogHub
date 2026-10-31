@@ -60,7 +60,7 @@ export default function RenewFeatureModal({ isOpen, onClose, slotId }: RenewFeat
   const [pickedManually, setPickedManually] = useState(false);
   const [draft, setDraft] = useState<AnnouncementDraft | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [termsChecked, setTermsChecked] = useState(false);
+  const [termsChecked, setTermsChecked] = useState(true);
 
   // Reset every time the modal opens, so a second renewal in the same session doesn't
   // inherit the previous one's dates or edits.
@@ -72,7 +72,7 @@ export default function RenewFeatureModal({ isOpen, onClose, slotId }: RenewFeat
     setPickedManually(false);
     setDraft(null);
     setError(null);
-    setTermsChecked(false);
+    setTermsChecked(true);
   }, [isOpen, slotId]);
 
   const data = renewal.data;
