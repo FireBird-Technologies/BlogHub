@@ -1,0 +1,43 @@
+# BlogHub
+
+> BlogHub (bloghub.app) is a free directory of blogs, newsletters, and Substack publications. Writers submit their publication to get discovered by readers and earn a link back; there is no listing fee and no subscriber minimum. Built by Firebird Technologies.
+
+## What it does
+
+- Lists blogs, newsletters, and Substack publications by category, each with its own publication page.
+- Lets writers submit a blog or newsletter for free.
+- Publishes guides on growing a blog or newsletter and on choosing a platform.
+- Offers free blog-name and newsletter-name generators.
+
+## Key pages
+
+- [Submit your newsletter](https://bloghub.app/submit-your-newsletter): free submission form for a blog, newsletter, or Substack.
+- [Free tools](https://bloghub.app/tools): blog name generator and newsletter name generator.
+- [Blog name generator](https://bloghub.app/tools/blog-name-generator)
+- [Newsletter name generator](https://bloghub.app/tools/newsletter-name-generator)
+- [All guides](https://bloghub.app/blogs)
+
+## Guides
+
+- [Substack alternatives](https://bloghub.app/blogs/substack-alternatives): comparison of platforms to move to or run alongside Substack.
+- [Substack vs Beehiiv](https://bloghub.app/blogs/substack-vs-beehiiv): side-by-side comparison and which to pick.
+- [Best newsletter platforms](https://bloghub.app/blogs/best-newsletter-platforms)
+- [Best newsletter directories](https://bloghub.app/blogs/best-newsletter-directories)
+- [Best blog directories](https://bloghub.app/blogs/best-blog-directories)
+- [Article submission sites](https://bloghub.app/blogs/article-submission-sites)
+- [How to submit your blog to directories](https://bloghub.app/blogs/how-to-submit-your-blog-to-directories)
+- [How to promote your blog for free](https://bloghub.app/blogs/how-to-promote-your-blog-for-free)
+- [How to get your first 1,000 blog readers](https://bloghub.app/blogs/how-to-get-your-first-1000-blog-readers)
+- [How to start a newsletter](https://bloghub.app/blogs/how-to-start-a-newsletter)
+- [How to grow on Substack](https://bloghub.app/blogs/how-to-grow-on-substack)
+- [Best blogging platforms](https://bloghub.app/blogs/best-blogging-platforms)
+
+## Sister products
+
+- [Blog2Video](https://blog2video.app): turns blog posts, URLs, and PDFs into narrated videos.
+- [PDF2Video](https://pdf2vid.com): turns PDFs and documents into narrated videos.
+
+## Sitemaps
+
+- https://bloghub.app/blog-sitemap.xml
+- https://api.bloghub.app/sitemap.xml
