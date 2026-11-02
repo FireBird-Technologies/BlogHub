@@ -98,7 +98,7 @@ export default function FeaturePublicationModal({
   const [publicationId, setPublicationId] = useState<string | null>(null);
   const [draft, setDraft] = useState<AnnouncementDraft | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [termsChecked, setTermsChecked] = useState(false);
+  const [termsChecked, setTermsChecked] = useState(true);
 
   // Step 2 has two ways to pick what's being featured: one of the buyer's own
   // publications, or an arbitrary link that isn't (yet) a publication at all — typed
@@ -135,7 +135,7 @@ export default function FeaturePublicationModal({
       setPublicationId(null);
       setDraft(null);
       setError(null);
-      setTermsChecked(false);
+      setTermsChecked(true);
       setPubSource("link");
       setLinkUrl("");
       setLinkFields(EMPTY_LINK_FIELDS);

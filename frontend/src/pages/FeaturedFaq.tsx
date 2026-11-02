@@ -232,7 +232,7 @@ function FaqContent() {
 
       <LegalSection title="How much traffic does it get?">
         <p>
-          {LEGAL.siteName} gets around 5,000 visitors per month. Based on past features, a featured listing gets
+          {LEGAL.siteName} gets around 10,000 visitors per month. Based on past features, a featured listing gets
           around 50 to 80 clicks to its site in a week {ESTIMATE_DISCLAIMER}.
         </p>
         <p>

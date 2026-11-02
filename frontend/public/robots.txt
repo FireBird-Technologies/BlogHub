@@ -3,3 +3,5 @@ Allow: /
 
 Sitemap: https://api.bloghub.app/sitemap.xml
 Sitemap: https://bloghub.app/blog-sitemap.xml
+
+# LLM-readable summary of this site: https://bloghub.app/llms.txt
