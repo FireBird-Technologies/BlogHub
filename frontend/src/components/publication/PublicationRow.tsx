@@ -55,8 +55,8 @@ export default function PublicationRow({
           navigate(detailPath);
         }
       }}
-      className="group relative flex gap-3 w-full text-left bg-white border border-gray-200 rounded-xl p-2.5 sm:p-3
-                 cursor-pointer transition-all hover:border-red-200 hover:shadow-md hover:shadow-red-500/5"
+      className="group relative flex gap-3 w-full text-left gloss border border-transparent rounded-xl p-2.5 sm:p-3
+                 cursor-pointer gloss-hover"
     >
       {showTopTodayBadge && (
         <span
@@ -87,7 +87,7 @@ export default function PublicationRow({
             className="w-full h-full transition-transform duration-200 group-hover:scale-105"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-50 to-rose-50">
+          <div className="w-full h-full flex items-center justify-center bg-red-50">
             <svg className="w-8 h-8 text-red-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 strokeLinecap="round"

@@ -20,6 +20,199 @@ function videoAsset(title: string, angle: string): DistributionAsset {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "get-free-substack-followers",
+    title: "How to Get Free Substack Followers: A Zero-Budget, Notes-First Playbook",
+    description:
+      "How to get Substack followers for free: use Notes daily, trade genuine recommendations, give other writers shout-outs, list your newsletter on BlogHub, and show up in the communities your readers already use.",
+    category: "Newsletters",
+    publishedAt: "2026-11-03",
+    readTime: "10 min read",
+    heroEyebrow: "Newsletter Growth",
+    heroTitle: "How to get free Substack followers (without buying a single one)",
+    heroDescription:
+      "Substack is a positive-sum network: the writers who grow fastest are usually the ones sending the most readers to other writers. Here is a zero-budget plan built on Notes, shout-outs, directories and communities.",
+    primaryKeyword: "how to get substack followers",
+    keywordVariant: "free substack followers",
+    relatedPaths: [
+      "/blogs/how-to-grow-on-substack",
+      "/blogs/how-to-get-substack-subscribers",
+      "/blogs/how-to-promote-your-newsletter",
+      "/submit-your-newsletter",
+    ],
+    sections: [
+      {
+        heading: "Free followers come from other people, not from tricks",
+        paragraphs: [
+          "Every follower or subscriber you will ever get for free arrives because a person decided you were worth their attention. That can be a stranger who liked a Note, a writer who recommended you, a reader browsing a directory, or someone who found an old post through search. There is no hidden free channel that skips the human step.",
+          "That is also why the shortcuts backfire. Follower packs, engagement pods and follow-for-follow swaps produce numbers with no readers behind them. Your open rate drops, your Notes reach shrinks because nobody reacts to what you post, and the list you eventually try to monetise is empty. Everything in this guide is slower than buying a number and much faster than recovering from one.",
+          "The good news is that Substack is unusually friendly to the honest approach. It is a network of writers who benefit when readers discover more writers, so generosity is not a sacrifice here. It is the growth strategy.",
+        ],
+      },
+      {
+        heading: "Treat Substack as positive-sum, because it is",
+        paragraphs: [
+          "On most platforms, another creator's gain feels like your loss: a fixed amount of attention gets divided up. A newsletter is different. A reader who subscribes to ten publications is not choosing between them, and the habit of subscribing to more things makes them more likely to subscribe to yours. When you send a reader to a writer you admire, that reader trusts your taste a little more, and it tends to come back to you.",
+          "Make this concrete rather than a vibe. Decide that every week you will give away attention three ways: restack or reply thoughtfully to other writers' Notes, name a publication you actually read in your own posts, and recommend writers inside Substack so your own readers see them. None of it costs money, and all of it is visible to the writers you are helping, which is how reciprocity starts.",
+        ],
+        bullets: [
+          "Restack and reply with something of substance, not just agreement.",
+          "Name the writers who shaped an idea when you build on it.",
+          "Recommend publications you would send a friend to, even ones bigger than yours.",
+          "Upvote and share good publications you find in directories.",
+          "Say thank you publicly when someone sends you readers.",
+        ],
+      },
+      {
+        heading: "Use Notes every day, and use it for substance",
+        paragraphs: [
+          "Notes is the closest thing Substack has to organic reach, because it shows your writing to people who do not subscribe to you yet. It is also where most new writers waste the most effort, by treating it as a billboard for their latest link. Posts that exist only to send people elsewhere get little response, and a Note nobody reacts to is shown to fewer people next time.",
+          "Post the thing itself. A sharp observation from your niche, a short excerpt that stands on its own, a useful answer, a question that other writers actually want to answer. The reader who likes it taps your name, lands on your profile, and subscribes from there. The follower comes from the quality of the Note, not from a link in it.",
+          "Then spend as much time on other people's Notes as on your own. Leave replies that add something, and restack Notes you would be proud to have written. A good reply under a larger writer's Note is seen by their audience, and some of those readers will click through to see who said it. Being useful in someone else's conversation is one of the cheapest ways to be introduced to their readers.",
+        ],
+        bullets: [
+          "Post at least one self-contained Note a day, in the same voice as your newsletter.",
+          "Keep a running file of ideas, quotes and half-thoughts to draw from.",
+          "Reply to ten other writers' Notes for every one link you post.",
+          "Turn each published post into several Notes over the following weeks, so one piece of writing keeps working.",
+          "Watch which Notes get follows rather than likes, and make more of those.",
+        ],
+        ctaPath: "https://notestack.ai/blogs/substack-launch-kit",
+        ctaLabel: "Turn your posts into a month of Notes",
+      },
+      {
+        heading: "Give shout-outs that are specific and earned",
+        paragraphs: [
+          "A shout-out is the simplest positive-sum move there is: you tell your readers about a writer you like, and you tell that writer you did it. Done well, it gives your readers something valuable, gives the other writer a spike of relevant subscribers, and makes you a person worth knowing. Done badly, it reads as a thinly disguised request for a favour.",
+          "The difference is specificity. Do not write that someone has a great newsletter. Say which issue changed how you think about something, what you did differently afterwards, and who should read them. Only recommend writers you have actually read, because your readers will trust the next recommendation exactly as much as they trusted the last.",
+          "Do it without asking for anything back. Some writers will reciprocate, and many will not, and neither outcome should change whether you did the right thing. The ones who do reciprocate tend to become your closest collaborators, recommending you to audiences you could not have reached alone.",
+        ],
+        bullets: [
+          "Dedicate a recurring slot, like a short reading list at the end of an issue, to publications you rate.",
+          "Mention the specific post, not just the name.",
+          "Tell the writer afterwards so they can see what you wrote.",
+          "Pick writers across sizes, not only people bigger than you.",
+          "Never promise a recommendation you would not make unprompted.",
+        ],
+      },
+      {
+        heading: "Trade recommendations with writers adjacent to you",
+        paragraphs: [
+          "Substack's recommendations feature puts other publications in front of someone right after they subscribe, when they have just proven they are willing to follow a writer. That makes it among the best-converting sources of subscribers you can earn, and it is earned by relationships rather than settings.",
+          "Make a list of ten to fifteen publications that serve a reader similar to yours without competing head-on. Read several of their issues. Then send each a short, specific note about something they wrote, say you have recommended them, and ask nothing. Expect most not to reply. The few who do will send you readers for as long as the recommendation stays up.",
+          "Come back to this list every time your audience doubles. Writers who were not ready to recommend a publication of two hundred are often glad to recommend one of two thousand.",
+        ],
+      },
+      {
+        heading: "List your newsletter on BlogHub so browsing readers can find you",
+        paragraphs: [
+          "Most of the channels above reach people who are already scrolling a feed. A directory reaches a different person: someone who has decided they want something new to read and is browsing a category to find it. That intent is why directory visitors convert so well, and it is why a listing is worth the few minutes it takes.",
+          "BlogHub is a free directory for newsletters and blogs. You paste your Substack URL, it pulls in the title, description and cover image, you pick the category readers would browse to find you, add tags, and publish. There is no subscriber minimum and no review queue, and your listing gets its own permanent page with a link back to your publication.",
+          "Because listings are ranked by reader upvotes, BlogHub works best the same way Substack does: as a community. Browse your category, subscribe to publications you genuinely like, and upvote them. Writers who take part tend to be the ones whose own listings get seen, and you will find new people to recommend and to read along the way.",
+        ],
+        bullets: [
+          "Paste your yourname.substack.com URL and check the scraped preview.",
+          "Write the description for the reader: who it is for, how often it arrives, what they get.",
+          "Choose the most specific category and add honest tags.",
+          "Upvote and subscribe to a few publications in your category as part of the same sitting.",
+          "Update the listing when your focus changes so it keeps matching what you publish.",
+        ],
+        ctaPath: "/submit-your-newsletter",
+        ctaLabel: "List your Substack on BlogHub for free",
+      },
+      {
+        heading: "Other legitimate free sources worth your time",
+        paragraphs: [
+          "Directories and Notes are the core, but they work best alongside a few other places where your readers already spend time. Pick two or three rather than all of them, and treat each one as a place to take part, not a place to advertise.",
+          "Communities are the most reliable. Find the subreddits, Slack groups, Discord servers and forums where your reader asks questions, read the rules, and answer properly for a few weeks before you ever mention your newsletter. A helpful profile with a link in the bio will do more than any link dropped in a thread, and many communities ban the latter outright.",
+          "Social platforms where your niche talks, such as LinkedIn or Bluesky, are good places to post the same self-contained ideas you share in Notes, with your subscribe link in your profile. Guest posts on another writer's newsletter and appearances on small podcasts put you in front of an audience that has already been vouched for by someone it trusts.",
+          "Search is the long game. Your Substack archive is public, so write an issue every so often that answers a specific question someone in your niche types into Google. It does nothing on send day and keeps bringing in subscribers for years.",
+        ],
+        bullets: [
+          "Communities: be useful first, mention your newsletter when it is directly relevant and the rules allow it.",
+          "LinkedIn and Bluesky: share ideas, not just links, with your subscribe page in your profile.",
+          "Guest posts and podcasts: borrow an audience that already trusts the host.",
+          "Search: one evergreen, question-titled issue every few weeks.",
+          "Other directories: submit to several, since each reaches a slightly different set of browsing readers.",
+        ],
+      },
+      {
+        heading: "Make the page convert before you send traffic to it",
+        paragraphs: [
+          "Every tactic above ends at your publication page, so a weak page quietly wastes all of them. Spend an hour making sure a stranger can tell in five seconds who the newsletter is for, how often it arrives and what they get, and that your best post, not your newest, is the first thing they see.",
+          "Put your subscribe link in every profile you own, and tell people at the end of each post what to do next. Most readers who like an issue never subscribe simply because nobody asked.",
+        ],
+      },
+      {
+        heading: "A weekly routine that fits in an hour a day",
+        paragraphs: [
+          "Consistency beats intensity here, because every channel above compounds. A small routine you can keep for six months outperforms a heroic month followed by silence.",
+        ],
+        bullets: [
+          "Daily: one self-contained Note, plus ten minutes replying and restacking other writers.",
+          "Weekly: publish your issue, give one specific shout-out, and turn the issue into several Notes.",
+          "Monthly: send two or three recommendation outreach notes, and submit to one more directory.",
+          "Quarterly: review which source produced real subscribers and do more of that.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: "Can you really get Substack followers for free?",
+        answer:
+          "Yes. Notes, recommendations from other writers, directory listings, communities and search are all free, and they bring real subscribers. They take time rather than money, and they build an audience that opens your emails, which paid shortcuts do not.",
+      },
+      {
+        question: "Should I buy Substack followers or subscribers?",
+        answer:
+          "No. Purchased followers do not read, reply or pay. They lower your open rate, reduce how widely your Notes are shown, and leave you with a bigger number and a smaller audience. Growing slowly with real readers is faster in the end.",
+      },
+      {
+        question: "How do I use Substack Notes to grow?",
+        answer:
+          "Post self-contained ideas rather than links to your latest issue, publish regularly, and spend as much time replying to and restacking other writers as posting your own. Readers who like a Note visit your profile and subscribe from there.",
+      },
+      {
+        question: "How do I give other Substack writers a shout-out?",
+        answer:
+          "Recommend them in your publication settings, mention a specific post of theirs in your newsletter or Notes, and let them know. Only recommend writers you have actually read, and do not expect anything back.",
+      },
+      {
+        question: "Does listing my newsletter on BlogHub cost anything?",
+        answer:
+          "No. Listing is free, with no subscriber minimum and no review queue. You paste your Substack URL, check the preview, choose a category and publish. The only paid product is an optional featured slot you never need to buy.",
+      },
+      {
+        question: "How long does it take to get your first 100 Substack followers?",
+        answer:
+          "It varies widely with niche and effort, but most writers who post daily Notes, ask a few friends and peers personally, and list in directories reach their first hundred within a few months. Consistency matters more than any single tactic.",
+      },
+    ],
+    distributionPlan: [
+      {
+        channel: "site",
+        title: "How to get free Substack followers",
+        angle:
+          "Zero-budget, Notes-first growth playbook that frames Substack as positive-sum and routes directory-minded readers to BlogHub.",
+      },
+      {
+        channel: "substack",
+        title: "I stopped chasing followers and started giving them away",
+        angle:
+          "First-person essay on shout-outs and recommendations, ending with a reading list of writers worth following.",
+      },
+      {
+        channel: "medium",
+        title: "A free playbook for growing a Substack with Notes",
+        angle:
+          "Condensed version of the daily Notes routine with a pointer back to the full guide.",
+      },
+      videoAsset(
+        "Free ways to grow your Substack",
+        "Screen-record posting a Note, writing a specific shout-out and submitting a listing to BlogHub.",
+      ),
+    ],
+  },
+  {
     slug: "video-blog-sites",
     title: "Video Blog Sites: Where to Find Them, and Where to List Yours",
     description:

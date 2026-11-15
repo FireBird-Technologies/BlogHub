@@ -124,13 +124,13 @@ export default function CommentNode(props: CommentNodeProps) {
                   maxLength={1000}
                   className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm
                              text-gray-800 placeholder:text-gray-400 focus:outline-none
-                             focus:border-red-400 focus:ring-1 focus:ring-red-400/20 transition-colors"
+                             focus:border-red-400 focus:ring-4 focus:ring-red-500/10 transition-colors"
                 />
                 <div className="flex items-center gap-2">
                   <button
                     type="submit"
                     disabled={!replyText.trim() || adding}
-                    className="px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-medium hover:bg-red-700 transition-colors
+                    className="px-3 py-1.5 rounded-lg btn-gloss bg-red-600 text-white text-xs font-medium hover:bg-red-700 transition-colors
                                disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
                   >
                     {adding ? <Spinner size={12} /> : <Send size={12} />}

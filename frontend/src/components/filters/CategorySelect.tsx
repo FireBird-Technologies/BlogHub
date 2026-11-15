@@ -45,7 +45,7 @@ export default function CategorySelect({ value, onChange }: CategorySelectProps)
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 right-0 sm:right-auto sm:min-w-[12rem] mt-1.5 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden max-h-80 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 sm:right-auto sm:min-w-[12rem] mt-1.5 bg-white ring-1 ring-gray-900/5 rounded-xl shadow-xl z-50 overflow-hidden max-h-80 overflow-y-auto">
           {predefined.map((cat) => {
             const isAll = cat === "All";
             const active = isAll ? value === "" : value === cat;

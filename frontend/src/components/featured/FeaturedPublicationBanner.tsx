@@ -205,11 +205,11 @@ function HelpLinks({ onContact }: { onContact: () => void }) {
 }
 
 const CARD_CLASSES = `group relative w-full text-left rounded-2xl border
-  bg-gradient-to-br from-amber-50 via-yellow-50/60 to-white p-3 transition-all
-  hover:border-amber-400 hover:shadow-lg hover:shadow-amber-500/10`;
+  bg-amber-50 p-3 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(18,20,27,0.05)]
+  hover:border-amber-400 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_16px_32px_-14px_rgba(245,164,11,0.45)]`;
 
-const PILL_CLASSES = `inline-flex items-center rounded-full bg-gradient-to-r from-amber-500
-  to-yellow-500 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm`;
+const PILL_CLASSES = `inline-flex items-center rounded-full gloss-gold
+  px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide`;
 
 interface FeaturedPublicationBannerProps {
   className?: string;

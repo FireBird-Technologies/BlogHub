@@ -29,7 +29,7 @@ export default function Navbar() {
       </button>
 
       {menuOpen && (
-        <div className="absolute right-0 top-full mt-1 w-44 rounded-xl border border-gray-100 bg-white py-1 shadow-lg z-50">
+        <div className="absolute right-0 top-full mt-1 w-44 rounded-xl bg-white ring-1 ring-gray-900/5 py-1 shadow-xl z-50">
           {!loading && !user && (
             <>
               <button
@@ -77,10 +77,10 @@ export default function Navbar() {
   }, [menuOpen]);
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-gray-200">
+    <header className="sticky top-0 z-40 w-full glass">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <Link to={logoTo} className="text-lg font-bold tracking-tight">
+          <Link to={logoTo} className="text-lg font-bold tracking-tighter">
             <span className="text-red-600">BlogHub</span>
           </Link>
           <ArrowRight size={13} className="text-gray-300 flex-shrink-0" />
@@ -100,13 +100,13 @@ export default function Navbar() {
             <ExploreButton href={notestackUrl("app_navbar")} className="text-sm px-3.5 py-1.5" />
             <Link
               to="/featured-faq"
-              className="text-sm font-semibold text-gray-600 hover:text-red-600 transition-colors"
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
             >
               Get featured
             </Link>
             <Link
               to="/blogs"
-              className="text-sm font-semibold text-gray-600 hover:text-red-600 transition-colors"
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
             >
               Blogs
             </Link>
@@ -120,10 +120,8 @@ export default function Navbar() {
               <Link
                 to="/profile"
                 title="View your profile"
-                className="flex items-center gap-2 rounded-full border border-gray-200 bg-white py-1 pl-1 pr-3
-                           text-sm font-semibold text-gray-700 shadow-sm
-                           hover:border-red-300 hover:bg-red-50/50 hover:text-gray-900 hover:shadow
-                           transition-all"
+                className="btn-soft flex items-center gap-2 rounded-full py-1 pl-1 pr-3
+                           text-sm font-semibold text-gray-700 hover:text-gray-900"
               >
                 <Avatar src={user.avatar_url} name={user.name} position={user.avatar_position} scale={user.avatar_scale} size={28} />
                 <span className="hidden sm:block">{user.tag ? `@${user.tag}` : user.name}</span>

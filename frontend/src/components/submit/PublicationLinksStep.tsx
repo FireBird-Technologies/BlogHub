@@ -12,7 +12,7 @@ import {
 import { socialIconForLabel } from "../../lib/socialIcons";
 
 const defaultInputCls =
-  "w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-lg px-3 py-2.5 placeholder:text-gray-400 focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400/20 hover:border-gray-300 transition-colors";
+  "w-full bg-white border border-gray-200 shadow-sm text-gray-800 text-sm rounded-lg px-3 py-2.5 placeholder:text-gray-400 focus:outline-none focus:border-red-400 focus:ring-4 focus:ring-red-500/10 hover:border-gray-300 transition-colors";
 
 export const LINKS_MAX_EXTRA = 5;
 export const LINKS_MAX_SOCIAL = 8;

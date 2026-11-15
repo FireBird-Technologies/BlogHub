@@ -38,7 +38,7 @@ function SignInGate({ tool }: { tool: ToolDef }) {
       <button
         type="button"
         onClick={signIn}
-        className="mt-5 inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-red-600/20 transition-colors hover:bg-red-700"
+        className="mt-5 inline-flex items-center gap-1.5 rounded-lg btn-gloss bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700"
       >
         Sign in free <ArrowRight size={15} />
       </button>
@@ -139,7 +139,7 @@ export function ToolsHub() {
     type: "website",
   });
   return (
-    <main className="min-h-screen bg-white flex flex-col">
+    <main className="min-h-screen bg-gray-50 flex flex-col">
       <LandingNavbar />
       <div className="flex-1 px-4 sm:px-6 py-12">
         <div className="max-w-3xl mx-auto">
@@ -192,7 +192,7 @@ export default function ToolPage() {
   if (!tool) return <NotFound />;
 
   return (
-    <main className="min-h-screen bg-white flex flex-col">
+    <main className="min-h-screen bg-gray-50 flex flex-col">
       <LandingNavbar />
       <div className="flex-1 px-4 sm:px-6 py-12">
         <article className="max-w-3xl mx-auto">

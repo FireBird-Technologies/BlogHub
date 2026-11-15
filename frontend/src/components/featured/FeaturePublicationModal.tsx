@@ -494,9 +494,9 @@ export default function FeaturePublicationModal({
                     }}
                     onKeyDown={(e) => e.key === "Enter" && handleFetchLink()}
                     placeholder="https://example.com/your-page"
-                    className="flex-1 bg-white border border-gray-200 text-gray-800 text-sm rounded-lg
+                    className="flex-1 bg-white border border-gray-200 shadow-sm text-gray-800 text-sm rounded-lg
                                px-3 py-2.5 placeholder:text-gray-400 focus:outline-none
-                               focus:border-red-400 focus:ring-1 focus:ring-red-400/20"
+                               focus:border-red-400 focus:ring-4 focus:ring-red-500/10"
                   />
                   <Button type="button" onClick={handleFetchLink} disabled={!linkUrl || scrape.isPending}>
                     {scrape.isPending ? <Spinner size={16} /> : "Fetch"}
@@ -529,9 +529,9 @@ export default function FeaturePublicationModal({
                                 setLinkFields((f) => ({ ...f, image_url: e.target.value, image_position: null, image_scale: null }))
                               }
                               placeholder="Paste an image URL…"
-                              className="flex-1 min-w-0 bg-white border border-gray-200 text-gray-800 text-xs rounded-lg
+                              className="flex-1 min-w-0 bg-white border border-gray-200 shadow-sm text-gray-800 text-xs rounded-lg
                                          px-3 py-2 placeholder:text-gray-400 focus:outline-none
-                                         focus:border-red-400 focus:ring-1 focus:ring-red-400/20"
+                                         focus:border-red-400 focus:ring-4 focus:ring-red-500/10"
                             />
                             <ImageUploadButton
                               onUpload={(dataUrl) =>
@@ -578,9 +578,9 @@ export default function FeaturePublicationModal({
                                 }
                                 placeholder="e.g. Gaming"
                                 maxLength={64}
-                                className="w-full bg-white border border-gray-200 text-gray-800 text-xs rounded-lg
+                                className="w-full bg-white border border-gray-200 shadow-sm text-gray-800 text-xs rounded-lg
                                            px-3 py-2 mt-1 placeholder:text-gray-400 focus:outline-none
-                                           focus:border-red-400 focus:ring-1 focus:ring-red-400/20"
+                                           focus:border-red-400 focus:ring-4 focus:ring-red-500/10"
                               />
                             )}
                           </label>
@@ -591,9 +591,9 @@ export default function FeaturePublicationModal({
                               value={linkFields.tags}
                               onChange={(e) => setLinkFields((f) => ({ ...f, tags: e.target.value }))}
                               placeholder="ai, ux"
-                              className="w-full bg-white border border-gray-200 text-gray-800 text-xs rounded-lg
+                              className="w-full bg-white border border-gray-200 shadow-sm text-gray-800 text-xs rounded-lg
                                          px-3 py-2 placeholder:text-gray-400 focus:outline-none
-                                         focus:border-red-400 focus:ring-1 focus:ring-red-400/20"
+                                         focus:border-red-400 focus:ring-4 focus:ring-red-500/10"
                             />
                           </label>
                         </div>
@@ -606,9 +606,9 @@ export default function FeaturePublicationModal({
                         value={linkFields.title}
                         onChange={(e) => setLinkFields((f) => ({ ...f, title: e.target.value }))}
                         maxLength={512}
-                        className="w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-lg
+                        className="w-full bg-white border border-gray-200 shadow-sm text-gray-800 text-sm rounded-lg
                                    px-3 py-2 placeholder:text-gray-400 focus:outline-none
-                                   focus:border-red-400 focus:ring-1 focus:ring-red-400/20"
+                                   focus:border-red-400 focus:ring-4 focus:ring-red-500/10"
                       />
                     </label>
                     <label className="flex flex-col gap-1.5">
@@ -617,9 +617,9 @@ export default function FeaturePublicationModal({
                         value={linkFields.description}
                         onChange={(e) => setLinkFields((f) => ({ ...f, description: e.target.value }))}
                         rows={5}
-                        className="w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-lg
+                        className="w-full bg-white border border-gray-200 shadow-sm text-gray-800 text-sm rounded-lg
                                    px-3 py-2 placeholder:text-gray-400 focus:outline-none resize-none
-                                   focus:border-red-400 focus:ring-1 focus:ring-red-400/20"
+                                   focus:border-red-400 focus:ring-4 focus:ring-red-500/10"
                       />
                     </label>
                   </div>

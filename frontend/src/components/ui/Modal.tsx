@@ -40,19 +40,19 @@ export default function Modal({
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-gray-950/40 backdrop-blur-md" onClick={onClose} />
       <div
-        className={`relative z-10 w-full ${maxWidth} min-w-0 bg-white border border-gray-200
-                    rounded-2xl shadow-2xl shadow-black/10 max-h-[90vh] overflow-y-auto overflow-x-hidden thin-scrollbar`}
+        className={`relative z-10 w-full ${maxWidth} min-w-0 bg-white ring-1 ring-gray-900/5
+                    rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden thin-scrollbar`}
       >
-        <div className="flex items-start justify-between gap-3 px-4 sm:px-6 py-4 border-b border-gray-100">
+        <div className="flex items-start justify-between gap-3 sticky top-0 z-10 glass px-4 sm:px-6 py-4">
           <div className="flex items-start gap-2.5 min-w-0">
             {icon && <span className="shrink-0 mt-0.5">{icon}</span>}
             <div className="min-w-0">
               {/* Truncate only when there's no description: a wrapped title next to a
                   sentence reads fine, but a clipped one next to nothing does not. */}
               <h2
-                className={`text-lg font-semibold text-gray-900 min-w-0 ${
+                className={`text-lg font-semibold tracking-tight text-gray-900 min-w-0 ${
                   description ? "" : "truncate"
                 }`}
               >

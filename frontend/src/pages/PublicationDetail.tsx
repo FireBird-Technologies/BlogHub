@@ -561,8 +561,8 @@ export default function PublicationDetail() {
           <div className="flex flex-wrap items-center gap-2">
             {isFeatured && (
               <span
-                className="inline-flex items-center rounded-full bg-gradient-to-r from-amber-500 to-yellow-500
-                           px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm"
+                className="inline-flex items-center rounded-full gloss-gold
+                           px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide"
               >
                 Featured
               </span>
@@ -613,7 +613,7 @@ export default function PublicationDetail() {
               ) : (
                 <div
                   className="w-full h-full min-h-[7.5rem] flex flex-col items-center justify-center gap-2
-                             bg-gradient-to-br from-gray-100 to-gray-200/90 text-gray-400"
+                             bg-gray-100 text-gray-400"
                   aria-hidden
                 >
                   <svg className="w-14 h-14 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -640,7 +640,7 @@ export default function PublicationDetail() {
             )}
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <div className="gloss border border-transparent rounded-xl p-5">
             <div className="flex items-center justify-between mb-2">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Description</p>
               {isOwner && <EditButton onClick={() => openEdit("description")} label="Edit description" />}
@@ -658,8 +658,8 @@ export default function PublicationDetail() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackFeaturedClick(pub.id, isFeatured)}
-              className="relative z-10 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700
-                         text-white text-sm font-medium transition-colors shadow-sm shadow-red-600/20 cursor-pointer"
+              className="relative z-10 flex items-center gap-1.5 px-4 py-2 rounded-lg btn-gloss bg-red-600 hover:bg-red-700
+                         text-white text-sm font-medium transition-colors cursor-pointer"
             >
               <ExternalLink size={14} /> Visit publication
             </a>
@@ -688,7 +688,7 @@ export default function PublicationDetail() {
             />
           )}
 
-          <div className="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4">
+          <div className="gloss border border-transparent rounded-xl p-5 flex items-center gap-4">
             <Avatar src={pub.author?.avatar_url} name={pub.author?.name} position={pub.author?.avatar_position} scale={pub.author?.avatar_scale} size={48} />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-900">
@@ -712,7 +712,7 @@ export default function PublicationDetail() {
                     type="button"
                     onClick={() => deletePublication(pub.id)}
                     disabled={isDeleting}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600 text-white
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold btn-gloss bg-red-600 text-white
                                hover:bg-red-700 disabled:opacity-50 transition-colors"
                   >
                     {isDeleting ? <Spinner size={12} /> : "Delete"}

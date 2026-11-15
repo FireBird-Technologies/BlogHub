@@ -75,8 +75,8 @@ export default function WhatsNewPopup() {
       <div
         className="relative rounded-2xl shadow-2xl max-w-md w-full overflow-hidden ring-1 ring-white/10"
         style={{
-          background:
-            "radial-gradient(ellipse at 15% 0%, rgba(30,48,75,0.4) 0%, transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(20,35,60,0.35) 0%, transparent 55%), linear-gradient(160deg, #05070c 0%, #0a0f1a 55%, #030409 100%)",
+          backgroundColor: "#080b12",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1), 0 40px 80px -20px rgba(9,10,15,0.6)",
         }}
         role="dialog"
         aria-modal="true"
