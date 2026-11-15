@@ -16,7 +16,7 @@ import CropImage from "../ui/CropImage";
 
 function RankBadge({ rank }: { rank: number }) {
   const base =
-    "absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full text-xs font-bold text-white shadow";
+    "absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full text-xs font-bold text-white shadow ring-1 ring-inset ring-white/25";
   if (rank === 1) return <div className={`${base} bg-yellow-400`}>#1</div>;
   if (rank === 2) return <div className={`${base} bg-gray-400`}>#2</div>;
   if (rank === 3) return <div className={`${base} bg-amber-600`}>#3</div>;
@@ -100,9 +100,8 @@ export default function PublicationCard({
     <article
       role="presentation"
       onClick={handleCardClick}
-      className="group bg-white border border-gray-200 rounded-xl overflow-hidden cursor-pointer
-                 transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300
-                 hover:shadow-lg hover:shadow-black/5 flex flex-col"
+      className="group gloss border border-transparent rounded-xl overflow-hidden cursor-pointer
+                 hover:-translate-y-0.5 gloss-hover flex flex-col"
     >
       <div className="relative aspect-video bg-gray-100 overflow-hidden flex-shrink-0">
         {rank != null && rank > 0 && <RankBadge rank={rank} />}
@@ -168,7 +167,7 @@ export default function PublicationCard({
                   type="button"
                   onClick={handleDelete}
                   disabled={deleting}
-                  className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-600 text-white
+                  className="px-2.5 py-1 rounded-lg text-xs font-semibold btn-gloss bg-red-600 text-white
                              hover:bg-red-700 disabled:opacity-50 transition-colors"
                 >
                   {deleting ? <Spinner size={12} /> : "Delete"}

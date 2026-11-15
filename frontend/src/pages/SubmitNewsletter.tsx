@@ -41,7 +41,7 @@ export default function SubmitNewsletter() {
   };
 
   return (
-    <main className="min-h-screen bg-white flex flex-col">
+    <main className="min-h-screen bg-gray-50 flex flex-col">
       <LandingNavbar />
 
       <div className="flex-1">

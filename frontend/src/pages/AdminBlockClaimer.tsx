@@ -92,7 +92,7 @@ export default function AdminBlockClaimer() {
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleBlock()}
             placeholder="••••••••"
-            className="w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-lg px-3 py-2.5 placeholder:text-gray-400 focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400/20 hover:border-gray-300 transition-colors"
+            className="w-full bg-white border border-gray-200 shadow-sm text-gray-800 text-sm rounded-lg px-3 py-2.5 placeholder:text-gray-400 focus:outline-none focus:border-red-400 focus:ring-4 focus:ring-red-500/10 hover:border-gray-300 transition-colors"
             autoFocus
           />
         </div>
@@ -103,7 +103,7 @@ export default function AdminBlockClaimer() {
           type="button"
           onClick={handleBlock}
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg px-4 py-2.5 transition-colors disabled:opacity-60"
+          className="w-full flex items-center justify-center gap-2 btn-gloss bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg px-4 py-2.5 transition-colors disabled:opacity-60"
         >
           {loading ? <Spinner size={16} /> : "Block User & Delete Publications"}
         </button>

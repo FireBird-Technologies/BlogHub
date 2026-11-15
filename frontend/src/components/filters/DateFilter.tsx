@@ -63,7 +63,7 @@ export default function DateFilter({ value, onChange }: DateFilterProps) {
         <ChevronDown size={13} className={`transition-transform flex-shrink-0 ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="absolute top-full right-0 mt-1.5 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden min-w-[10rem]">
+        <div className="absolute top-full right-0 mt-1.5 bg-white ring-1 ring-gray-900/5 rounded-xl shadow-xl z-50 overflow-hidden min-w-[10rem]">
           {(Object.keys(LABELS) as DatePreset[]).map((preset) => (
             <button
               key={preset || "all"}

@@ -12,7 +12,7 @@ export const PILL_LABELS: Record<FeaturedPillState, string> = {
 };
 
 export const PILL_STYLES: Record<FeaturedPillState, string> = {
-  active: "bg-gradient-to-r from-amber-500 to-yellow-500 text-white border-transparent",
+  active: "gloss-gold border-transparent",
   scheduled: "bg-amber-50 text-amber-700 border-amber-200",
   pending: "bg-orange-50 text-orange-700 border-orange-200",
 };

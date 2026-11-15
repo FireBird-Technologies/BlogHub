@@ -2,10 +2,10 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 const variants = {
   primary:
-    "bg-red-600 hover:bg-red-700 text-white font-semibold shadow-md shadow-red-600/20 hover:shadow-red-700/25",
+    "btn-gloss bg-red-600 hover:bg-red-700 text-white font-semibold",
   ghost:
-    "border border-gray-200 hover:border-red-300 text-gray-600 hover:text-gray-900 hover:bg-gray-50",
-  danger: "bg-red-50 hover:bg-red-100 text-red-600 border border-red-200",
+    "btn-soft text-gray-700 hover:text-gray-900",
+  danger: "bg-red-50 hover:bg-red-100 text-red-700 ring-1 ring-inset ring-red-200",
 } as const;
 
 const sizes = {
@@ -41,7 +41,7 @@ export default function Button({
       disabled={disabled}
       className={`
         inline-flex items-center gap-2 rounded-lg font-medium
-        transition-all duration-150 cursor-pointer
+        cursor-pointer select-none
         disabled:opacity-50 disabled:cursor-not-allowed
         ${variants[variant]}
         ${sizes[size]}

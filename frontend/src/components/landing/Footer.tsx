@@ -4,7 +4,7 @@ import { blog2videoUrl, notestackUrl, pdf2vidUrl } from "../../lib/blog2video";
 
 export default function Footer() {
   return (
-    <footer className="border-t border-gray-200 py-8 px-4 bg-white">
+    <footer className="border-t border-gray-200 py-10 px-4 bg-white">
       <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 text-sm text-gray-400 w-full">
         <div className="flex flex-col items-center sm:items-start gap-1.5 text-center sm:text-left">
           <span className="font-semibold text-gray-500">{LEGAL.siteName}</span>

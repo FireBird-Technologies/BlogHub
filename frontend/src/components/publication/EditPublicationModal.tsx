@@ -21,7 +21,7 @@ import { publicationShortId } from "../../lib/publicationUrl";
 import type { Publication, SocialLinkInput } from "../../types/models";
 
 const inputBase =
-  "w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-lg px-3 placeholder:text-gray-400 focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400/20 hover:border-gray-300 transition-colors";
+  "w-full bg-white border border-gray-200 shadow-sm text-gray-800 text-sm rounded-lg px-3 placeholder:text-gray-400 focus:outline-none focus:border-red-400 focus:ring-4 focus:ring-red-500/10 hover:border-gray-300 transition-colors";
 const inputCls = `${inputBase} py-2.5`;
 // Shorter variant for compact fields (URL, image URL).
 const inputClsSm = `${inputBase} py-1.5`;

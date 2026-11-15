@@ -166,13 +166,13 @@ export default function CommentsModal({ isOpen, onClose, publication }: Comments
               maxLength={1000}
               className={`flex-1 bg-gray-50 border rounded-lg px-3 py-2 text-sm
                          text-gray-800 placeholder:text-gray-400 focus:outline-none
-                         focus:border-red-400 focus:ring-1 focus:ring-red-400/20 transition-colors
+                         focus:border-red-400 focus:ring-4 focus:ring-red-500/10 transition-colors
                          ${emphasizeCommentInput ? "border-red-400 ring-2 ring-red-400/35 shadow-sm" : "border-gray-200"}`}
             />
             <button
               type="submit"
               disabled={!text.trim() || adding}
-              className="p-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors
+              className="p-2 rounded-lg btn-gloss bg-red-600 text-white hover:bg-red-700 transition-colors
                          disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {adding ? <Spinner size={16} /> : <Send size={16} />}

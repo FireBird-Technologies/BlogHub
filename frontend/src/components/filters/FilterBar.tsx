@@ -38,7 +38,7 @@ export default function FilterBar({
   const hasActiveFilter = !!(category || datePreset || searchDefaultValue);
 
   return (
-    <div className="sticky top-14 z-30 w-full bg-gray-50/90 backdrop-blur-md">
+    <div className="sticky top-14 z-30 w-full bg-gray-50/80 backdrop-blur-xl backdrop-saturate-150">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3">
           {/* Row 1 (mobile) / left side (desktop): filters */}

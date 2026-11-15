@@ -53,8 +53,8 @@ function LandingPreviewRow({
           onActivate();
         }
       }}
-      className="group relative flex gap-3 w-full text-left bg-white border border-gray-200 rounded-xl p-3 sm:p-4
-                 cursor-pointer transition-all hover:border-gray-300 hover:shadow-md hover:shadow-black/[0.04]"
+      className="group relative flex gap-3 w-full text-left gloss border border-transparent rounded-xl p-3 sm:p-4
+                 cursor-pointer gloss-hover"
     >
       <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-gray-100 overflow-hidden border border-gray-100">
         {image_url ? (
@@ -152,7 +152,7 @@ export default function LandingLatestPublications() {
   return (
     <div className="w-full">
         <div className="mb-6 sm:mb-8 text-center flex flex-col items-center mt-6">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-gray-900">
             Latest publications
           </h2>
 
@@ -204,9 +204,9 @@ export default function LandingLatestPublications() {
                   type="button"
                   onClick={() => (user ? fetchNextPage() : openLoginModal())}
                   disabled={isFetchingNextPage}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-gray-200 bg-white
-                             text-sm font-semibold text-gray-700 transition-colors
-                             hover:border-red-300 hover:text-red-600 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full btn-soft
+                             text-sm font-semibold text-gray-700
+                             hover:text-gray-900 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isFetchingNextPage ? (
                     <>

@@ -11,8 +11,8 @@ interface GoogleSignInCustomButtonProps {
   label?: string;
 }
 
-const BUTTON_CLASSES = `flex items-center justify-center gap-2 rounded-full bg-red-600 px-6 py-3
-  text-sm font-semibold text-white shadow-lg shadow-red-600/20 transition-colors hover:bg-red-700`;
+const BUTTON_CLASSES = `flex items-center justify-center gap-2 rounded-full btn-gloss bg-red-600 px-6 py-3
+  text-sm font-semibold text-white transition-colors hover:bg-red-700`;
 
 /**
  * A fully custom (red) sign-in button. Unlike GoogleSignInButton — which
@@ -140,7 +140,7 @@ function InAppBrowserEscape({ app, isIOS }: InAppBrowserEscapeProps) {
       <button
         type="button"
         onClick={handleContinue}
-        className="flex items-center justify-center gap-2 rounded-full bg-red-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-red-600/20 transition-colors hover:bg-red-700"
+        className="flex items-center justify-center gap-2 rounded-full btn-gloss bg-red-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-700"
       >
         Add your publication — free
       </button>

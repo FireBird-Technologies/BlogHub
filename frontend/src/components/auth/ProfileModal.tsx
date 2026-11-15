@@ -25,8 +25,8 @@ interface ProfilePatch {
 }
 
 const inputClass =
-  "w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg px-3 py-2 " +
-  "focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400/20";
+  "w-full bg-white border border-gray-200 shadow-sm text-gray-900 text-sm rounded-lg px-3 py-2 " +
+  "focus:outline-none focus:border-red-400 focus:ring-4 focus:ring-red-500/10";
 
 function ProfileModalForm({ mode, user, onClose }: { mode: Mode; user: User; onClose: () => void }) {
   const { setUser } = useAuth();

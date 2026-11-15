@@ -49,9 +49,9 @@ function RoundupCard({
   return (
     <Link
       to={to}
-      className="group flex flex-col bg-white border border-gray-200 rounded-2xl p-4
+      className="group flex flex-col gloss border border-transparent rounded-2xl p-4
                  transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300
-                 hover:shadow-xl hover:shadow-black/5"
+                 gloss-hover"
     >
       <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-gray-500">
         <span className="font-semibold uppercase tracking-wide text-gray-700">{roundup.category} |</span>
@@ -79,9 +79,9 @@ function ArticleCard({ post }: { post: BlogPost }) {
   return (
     <Link
       to={`/blogs/${post.slug}`}
-      className="group flex flex-col bg-white border border-gray-200 rounded-2xl p-4
+      className="group flex flex-col gloss border border-transparent rounded-2xl p-4
                  transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300
-                 hover:shadow-xl hover:shadow-black/5"
+                 gloss-hover"
     >
       {post.heroImage && (
         <div className="mb-3 overflow-hidden rounded-xl bg-gray-100 aspect-[16/9]">
@@ -249,8 +249,8 @@ export default function Blog() {
             </p>
             <Link
               to="/dashboard"
-              className="inline-flex items-center gap-1.5 mt-5 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700
-                         text-sm font-semibold text-white transition-colors shadow-sm shadow-red-600/20"
+              className="inline-flex items-center gap-1.5 mt-5 px-4 py-2 rounded-lg btn-gloss bg-red-600 hover:bg-red-700
+                         text-sm font-semibold text-white transition-colors"
             >
               Browse the directory <ArrowRight size={15} />
             </Link>
