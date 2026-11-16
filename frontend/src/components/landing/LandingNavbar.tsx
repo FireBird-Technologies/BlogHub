@@ -50,14 +50,14 @@ export default function LandingNavbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur border-b border-gray-100">
+    <nav className="sticky top-0 z-50 w-full glass">
       {/* Large screens: One row, full width layout */}
       <div className="hidden sm:block w-full max-w-7xl mx-auto px-4 sm:px-6 h-16">
         <div className="w-full h-full flex items-center justify-between gap-6">
           {/* Left — Logo + Search */}
           <div className="flex items-center gap-6 min-w-0 flex-1">
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <Link to={user ? "/dashboard" : "/"} className="text-lg font-bold tracking-tight">
+            <Link to={user ? "/dashboard" : "/"} className="text-lg font-bold tracking-tighter">
               <span className="text-red-600">BlogHub</span>
             </Link>
             <ArrowRight size={12} className="text-gray-300 flex-shrink-0" />
@@ -87,10 +87,9 @@ export default function LandingNavbar() {
                 onChange={(e) => handleSearchChange(e.target.value)}
                 onKeyDown={handleSearchSubmit}
                 placeholder="Search publications…"
-                className="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-full
+                className="well w-full text-gray-800 text-sm rounded-full
                            pl-10 pr-4 py-2.5 placeholder:text-gray-400
-                           focus:outline-none focus:bg-white focus:border-red-400 focus:ring-1 focus:ring-red-400/20
-                           hover:border-gray-300 transition-colors"
+                           focus:outline-none transition-shadow"
               />
             </div>
           </form>
@@ -102,19 +101,19 @@ export default function LandingNavbar() {
               <ExploreButton href={notestackUrl("landing_navbar")} className="text-sm px-4 py-1.5" />
               <Link
                 to="/submit-your-newsletter"
-                className="text-sm font-semibold text-gray-600 hover:text-red-600 transition-colors"
+                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
               >
                 Submit
               </Link>
               <Link
                 to="/featured-faq"
-                className="text-sm font-semibold text-gray-600 hover:text-red-600 transition-colors"
+                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
               >
                 Get featured
               </Link>
               <Link
                 to="/blogs"
-                className="text-sm font-semibold text-gray-600 hover:text-red-600 transition-colors"
+                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
               >
                 Blogs
               </Link>
@@ -173,7 +172,7 @@ export default function LandingNavbar() {
         <div className="h-14 flex items-center justify-between gap-3">
           {/* Left — Logo */}
           <div className="flex items-center gap-1 flex-shrink-0 min-w-0">
-            <Link to={user ? "/dashboard" : "/"} className="text-base font-bold tracking-tight">
+            <Link to={user ? "/dashboard" : "/"} className="text-base font-bold tracking-tighter">
               <span className="text-red-600">BlogHub</span>
             </Link>
             <ArrowRight size={12} className="text-gray-300 flex-shrink-0" />
@@ -236,7 +235,7 @@ export default function LandingNavbar() {
               </button>
 
               {menuOpen && (
-                <div className="absolute right-0 top-full mt-1 w-44 rounded-xl border border-gray-100 bg-white py-1 shadow-lg z-50">
+                <div className="absolute right-0 top-full mt-1 w-44 rounded-xl bg-white ring-1 ring-gray-900/5 py-1 shadow-xl z-50">
                   {!loading && !user && (
                     <>
                       <button
@@ -294,10 +293,9 @@ export default function LandingNavbar() {
               onChange={(e) => handleSearchChange(e.target.value)}
               onKeyDown={handleSearchSubmit}
               placeholder="Search publications…"
-              className="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-full
+              className="well w-full text-gray-800 text-sm rounded-full
                          pl-10 pr-4 py-2 placeholder:text-gray-400
-                         focus:outline-none focus:bg-white focus:border-red-400 focus:ring-1 focus:ring-red-400/20
-                         hover:border-gray-300 transition-colors"
+                         focus:outline-none transition-shadow"
             />
           </div>
         </form>

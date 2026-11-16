@@ -179,7 +179,7 @@ function DemoPanel() {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25 }}
-                className="self-start mt-2 px-5 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold shadow-lg shadow-red-600/20 hover:bg-red-700 transition-colors"
+                className="self-start mt-2 px-5 py-2.5 rounded-xl btn-gloss bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors"
               >
                 Publish →
               </motion.button>
@@ -202,13 +202,17 @@ export default function HeroSection() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
+        <span className="btn-soft inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold text-gray-600">
+          <span className="h-1.5 w-1.5 rounded-full bg-red-600" aria-hidden />
+          Free blog &amp; newsletter directory
+        </span>
       </motion.div>
 
       <motion.h1
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, delay: 0.08 }}
-        className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.15] lg:leading-[1.2] tracking-tight text-gray-900"
+        className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.08] lg:leading-[1.06] tracking-tighter text-gray-900"
       >
         Promote your blog or newsletter
         <br />

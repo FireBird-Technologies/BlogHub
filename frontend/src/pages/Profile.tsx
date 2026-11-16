@@ -119,7 +119,7 @@ export default function Profile() {
       <Navbar />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-        <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 mb-8 shadow-sm">
+        <div className="gloss border border-transparent rounded-2xl p-4 sm:p-6 mb-8">
           <div className="flex flex-col xs:flex-row sm:flex-row items-start gap-4 sm:gap-5">
             <Avatar src={user.avatar_url} name={user.name} position={user.avatar_position} scale={user.avatar_scale} size={72} className="rounded-2xl" />
 

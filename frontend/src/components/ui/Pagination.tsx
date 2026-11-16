@@ -27,7 +27,7 @@ function getPageSequence(current: number, total: number): (number | "...")[] {
 }
 
 const base =
-  "inline-flex items-center justify-center w-7 h-7 rounded-md border text-xs font-medium transition-colors";
+  "inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-semibold tabular-nums transition-colors";
 
 export default function Pagination({ currentPage, totalPages, onPageChange, isFetching }: PaginationProps) {
   if (totalPages <= 1) return null;
@@ -45,8 +45,8 @@ export default function Pagination({ currentPage, totalPages, onPageChange, isFe
         aria-label="Previous page"
         className={`${base} ${
           prevDisabled
-            ? "border-gray-200 bg-white text-gray-400 cursor-not-allowed"
-            : "border-gray-200 bg-white text-gray-600 hover:border-red-300 hover:text-red-600"
+            ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
+            : "btn-soft border-transparent text-gray-600 hover:text-gray-900"
         }`}
       >
         <ChevronLeft size={15} />
@@ -70,8 +70,8 @@ export default function Pagination({ currentPage, totalPages, onPageChange, isFe
             aria-current={item === currentPage ? "page" : undefined}
             className={`${base} ${
               item === currentPage
-                ? "border-red-500 bg-red-500 text-white cursor-default pointer-events-none"
-                : "border-gray-200 bg-white text-gray-600 hover:border-red-300 hover:text-red-600"
+                ? "btn-gloss border-transparent bg-red-600 text-white cursor-default pointer-events-none"
+                : "btn-soft border-transparent text-gray-600 hover:text-gray-900"
             }`}
           >
             {item}
@@ -86,8 +86,8 @@ export default function Pagination({ currentPage, totalPages, onPageChange, isFe
         aria-label="Next page"
         className={`${base} ${
           nextDisabled
-            ? "border-gray-200 bg-white text-gray-400 cursor-not-allowed"
-            : "border-gray-200 bg-white text-gray-600 hover:border-red-300 hover:text-red-600"
+            ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
+            : "btn-soft border-transparent text-gray-600 hover:text-gray-900"
         }`}
       >
         {isFetching && currentPage < totalPages ? <Spinner size={14} /> : <ChevronRight size={15} />}

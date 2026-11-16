@@ -67,9 +67,9 @@ export default function UrlPhase({
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleFetch()}
             placeholder="https://firebirdtech.com"
-            className="w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-lg
+            className="w-full bg-white border border-gray-200 shadow-sm text-gray-800 text-sm rounded-lg
                        pl-9 pr-3 py-2.5 placeholder:text-gray-400
-                       focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400/20"
+                       focus:outline-none focus:border-red-400 focus:ring-4 focus:ring-red-500/10"
           />
         </div>
         <Button type="button" onClick={handleFetch} disabled={!url || isPending}>

@@ -7,14 +7,14 @@ import Footer from "../components/landing/Footer";
 
 export default function Landing() {
   return (
-    <main className="bg-white">
+    <main className="bg-gray-50">
       <LandingNavbar />
-      <section className="relative overflow-hidden bg-white px-4 sm:px-6 pt-12 sm:pt-16 pb-8">
+      <section className="relative overflow-hidden px-4 sm:px-6 pt-12 sm:pt-16 pb-8">
         <div className="relative z-10 flex flex-col gap-12 sm:gap-14 lg:gap-16 w-full max-w-7xl mx-auto">
           <HeroSection />
         </div>
       </section>
-      <section className="relative overflow-hidden bg-white px-4 sm:px-6 pb-14 sm:pb-16">
+      <section className="relative overflow-hidden px-4 sm:px-6 pb-14 sm:pb-16">
         <div className="relative z-10 flex flex-col gap-12 sm:gap-14 lg:gap-16 w-full max-w-7xl mx-auto">
           <LandingLatestPublications />
         </div>

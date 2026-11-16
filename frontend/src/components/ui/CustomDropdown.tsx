@@ -44,8 +44,8 @@ export default function CustomDropdown({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-gray-200
-                    bg-white text-gray-700 text-sm font-medium hover:border-gray-300 transition-colors ${buttonClassName}`}
+        className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg btn-soft
+                    text-gray-700 text-sm font-medium ${buttonClassName}`}
       >
         <span className="flex items-center gap-2 min-w-0">
           {selected?.icon && <span className="shrink-0 flex items-center text-gray-500">{selected.icon}</span>}
@@ -58,7 +58,7 @@ export default function CustomDropdown({
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden max-h-72 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white ring-1 ring-gray-900/5 rounded-xl shadow-xl z-50 overflow-hidden max-h-72 overflow-y-auto">
           {options.map((opt) => {
             const active = opt.value === value;
             return (

@@ -112,8 +112,8 @@ export default function BlogPostPage() {
                 {section.ctaPath && section.ctaLabel && (
                   <Link
                     to={section.ctaPath}
-                    className="inline-flex items-center gap-1.5 mt-5 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700
-                               text-sm font-semibold text-white transition-colors shadow-sm shadow-red-600/20"
+                    className="inline-flex items-center gap-1.5 mt-5 px-4 py-2 rounded-lg btn-gloss bg-red-600 hover:bg-red-700
+                               text-sm font-semibold text-white transition-colors"
                   >
                     {section.ctaLabel} <ArrowRight size={15} />
                   </Link>
@@ -123,7 +123,7 @@ export default function BlogPostPage() {
 
             {/* Distribution Plan */}
             {post.distributionPlan.length > 0 && (
-              <section className="mt-12 bg-white border border-gray-200 rounded-xl p-6">
+              <section className="mt-12 gloss border border-transparent rounded-xl p-6">
                 <h2 className="text-lg font-bold text-gray-900">Distribution plan</h2>
                 <p className="text-sm text-gray-500 mt-1">How we’d repurpose this piece across channels.</p>
                 <div className="mt-4 space-y-3">
@@ -162,7 +162,7 @@ export default function BlogPostPage() {
           {/* Sidebar */}
           <aside className="space-y-8 lg:sticky lg:top-20 lg:self-start">
             {relatedLinks.length > 0 && (
-              <div className="bg-white border border-gray-200 rounded-xl p-5">
+              <div className="gloss border border-transparent rounded-xl p-5">
                 <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide">Related pages</h2>
                 <ul className="mt-3 space-y-3">
                   {relatedLinks.map((link) => (
@@ -180,7 +180,7 @@ export default function BlogPostPage() {
             )}
 
             {moreArticles.length > 0 && (
-              <div className="bg-white border border-gray-200 rounded-xl p-5">
+              <div className="gloss border border-transparent rounded-xl p-5">
                 <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide">More articles</h2>
                 <ul className="mt-3 space-y-4">
                   {moreArticles.map((other) => (

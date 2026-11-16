@@ -38,7 +38,7 @@ export default function LegalPageLayout({
   });
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Logged-in visitors get the dashboard navbar (so its home link points at the
           dashboard); logged-out visitors get the public landing navbar. */}
       {user ? <Navbar /> : <LandingNavbar />}
