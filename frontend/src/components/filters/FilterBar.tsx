@@ -65,7 +65,7 @@ export default function FilterBar({
               key={searchResetKey}
               onSearch={guard(onSearch, (v) => v === "")}
               defaultValue={searchDefaultValue}
-              placeholder="Search by title, description or tag…"
+              placeholder="Search by title, tag, author or site…"
               onRequireLogin={!isLoggedIn ? onRequireLogin : undefined}
             />
           </div>

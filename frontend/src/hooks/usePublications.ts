@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import api from "../lib/api";
 import type { PaginatedPublications, Publication } from "../types/models";
 
@@ -56,6 +56,60 @@ export function usePublications({
     getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
     staleTime: 30_000,
   });
+}
+
+interface UsePublicationsPageParams extends UsePublicationsParams {
+  page: number;
+  enabled?: boolean;
+}
+
+/**
+ * One page of publications fetched directly by offset, so jumping to any page
+ * (e.g. the last) is a single request instead of walking every cursor before it.
+ * The returned queryKey is what optimistic updates (upvotes) must target.
+ */
+export function usePublicationsPage({
+  category,
+  search,
+  sort = "ranked",
+  limit = 20,
+  tag = "",
+  dateFrom,
+  dateTo,
+  page,
+  enabled = true,
+}: UsePublicationsPageParams) {
+  const tz = dateFrom || dateTo ? getClientTimezone() : undefined;
+  const offset = Math.max(0, (page - 1) * limit);
+  const queryKey = [
+    "publications",
+    "page",
+    { category, search, sort, limit, tag, dateFrom, dateTo, tz, offset },
+  ] as const;
+  const query = useQuery<PaginatedPublications, Error>({
+    queryKey,
+    queryFn: () =>
+      api
+        .get<PaginatedPublications>("/api/publications", {
+          params: {
+            offset: offset || undefined,
+            category: category || undefined,
+            search: search || undefined,
+            tag: tag || undefined,
+            date_from: dateFrom || undefined,
+            date_to: dateTo || undefined,
+            tz,
+            sort,
+            limit,
+          },
+        })
+        .then((r) => r.data),
+    // Keep the previous page on screen while the next one loads (no blank flash).
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
+    enabled,
+  });
+  return { ...query, queryKey };
 }
 
 /** First page of publications for marketing / landing (no infinite scroll). */

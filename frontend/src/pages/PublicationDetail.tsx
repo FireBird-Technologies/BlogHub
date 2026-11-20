@@ -368,20 +368,19 @@ export default function PublicationDetail() {
       // to onError, which would wrongly show a "failed to delete" alert).
       navigate("/dashboard", { replace: true });
       try {
-        queryClient.setQueriesData<{ pages: PaginatedPublications[]; pageParams: unknown[] }>(
-          { queryKey: ["publications"] },
-          (data) =>
-            data
-              ? {
-                  ...data,
-                  pages: data.pages.map((page) => {
-                    const items = page.items.filter((p) => p.id !== deletedId);
-                    const removed = page.items.length - items.length;
-                    return { ...page, items, total: Math.max(0, (page.total ?? 0) - removed) };
-                  }),
-                }
-              : data
-        );
+        // ["publications"] holds both infinite caches ({ pages }) and the
+        // dashboard's single-page caches (PaginatedPublications).
+        queryClient.setQueriesData<
+          { pages: PaginatedPublications[]; pageParams: unknown[] } | PaginatedPublications
+        >({ queryKey: ["publications"] }, (data) => {
+          if (!data) return data;
+          const prune = (page: PaginatedPublications) => {
+            const items = page.items.filter((p) => p.id !== deletedId);
+            const removed = page.items.length - items.length;
+            return { ...page, items, total: Math.max(0, (page.total ?? 0) - removed) };
+          };
+          return "pages" in data ? { ...data, pages: data.pages.map(prune) } : prune(data);
+        });
         queryClient.setQueriesData<PaginatedPublications>(
           { queryKey: ["publications-preview"] },
           (data) =>

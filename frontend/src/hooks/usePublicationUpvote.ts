@@ -17,7 +17,7 @@ function toggleItem(item: Publication, publicationId: string): Publication {
   };
 }
 
-/** Optimistic toggle for infinite list cache or single publication detail. */
+/** Optimistic toggle for infinite list cache, single-page list cache, or publication detail. */
 function applyToggle(old: unknown, publicationId: string): unknown {
   if (!old || typeof old !== "object") return old;
   const o = old as Record<string, unknown>;
@@ -29,6 +29,9 @@ function applyToggle(old: unknown, publicationId: string): unknown {
         items: page.items.map((item) => toggleItem(item, publicationId)),
       })),
     };
+  }
+  if ("items" in o && Array.isArray(o.items)) {
+    return { ...o, items: (o.items as Publication[]).map((item) => toggleItem(item, publicationId)) };
   }
   if ("id" in o) {
     return toggleItem(o as unknown as Publication, publicationId);
