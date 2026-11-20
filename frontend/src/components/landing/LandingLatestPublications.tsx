@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowBigUp, MessageCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -131,9 +132,30 @@ export default function LandingLatestPublications() {
     usePublicationsPreviewInfinite(PREVIEW_LIMIT, "latest");
   const { data: featured } = useActiveFeature();
 
+  // Pages actually shown. For signed-in users we fetch one page ahead in the
+  // background, so "Load more" reveals already-loaded rows instantly.
+  const [visiblePages, setVisiblePages] = useState(1);
+  const loadedPages = data?.pages.length ?? 0;
+
+  useEffect(() => {
+    if (!user || isFetchingNextPage || !hasNextPage) return;
+    if (loadedPages > 0 && loadedPages <= visiblePages) fetchNextPage();
+  }, [user, loadedPages, visiblePages, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const canShowMore = visiblePages < loadedPages || hasNextPage;
+  const waitingForMore = visiblePages >= loadedPages && isFetchingNextPage;
+
+  const handleLoadMore = () => {
+    if (!user) {
+      openLoginModal();
+      return;
+    }
+    setVisiblePages((n) => n + 1);
+  };
+
   // The featured publication gets its own pinned row above, so keep it out of the
   // day-grouped list rather than showing it twice.
-  const allItems = data?.pages.flatMap((p) => p.items) ?? [];
+  const allItems = data?.pages.slice(0, visiblePages).flatMap((p) => p.items) ?? [];
   const items = featured
     ? allItems.filter((p) => p.id !== featured.publication.id)
     : allItems;
@@ -198,17 +220,17 @@ export default function LandingLatestPublications() {
               </section>
             ))}
 
-            {hasNextPage && (
+            {canShowMore && (
               <div className="flex justify-center pt-2">
                 <button
                   type="button"
-                  onClick={() => (user ? fetchNextPage() : openLoginModal())}
-                  disabled={isFetchingNextPage}
+                  onClick={handleLoadMore}
+                  disabled={waitingForMore}
                   className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full btn-soft
                              text-sm font-semibold text-gray-700
                              hover:text-gray-900 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {isFetchingNextPage ? (
+                  {waitingForMore ? (
                     <>
                       <Spinner size={16} />
                       Loading…

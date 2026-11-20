@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import DashboardPublicationList from "../components/publication/DashboardPublicationList";
 import Pagination from "../components/ui/Pagination";
-import { usePublications } from "../hooks/usePublications";
+import { usePublicationsPage } from "../hooks/usePublications";
 import { useDocumentMeta } from "../hooks/useDocumentMeta";
 import { categoryPath, resolveCategoryParam } from "../lib/categoryUrl";
 import { useAuth } from "../context/AuthContext";
@@ -16,6 +16,11 @@ export default function RankingPage() {
   const { apiCategory, title } = resolveCategoryParam(category);
   const { user, openLoginModal } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
+
+  // The page component is reused across /category/* routes; start each category on page 1.
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [apiCategory]);
 
   // Guests can view page 1 (SEO content) but must sign in to page beyond it.
   const handlePageChange = (page: number) => {
@@ -33,30 +38,24 @@ export default function RankingPage() {
     type: "website",
   });
 
-  const queryKey = [
-    "publications",
-    { category: apiCategory, search: "", sort: "ranked_global", limit: PAGE_SIZE },
-  ] as const;
-
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = usePublications({
+  // Fetch only the requested page by offset, so jumping ahead is one request.
+  const {
+    data: currentPageData,
+    queryKey,
+    isLoading,
+    isFetching,
+    isPlaceholderData,
+  } = usePublicationsPage({
     category: apiCategory,
     search: "",
     sort: "ranked_global",
     limit: PAGE_SIZE,
+    page: currentPage,
   });
 
-  // Pre-fetch pages when user navigates ahead of what's cached
-  useEffect(() => {
-    const loaded = data?.pages.length ?? 0;
-    if (currentPage > loaded && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
-  }, [currentPage, data?.pages.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-  const total = data?.pages?.[0]?.total ?? 0;
+  const total = currentPageData?.total ?? 0;
   const totalPages = Math.ceil(total / PAGE_SIZE);
-  const currentPageData = data?.pages?.[currentPage - 1];
-  const isPageLoading = currentPage > (data?.pages.length ?? 0) && isFetchingNextPage;
+  const isPageLoading = isPlaceholderData && isFetching;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -73,9 +72,9 @@ export default function RankingPage() {
 
         <div className="mb-6 sm:mb-8">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{title}</h1>
-          {data?.pages?.[0] != null && (
+          {currentPageData != null && (
             <p className="text-sm text-gray-400 mt-0.5">
-              {data.pages[0].total} publication{data.pages[0].total !== 1 ? "s" : ""}
+              {currentPageData.total} publication{currentPageData.total !== 1 ? "s" : ""}
             </p>
           )}
         </div>
@@ -94,7 +93,7 @@ export default function RankingPage() {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={handlePageChange}
-          isFetching={isFetchingNextPage}
+          isFetching={isPageLoading}
         />
       </main>
     </div>
