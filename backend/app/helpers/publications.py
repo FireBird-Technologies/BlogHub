@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import String, Text, bindparam, cast, select, update, func, delete, and_, or_
+from sqlalchemy import String, Text, bindparam, case, cast, select, update, func, delete, and_, or_
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -64,16 +64,19 @@ def decode_score_cursor(cursor: str) -> tuple[str, int, datetime, uuid.UUID]:
     return day_str, int(score_str), datetime.fromisoformat(created_str), uuid.UUID(uid)
 
 
-def encode_global_rank_cursor(score: int, pub_id: uuid.UUID) -> str:
-    raw = f"g:{score}|{pub_id}"
+def encode_global_rank_cursor(score: int, created_at: datetime, pub_id: uuid.UUID) -> str:
+    raw = f"g:{score}|{created_at.isoformat()}|{pub_id}"
     return base64.urlsafe_b64encode(raw.encode()).decode()
 
 
-def decode_global_rank_cursor(cursor: str) -> tuple[int, uuid.UUID]:
+def decode_global_rank_cursor(cursor: str) -> tuple[int, datetime | None, uuid.UUID]:
     raw = base64.urlsafe_b64decode(cursor.encode()).decode()
     _, rest = raw.split(":", 1)
-    score_str, uid = rest.split("|", 1)
-    return int(score_str), uuid.UUID(uid)
+    parts = rest.split("|")
+    if len(parts) == 2:  # legacy cursor (score|id) issued before created_at was added
+        return int(parts[0]), None, uuid.UUID(parts[1])
+    score_str, created_str, uid = parts
+    return int(score_str), datetime.fromisoformat(created_str), uuid.UUID(uid)
 
 
 # ── shared helpers ────────────────────────────────────────────────────────────
@@ -198,6 +201,73 @@ async def _batch_meta(
     return upvoted_ids, comment_counts
 
 
+# ── search helpers ────────────────────────────────────────────────────────────
+
+_MAX_SEARCH_TERMS = 8
+
+
+def _escape_like(value: str) -> str:
+    """Escape LIKE wildcards so a user typing % or _ matches them literally."""
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def _search_terms(search: str) -> list[str]:
+    """Split a query into words; '@mehdi' / '#ai' are treated as 'mehdi' / 'ai'."""
+    terms: list[str] = []
+    for raw in search.split():
+        term = raw.strip().lstrip("@#").strip()
+        if term and term.lower() not in (t.lower() for t in terms):
+            terms.append(term)
+    return terms[:_MAX_SEARCH_TERMS]
+
+
+def _author_matches(pattern: str):
+    from app.models.publication import Publication
+    from app.models.user import User
+
+    return Publication.user_id.in_(
+        select(User.id).where(or_(
+            User.name.ilike(pattern, escape="\\"),
+            User.tag.ilike(pattern, escape="\\"),
+        ))
+    )
+
+
+def _term_matches(term: str):
+    from app.models.publication import Publication
+
+    pattern = f"%{_escape_like(term)}%"
+    return or_(
+        Publication.title.ilike(pattern, escape="\\"),
+        Publication.description.ilike(pattern, escape="\\"),
+        Publication.category.ilike(pattern, escape="\\"),
+        Publication.url.ilike(pattern, escape="\\"),
+        cast(Publication.tags, Text).ilike(pattern, escape="\\"),
+        _author_matches(pattern),
+    )
+
+
+def _search_relevance(search: str):
+    """Higher = better match. Whole-phrase hits in the title count most, then tags,
+    author, and description; each individual word found in the title adds a little."""
+    from app.models.publication import Publication
+
+    phrase = " ".join(search.split())
+    phrase_pattern = f"%{_escape_like(phrase)}%"
+    prefix_pattern = f"{_escape_like(phrase)}%"
+    score = (
+        case((Publication.title.ilike(phrase_pattern, escape="\\"), 8), else_=0)
+        + case((Publication.title.ilike(prefix_pattern, escape="\\"), 4), else_=0)
+        + case((cast(Publication.tags, JSONB).contains([phrase.lower()]), 4), else_=0)
+        + case((_author_matches(phrase_pattern), 3), else_=0)
+        + case((Publication.description.ilike(phrase_pattern, escape="\\"), 2), else_=0)
+    )
+    for term in _search_terms(search):
+        term_pattern = f"%{_escape_like(term)}%"
+        score = score + case((Publication.title.ilike(term_pattern, escape="\\"), 1), else_=0)
+    return score
+
+
 def _apply_publication_filters(
     stmt,
     *,
@@ -221,13 +291,10 @@ def _apply_publication_filters(
         else:
             stmt = stmt.where(Publication.category == category)
     if search:
-        pattern = f"%{search}%"
-        tag_val = search.strip().lower()
-        stmt = stmt.where(or_(
-            Publication.title.ilike(pattern),
-            Publication.description.ilike(pattern),
-            cast(Publication.tags, JSONB).contains([tag_val]),
-        ))
+        # Every word must match somewhere (title, description, tags, category,
+        # site URL or author), so word order and partial phrases still find results.
+        for term in _search_terms(search):
+            stmt = stmt.where(_term_matches(term))
     if tag:
         tag_val = tag.strip().lower()
         if tag_val:
@@ -262,6 +329,7 @@ async def build_publications_query(
     limit: int,
     category: str | None,
     search: str | None,
+    offset: int = 0,
     tag: str | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
@@ -276,7 +344,7 @@ async def build_publications_query(
 
     if sort == "ranked":
         return await _ranked_query(
-            db, cursor=cursor, limit=limit, category=category, search=search,
+            db, cursor=cursor, offset=offset, limit=limit, category=category, search=search,
             tag=tag, date_from=date_from, date_to=date_to,
             user_id=user_id, filter_by_user_id=filter_by_user_id,
             include_unlisted=include_unlisted,
@@ -284,7 +352,7 @@ async def build_publications_query(
 
     if sort == "ranked_global":
         return await _ranked_global_query(
-            db, cursor=cursor, limit=limit, category=category, search=search,
+            db, cursor=cursor, offset=offset, limit=limit, category=category, search=search,
             tag=tag, date_from=date_from, date_to=date_to,
             user_id=user_id, filter_by_user_id=filter_by_user_id,
             include_unlisted=include_unlisted,
@@ -324,6 +392,8 @@ async def build_publications_query(
         )
 
     stmt = stmt.limit(limit + 1)
+    if offset and not cursor:
+        stmt = stmt.offset(offset)
     result = await db.execute(stmt)
     pubs = list(result.scalars().all())
 
@@ -345,6 +415,7 @@ async def _ranked_query(
     limit: int,
     category: str | None,
     search: str | None,
+    offset: int = 0,
     tag: str | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
@@ -423,6 +494,8 @@ async def _ranked_query(
     stmt = stmt.order_by(
         day_expr.desc(), engagement_expr.desc(), Publication.created_at.desc(), Publication.id.desc()
     ).limit(limit + 1)
+    if offset and not cursor:
+        stmt = stmt.offset(offset)
     rows = list((await db.execute(stmt)).all())
 
     has_more = len(rows) > limit
@@ -451,6 +524,7 @@ async def _ranked_global_query(
     limit: int,
     category: str | None,
     search: str | None,
+    offset: int = 0,
     tag: str | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
@@ -458,7 +532,7 @@ async def _ranked_global_query(
     filter_by_user_id: uuid.UUID | None = None,
     include_unlisted: bool = False,
 ) -> PaginatedPublications:
-    """All-time ranking: sort purely by engagement (upvotes + comments), ignoring publish date."""
+    """All-time ranking: engagement (upvotes + comments) first, then publish date, newest first."""
     from app.models.publication import Publication
     from app.models.comment import Comment
 
@@ -505,13 +579,33 @@ async def _ranked_global_query(
 
     stmt = _base()
     if cursor:
-        cs, cursor_id = decode_global_rank_cursor(cursor)
-        stmt = stmt.where(or_(
-            score_expr < cs,
-            and_(score_expr == cs, Publication.id < cursor_id),
-        ))
+        cs, cursor_created, cursor_id = decode_global_rank_cursor(cursor)
+        if cursor_created is None:
+            stmt = stmt.where(or_(
+                score_expr < cs,
+                and_(score_expr == cs, Publication.id < cursor_id),
+            ))
+        else:
+            stmt = stmt.where(or_(
+                score_expr < cs,
+                and_(score_expr == cs, Publication.created_at < cursor_created),
+                and_(
+                    score_expr == cs,
+                    Publication.created_at == cursor_created,
+                    Publication.id < cursor_id,
+                ),
+            ))
 
-    stmt = stmt.order_by(score_expr.desc(), Publication.id.desc()).limit(limit + 1)
+    # Rank first (upvotes + comments), then publish date (newest first); id only
+    # breaks exact timestamp ties so pagination stays stable. For a search paged
+    # by offset, best matches come first. Cursor (keyset) paging can't follow a
+    # relevance order, so it keeps the plain rank order.
+    order = [score_expr.desc(), Publication.created_at.desc(), Publication.id.desc()]
+    if search and _search_terms(search) and not cursor:
+        order.insert(0, _search_relevance(search).desc())
+    stmt = stmt.order_by(*order).limit(limit + 1)
+    if offset and not cursor:
+        stmt = stmt.offset(offset)
     rows = list((await db.execute(stmt)).all())
 
     has_more = len(rows) > limit
@@ -521,7 +615,11 @@ async def _ranked_global_query(
     pubs = [row[0] for row in rows]
     scores = [int(row[1]) for row in rows]
 
-    next_cursor = encode_global_rank_cursor(scores[-1], pubs[-1].id) if has_more and pubs else None
+    next_cursor = (
+        encode_global_rank_cursor(scores[-1], pubs[-1].created_at, pubs[-1].id)
+        if has_more and pubs
+        else None
+    )
     upvoted_ids, comment_counts = await _batch_meta(db, pubs, user_id)
     verified_map, my_status_map = await _batch_claims(db, pubs, user_id)
     items = [_pub_to_out(p, upvoted_ids, comment_counts, verified_map=verified_map, my_status_map=my_status_map) for p in pubs]

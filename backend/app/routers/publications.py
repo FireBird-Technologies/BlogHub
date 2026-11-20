@@ -82,6 +82,11 @@ async def list_tags(db: AsyncSession = Depends(get_db)):
 @router.get("/publications", response_model=PaginatedPublications)
 async def list_publications(
     cursor: str | None = Query(default=None),
+    offset: int = Query(
+        default=0,
+        ge=0,
+        description="Rows to skip for page-number pagination. Ignored when cursor is set.",
+    ),
     limit: int = Query(default=20, ge=1, le=50),
     category: str | None = Query(default=None),
     search: str | None = Query(default=None),
@@ -113,6 +118,7 @@ async def list_publications(
     return await build_publications_query(
         db,
         cursor=cursor,
+        offset=offset,
         limit=limit,
         category=category,
         search=search,

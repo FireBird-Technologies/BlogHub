@@ -12,7 +12,7 @@ import SubmitModal from "../components/submit/SubmitModal";
 import ResubmitWrongAccountModal from "../components/submit/ResubmitWrongAccountModal";
 import Pagination from "../components/ui/Pagination";
 import Button from "../components/ui/Button";
-import { usePublications } from "../hooks/usePublications";
+import { usePublicationsPage } from "../hooks/usePublications";
 import { useActiveFeature } from "../hooks/useFeatured";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -67,7 +67,11 @@ export default function Dashboard() {
   // (ignoring publish date) and render as a single flat list rather than
   // day-grouped sections.
   const dateFilterActive = !!datePreset;
-  const sort = dateFilterActive ? "ranked_global" : "ranked";
+  // A category, search or date filter switches to the overall (all-time) ranking
+  // shown as one flat list, matching the landing page's category view. Searches
+  // are ordered best match first by the backend.
+  const flatRanked = dateFilterActive || !!category || !!search;
+  const sort = flatRanked ? "ranked_global" : "ranked";
 
   // Persist the current page in the URL so it survives navigation (e.g. opening a
   // publication's detail page and hitting the browser Back button).
@@ -212,32 +216,26 @@ export default function Dashboard() {
     setModalOpen(true);
   }, [searchParams, user, authLoading, openLoginModal, setSearchParams]);
 
-  const queryKey = [
-    "publications",
-    { category, search, sort, limit: PAGE_SIZE, dateFrom, dateTo },
-  ] as const;
-
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = usePublications({
+  const {
+    data: currentPageData,
+    queryKey,
+    isLoading,
+    isFetching,
+    isPlaceholderData,
+  } = usePublicationsPage({
     category,
     search,
     sort,
     limit: PAGE_SIZE,
     dateFrom,
     dateTo,
+    page: currentPage,
   });
 
-  // Pre-fetch pages when user navigates ahead of what's cached
-  useEffect(() => {
-    const loaded = data?.pages.length ?? 0;
-    if (currentPage > loaded && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
-  }, [currentPage, data?.pages.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-  const total = data?.pages?.[0]?.total ?? 0;
+  const total = currentPageData?.total ?? 0;
   const totalPages = Math.ceil(total / PAGE_SIZE);
-  const currentPageData = data?.pages?.[currentPage - 1];
-  const isPageLoading = currentPage > (data?.pages.length ?? 0) && isFetchingNextPage;
+  // Showing the previous page as a placeholder while the requested page loads.
+  const isPageLoading = isPlaceholderData && isFetching;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -261,9 +259,9 @@ export default function Dashboard() {
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
               {category || search || datePreset ? "Search results" : "Top Publications"}
             </h1>
-            {data?.pages?.[0] != null && (
+            {currentPageData != null && (
               <p className="text-sm text-gray-400 mt-0.5">
-                {data.pages[0].total} publication{data.pages[0].total !== 1 ? "s" : ""}
+                {currentPageData.total} publication{currentPageData.total !== 1 ? "s" : ""}
               </p>
             )}
           </div>
@@ -289,7 +287,7 @@ export default function Dashboard() {
           queryKey={queryKey}
           onSubmit={() => (user ? setModalOpen(true) : openLoginModal())}
           isLoading={isLoading}
-          flatRankedList={dateFilterActive}
+          flatRankedList={flatRanked}
           excludeId={featured?.publication.id}
         />
 
@@ -297,7 +295,7 @@ export default function Dashboard() {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={handlePageChange}
-          isFetching={isFetchingNextPage}
+          isFetching={isPageLoading}
         />
       </main>
 
