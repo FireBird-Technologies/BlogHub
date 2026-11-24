@@ -27,7 +27,8 @@ import { blog2videoUrl, notestackUrl } from "../lib/blog2video";
 import ExploreButton from "../components/ui/ExploreButton";
 import { outboundUrl, trackFeaturedClick } from "../lib/featuredUtm";
 import { useActiveFeature } from "../hooks/useFeatured";
-import type { PublicationId, PaginatedPublications } from "../types/models";
+import type { PublicationId } from "../types/models";
+import { removePublicationFromCache } from "../lib/publicationCache";
 
 function formatDate(iso: string | undefined): string {
   if (!iso) return "";
@@ -368,61 +369,9 @@ export default function PublicationDetail() {
       // to onError, which would wrongly show a "failed to delete" alert).
       navigate("/dashboard", { replace: true });
       try {
-        // ["publications"] holds both infinite caches ({ pages }) and the
-        // dashboard's single-page caches (PaginatedPublications).
-        queryClient.setQueriesData<
-          { pages: PaginatedPublications[]; pageParams: unknown[] } | PaginatedPublications
-        >({ queryKey: ["publications"] }, (data) => {
-          if (!data) return data;
-          const prune = (page: PaginatedPublications) => {
-            const items = page.items.filter((p) => p.id !== deletedId);
-            const removed = page.items.length - items.length;
-            return { ...page, items, total: Math.max(0, (page.total ?? 0) - removed) };
-          };
-          return "pages" in data ? { ...data, pages: data.pages.map(prune) } : prune(data);
-        });
-        queryClient.setQueriesData<PaginatedPublications>(
-          { queryKey: ["publications-preview"] },
-          (data) =>
-            data
-              ? {
-                  ...data,
-                  items: data.items.filter((p) => p.id !== deletedId),
-                  total: Math.max(0, (data.total ?? 0) - 1),
-                }
-              : data
-        );
-        queryClient.setQueriesData<{ pages: PaginatedPublications[]; pageParams: unknown[] }>(
-          { queryKey: ["user-publications"] },
-          (data) =>
-            data
-              ? {
-                  ...data,
-                  pages: data.pages.map((page) => {
-                    const items = page.items.filter((p) => p.id !== deletedId);
-                    const removed = page.items.length - items.length;
-                    return { ...page, items, total: Math.max(0, (page.total ?? 0) - removed) };
-                  }),
-                }
-              : data
-        );
-        queryClient.setQueriesData<PaginatedPublications>(
-          { queryKey: ["sidebar-publications"] },
-          (data) =>
-            data
-              ? {
-                  ...data,
-                  items: data.items.filter((p) => p.id !== deletedId),
-                  total: Math.max(0, (data.total ?? 0) - 1),
-                }
-              : data
-        );
-        queryClient.removeQueries({ queryKey: ["publication", deletedId] });
-        queryClient.removeQueries({ queryKey: ["publication", shortId] });
-        queryClient.invalidateQueries({ queryKey: ["publications"] });
-        queryClient.invalidateQueries({ queryKey: ["publications-preview"] });
-        queryClient.invalidateQueries({ queryKey: ["user-publications"] });
-        queryClient.invalidateQueries({ queryKey: ["sidebar-publications"] });
+        // Removes it from every cached list (both page shapes) and drops its
+        // detail record — no refetch needed anywhere.
+        removePublicationFromCache(queryClient, deletedId);
       } catch {
         // Cache already partially updated; the dashboard will refetch on mount.
       }

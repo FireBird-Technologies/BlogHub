@@ -16,6 +16,7 @@ import {
   isKnownSocialLabel,
 } from "../../constants/socials";
 import type { Publication, SocialLinkInput } from "../../types/models";
+import { invalidatePublicationData } from "../../lib/publicationCache";
 
 export type EditableField =
   | "basics"
@@ -125,11 +126,7 @@ export default function EditPublicationFieldModal({
     mutationFn: ({ id, payload }: { id: string; payload: PublicationUpdatePayload }) =>
       api.patch<Publication>(`/api/publications/${id}`, payload).then((r) => r.data),
     onSuccess: async (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: ["publications"] });
-      queryClient.invalidateQueries({ queryKey: ["user-publications"] });
-      queryClient.invalidateQueries({ queryKey: ["sidebar-publications"] });
-      queryClient.invalidateQueries({ queryKey: ["publications-preview"] });
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      invalidatePublicationData(queryClient);
       // Refetch the specific publication detail query to ensure data updates
       // immediately. The detail page keys its query by the truncated short id
       // (not the full UUID), so match on that too.

@@ -12,7 +12,12 @@ import SubmitModal from "../components/submit/SubmitModal";
 import ResubmitWrongAccountModal from "../components/submit/ResubmitWrongAccountModal";
 import Pagination from "../components/ui/Pagination";
 import Button from "../components/ui/Button";
-import { usePublicationsPage } from "../hooks/usePublications";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  LANDING_PREVIEW_LIMIT,
+  publicationsPreviewInfiniteOptions,
+  usePublicationsPage,
+} from "../hooks/usePublications";
 import { useActiveFeature } from "../hooks/useFeatured";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -215,6 +220,15 @@ export default function Dashboard() {
     setSubmitInitialUrl(url);
     setModalOpen(true);
   }, [searchParams, user, authLoading, openLoginModal, setSearchParams]);
+
+  // Warm the landing page's "Latest" list so it renders instantly after logout
+  // (or via the logo). No-op when it's already cached.
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    void queryClient.prefetchInfiniteQuery(
+      publicationsPreviewInfiniteOptions(LANDING_PREVIEW_LIMIT, "latest"),
+    );
+  }, [queryClient]);
 
   const {
     data: currentPageData,
