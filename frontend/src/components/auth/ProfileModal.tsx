@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { Info } from "lucide-react";
 import Modal from "../ui/Modal";
@@ -10,6 +10,7 @@ import Spinner from "../ui/Spinner";
 import DeleteAccountModal from "./DeleteAccountModal";
 import { useAuth } from "../../context/AuthContext";
 import api, { formatApiErrorDetail } from "../../lib/api";
+import { invalidatePublicationData } from "../../lib/publicationCache";
 import type { User } from "../../types/models";
 
 type Mode = "onboarding" | "edit";
@@ -41,10 +42,14 @@ function ProfileModalForm({ mode, user, onClose }: { mode: Mode; user: User; onC
 
   const onboarding = mode === "onboarding";
 
+  const queryClient = useQueryClient();
+
   const { mutate, isPending, error, reset } = useMutation({
     mutationFn: (body: ProfilePatch) => api.patch<User>("/api/me", body).then((r) => r.data),
     onSuccess: (updated) => {
       setUser(updated);
+      // Cards show the author's name/@tag/avatar, so cached lists must refresh.
+      invalidatePublicationData(queryClient);
       onClose();
     },
   });

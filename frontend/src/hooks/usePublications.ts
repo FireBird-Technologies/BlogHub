@@ -1,4 +1,4 @@
-import { keepPreviousData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { infiniteQueryOptions, keepPreviousData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import api from "../lib/api";
 import type { PaginatedPublications, Publication } from "../types/models";
 
@@ -54,7 +54,6 @@ export function usePublications({
         .then((r) => r.data),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
-    staleTime: 30_000,
   });
 }
 
@@ -106,7 +105,6 @@ export function usePublicationsPage({
         .then((r) => r.data),
     // Keep the previous page on screen while the next one loads (no blank flash).
     placeholderData: keepPreviousData,
-    staleTime: 30_000,
     enabled,
   });
   return { ...query, queryKey };
@@ -122,13 +120,15 @@ export function usePublicationsPreview(limit: number, sort = "ranked") {
           params: { limit, sort },
         })
         .then((r) => r.data),
-    staleTime: 60_000,
   });
 }
 
+/** Page size of the landing "Latest" section. Shared so the dashboard can prefetch it. */
+export const LANDING_PREVIEW_LIMIT = 10;
+
 /** Cursor-paginated publications for the landing "Latest" section (Load more). */
-export function usePublicationsPreviewInfinite(limit: number, sort = "ranked") {
-  return useInfiniteQuery<PaginatedPublications, Error>({
+export function publicationsPreviewInfiniteOptions(limit: number, sort = "ranked") {
+  return infiniteQueryOptions<PaginatedPublications, Error>({
     queryKey: ["publications-preview-infinite", limit, sort],
     queryFn: ({ pageParam }) =>
       api
@@ -138,8 +138,11 @@ export function usePublicationsPreviewInfinite(limit: number, sort = "ranked") {
         .then((r) => r.data),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
-    staleTime: 60_000,
   });
+}
+
+export function usePublicationsPreviewInfinite(limit: number, sort = "ranked") {
+  return useInfiniteQuery(publicationsPreviewInfiniteOptions(limit, sort));
 }
 
 export function usePublication(id: string | undefined) {
@@ -150,7 +153,6 @@ export function usePublication(id: string | undefined) {
     queryKey,
     queryFn: () => api.get<Publication>(`/api/publications/${id}`, { params: { tz } }).then((r) => r.data),
     enabled: !!id,
-    staleTime: 30_000,
   });
 
   return { ...query, queryKey, tz };

@@ -37,7 +37,6 @@ export default function SidebarPublications({ currentId }: SidebarPublicationsPr
           .then((r) => r.data),
       initialPageParam: undefined as string | undefined,
       getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
-      staleTime: 30_000,
     });
 
   const pubs = data?.pages.flatMap((p) => p.items) ?? [];

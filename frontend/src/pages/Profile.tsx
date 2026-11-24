@@ -17,6 +17,7 @@ import {
   WEBHOOK_POLL_TIMEOUT_MS,
 } from "../hooks/useFeaturedEmail";
 import type { FeaturedEmail, MyBooking } from "../types/models";
+import { removePublicationFromCache } from "../lib/publicationCache";
 import { ProfileModal } from "../components/auth/ProfileModal";
 import DeleteAccountModal from "../components/auth/DeleteAccountModal";
 import { useAuth } from "../context/AuthContext";
@@ -69,7 +70,7 @@ export default function Profile() {
 
   const handleDelete = async (publicationId: string) => {
     await api.delete(`/api/publications/${publicationId}`);
-    queryClient.invalidateQueries({ queryKey });
+    removePublicationFromCache(queryClient, publicationId);
   };
 
   // Featured status + announcement email, keyed by publication, so each card can

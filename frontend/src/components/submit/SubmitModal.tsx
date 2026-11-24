@@ -18,6 +18,7 @@ import { useAuth } from "../../context/AuthContext";
 import type { Publication, PublicationDraft, ScrapeResult, SocialLinkInput } from "../../types/models";
 import type { PublicationFormContinuePayload } from "./PublicationForm";
 import type { LinksPayload } from "./PublicationLinksStep";
+import { invalidatePublicationData } from "../../lib/publicationCache";
 
 type Phase = "url" | "details" | "links" | "verified-conflict" | "claim-required";
 
@@ -151,10 +152,7 @@ export default function SubmitModal({ isOpen, onClose, initialUrl }: SubmitModal
         return;
       }
       const pub = res as Publication;
-      queryClient.invalidateQueries({ queryKey: ["publications"] });
-      queryClient.invalidateQueries({ queryKey: ["user-publications"] });
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
-      queryClient.invalidateQueries({ queryKey: ["publication-tags"] });
+      invalidatePublicationData(queryClient);
       handleClose();
       sessionStorage.setItem(`video-prompt:${pub.id}`, "1");
       navigate(publicationPath(pub), { state: { showVideoPrompt: true, showClaimPrompt: true } });
@@ -174,10 +172,7 @@ export default function SubmitModal({ isOpen, onClose, initialUrl }: SubmitModal
         .post(`/api/publications/${pendingPublicationId}/resubmit-and-claim`, payload)
         .then((r) => r.data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["publications"] });
-      queryClient.invalidateQueries({ queryKey: ["user-publications"] });
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
-      queryClient.invalidateQueries({ queryKey: ["publication-tags"] });
+      invalidatePublicationData(queryClient);
       handleClose();
       window.location.reload();
     },

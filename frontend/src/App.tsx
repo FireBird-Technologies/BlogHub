@@ -32,7 +32,13 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
+      // Cached data is reused across pages and only refreshed when a mutation
+      // invalidates it (see lib/publicationCache.ts) or on a hard refresh.
+      // Hooks that need live data (comments, featured availability) override this.
+      staleTime: Infinity,
+      gcTime: 30 * 60_000,
       refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
     },
   },
 });

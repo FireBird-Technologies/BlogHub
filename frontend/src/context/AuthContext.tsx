@@ -3,10 +3,13 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 import { isAxiosError } from "axios";
+import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import api, { onAccountStatusError } from "../lib/api";
 import { getToken, removeToken, setToken } from "../lib/auth";
 import type { User } from "../types/models";
@@ -194,11 +197,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setPendingCredential(null);
   }, []);
 
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  // Client-side navigation (not a full reload) so the publications cache survives
+  // logout and the landing page renders instantly. The effect below refreshes it.
   const logout = useCallback(() => {
     removeToken();
     setUser(null);
-    window.location.href = "/";
-  }, []);
+    navigate("/", { replace: true });
+  }, [navigate]);
+
+  // Cached publications carry per-viewer fields (is_upvoted) and some queries are
+  // private to the signed-in user. When the signed-in user changes (login, logout,
+  // account switch, blocked mid-session), drop private data and mark everything
+  // else stale: pages keep showing the cached lists and refetch in the background,
+  // so there is no loading spinner. The first resolution after page load is skipped,
+  // since every query fetched so far already sent the stored token.
+  const prevUserId = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    if (loading) return;
+    const id = user?.id ?? null;
+    if (prevUserId.current === undefined) {
+      prevUserId.current = id;
+      return;
+    }
+    if (prevUserId.current === id) return;
+    prevUserId.current = id;
+    queryClient.removeQueries({ queryKey: ["featured", "my-bookings"] });
+    queryClient.removeQueries({ queryKey: ["featured", "my-emails"] });
+    queryClient.invalidateQueries();
+  }, [user?.id, loading, queryClient]);
 
   const refreshUser = useCallback(async () => {
     try {

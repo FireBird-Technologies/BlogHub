@@ -14,6 +14,5 @@ export function useUserPublications(userId: string | undefined) {
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
     enabled: !!userId,
-    staleTime: 30_000,
   });
 }

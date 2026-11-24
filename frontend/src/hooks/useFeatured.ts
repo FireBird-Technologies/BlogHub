@@ -1,5 +1,6 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../lib/api";
+import { invalidatePublicationData } from "../lib/publicationCache";
 import type {
   ActiveFeature,
   ComposedEmail,
@@ -100,8 +101,10 @@ export function useCreateFeatureCheckout() {
  *  something that was never submitted to BlogHub. Reusing the same URL under the
  *  same account is idempotent — it just returns the existing row. */
 export function useCreatePublicationFromLink() {
+  const queryClient = useQueryClient();
   return useMutation<Publication, Error, PublicationFromLinkPayload>({
     mutationFn: (payload) =>
       api.post<Publication>("/api/publications/from-link", payload).then((r) => r.data),
+    onSuccess: (pub) => invalidatePublicationData(queryClient, pub.id),
   });
 }

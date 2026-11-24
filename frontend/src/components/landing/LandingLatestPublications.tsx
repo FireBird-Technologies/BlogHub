@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowBigUp, MessageCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { usePublicationsPreviewInfinite } from "../../hooks/usePublications";
+import { LANDING_PREVIEW_LIMIT, usePublicationsPreviewInfinite } from "../../hooks/usePublications";
 import { useActiveFeature } from "../../hooks/useFeatured";
 import FeaturedPublicationBanner from "../featured/FeaturedPublicationBanner";
 import Avatar from "../ui/Avatar";
@@ -123,13 +123,11 @@ function LandingPreviewRow({
   );
 }
 
-const PREVIEW_LIMIT = 10;
-
 export default function LandingLatestPublications() {
   const { user, openLoginModal } = useAuth();
   const navigate = useNavigate();
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    usePublicationsPreviewInfinite(PREVIEW_LIMIT, "latest");
+    usePublicationsPreviewInfinite(LANDING_PREVIEW_LIMIT, "latest");
   const { data: featured } = useActiveFeature();
 
   // Pages actually shown. For signed-in users we fetch one page ahead in the

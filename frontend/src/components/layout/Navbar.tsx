@@ -59,6 +59,22 @@ export default function Navbar() {
           >
             Blogs
           </Link>
+          {!loading && user && (
+            <>
+              <div className="my-1 h-px bg-gray-100" />
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  logout();
+                }}
+                className="flex w-full items-center justify-between gap-2 px-4 py-2.5 text-left text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors"
+              >
+                Sign out
+                <LogOut size={16} />
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>
@@ -94,7 +110,7 @@ export default function Navbar() {
           </a>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           <ExploreButton href={notestackUrl("app_navbar")} className="sm:hidden whitespace-nowrap text-xs px-3 py-1.5" />
           <div className="hidden sm:flex items-center gap-7">
             <ExploreButton href={notestackUrl("app_navbar")} className="text-sm px-3.5 py-1.5" />
@@ -131,7 +147,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={logout}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                className="hidden sm:inline-flex p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
                 title="Sign out"
               >
                 <LogOut size={16} />
