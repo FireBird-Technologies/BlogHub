@@ -17,8 +17,8 @@ import api, { formatApiErrorDetail } from "../../lib/api";
 import { normalizeLinkUrl, normalizePublicationUrl } from "../../lib/urlNormalize";
 import ImageUploadButton from "../ui/ImageUploadButton";
 import AdjustImageModal, { ImageThumbWithAdjust } from "../ui/AdjustImageModal";
-import { publicationShortId } from "../../lib/publicationUrl";
 import type { Publication, SocialLinkInput } from "../../types/models";
+import { invalidatePublicationData } from "../../lib/publicationCache";
 
 const inputBase =
   "w-full bg-white border border-gray-200 shadow-sm text-gray-800 text-sm rounded-lg px-3 placeholder:text-gray-400 focus:outline-none focus:border-red-400 focus:ring-4 focus:ring-red-500/10 hover:border-gray-300 transition-colors";
@@ -148,20 +148,8 @@ export default function EditPublicationModal({ publication, isOpen, onClose }: E
       api.patch<Publication>(`/api/publications/${id}`, payload).then((r) => r.data),
     onSuccess: (_data, variables) => {
       const { id } = variables;
-      queryClient.invalidateQueries({ queryKey: ["publications"] });
-      queryClient.invalidateQueries({ queryKey: ["user-publications"] });
-      queryClient.invalidateQueries({ queryKey: ["sidebar-publications"] });
-      queryClient.invalidateQueries({ queryKey: ["publications-preview"] });
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
-      // The detail page keys its query by the truncated short id (not the full
-      // UUID), so match on that too — otherwise it shows stale data until refresh.
-      const shortId = publicationShortId(id);
-      queryClient.invalidateQueries({
-        predicate: (q) =>
-          Array.isArray(q.queryKey) &&
-          q.queryKey[0] === "publication" &&
-          (String(q.queryKey[1]) === String(id) || String(q.queryKey[1]) === shortId),
-      });
+      // Also matches the detail query, which is keyed by the short id.
+      invalidatePublicationData(queryClient, id);
       onClose();
     },
     onError: (err: unknown) => {

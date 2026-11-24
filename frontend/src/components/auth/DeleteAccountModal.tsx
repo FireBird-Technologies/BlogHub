@@ -21,8 +21,8 @@ export default function DeleteAccountModal({
 
   const { mutate, isPending, error } = useMutation({
     mutationFn: () => api.delete("/api/me"),
-    // logout() clears the token and hard-redirects home, which also drops all
-    // cached query data for the account that no longer exists.
+    // logout() clears the token and navigates home; AuthContext's user-change
+    // effect then drops private cached data and refreshes the rest.
     onSuccess: () => logout(),
   });
 

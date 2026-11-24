@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../lib/api";
 import type { Comment } from "../types/models";
+import { invalidatePublicationData } from "../lib/publicationCache";
 
 export function useComments(publicationId: string | null | undefined) {
   return useQuery<Comment[]>({
@@ -26,8 +27,8 @@ export function useAddComment(publicationId: string) {
         .then((r) => r.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", publicationId] });
-      queryClient.invalidateQueries({ queryKey: ["publications"] });
-      queryClient.invalidateQueries({ queryKey: ["user-publications"] });
+      // Comment counts live on publication cards and the detail record.
+      invalidatePublicationData(queryClient, publicationId);
     },
   });
 }
@@ -38,8 +39,8 @@ export function useDeleteComment(publicationId: string) {
     mutationFn: (commentId) => api.delete(`/api/comments/${commentId}`).then((r) => r.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", publicationId] });
-      queryClient.invalidateQueries({ queryKey: ["publications"] });
-      queryClient.invalidateQueries({ queryKey: ["user-publications"] });
+      // Comment counts live on publication cards and the detail record.
+      invalidatePublicationData(queryClient, publicationId);
     },
   });
 }

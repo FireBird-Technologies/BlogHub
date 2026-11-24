@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../lib/api";
 import type { SocialLinkInput } from "../types/models";
+import { invalidatePublicationData } from "../lib/publicationCache";
 
 export interface ClaimPayload {
   name: string;
@@ -25,11 +26,7 @@ export function useClaimPublication(publicationId: string) {
         .post<ClaimResponse>(`/api/publications/${publicationId}/claim`, payload)
         .then((r) => r.data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["publications"] });
-      queryClient.invalidateQueries({ queryKey: ["publication", publicationId] });
-      queryClient.invalidateQueries({ queryKey: ["user-publications"] });
-      queryClient.invalidateQueries({ queryKey: ["sidebar-publications"] });
-      queryClient.invalidateQueries({ queryKey: ["publications-preview"] });
+      invalidatePublicationData(queryClient, publicationId);
     },
   });
 }
